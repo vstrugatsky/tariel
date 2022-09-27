@@ -12,7 +12,6 @@ Data model re-work - think deeply
 - deprecate estimates
 
 2022-Sep-20
-- create Git repo
 - Start remapping classes to new tables
 - Reload symbols, dividends, splits
 - Get to earnings reports
