@@ -11,7 +11,10 @@ Data model re-work - think deeply
 - repoint dividends, splits, earnings_reports to new
 - deprecate estimates
 
-2022-Sep-20
+2022-Sep-26
+- Setup Github repo - DONE
+
+Next
 - Start remapping classes to new tables
 - Reload symbols, dividends, splits
 - Get to earnings reports
