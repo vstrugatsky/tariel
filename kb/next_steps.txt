@@ -1,0 +1,18 @@
+2022-Sep-17
+Data model re-work - think deeply
+- Exchanges load from ISO 10383
+
+- Symbols with a uniqueness on Exchange + Company
+
+2022-Sep-19
+- convert data from symbols_polygon to symbols
+- establish rules based on values - perhaps a separate exchange_acronyms contraption - because needed in code
+- deprecate polygon symbols
+- repoint dividends, splits, earnings_reports to new
+- deprecate estimates
+
+2022-Sep-20
+- create Git repo
+- Start remapping classes to new tables
+- Reload symbols, dividends, splits
+- Get to earnings reports

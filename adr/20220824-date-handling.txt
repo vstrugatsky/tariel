@@ -1,0 +1,4 @@
+Handle all dates with UTC:
+- datetime.utcnow() instead of datetime.now()
+- In Postgres, define columns as TIMESTAMPTZ and not TIMESTAMP
+- In SQLAlchemy, use Column(DateTime(timezone=True))

@@ -1,0 +1,5 @@
+Trend Following - buy when going up, sell when going down
+Smaller companies outperform larger ones on average
+Correct for market bias
+Swing trading methods (https://en.wikipedia.org/wiki/Swing_trading)
+Chart patterns - traditional, harmonic, candlestick (https://en.wikipedia.org/wiki/Chart_pattern)

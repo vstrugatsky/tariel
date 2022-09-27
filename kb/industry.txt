@@ -1,0 +1,26 @@
+Exchange = Operating (OPRT) MIC
+Also a regular or a Segment (SGMT) MIC
+MICs are defined by ISO 10383 (free data). Has acronym field useful for display and parsing
+https://www.iso20022.org/sites/default/files/2021-12/ISO10383_MIC_Release_2_0_Factsheet.pdf
+
+ISO 10383 also lists LEI (Legal Entity Identifier) in turn defined by ISO 17442-1
+ISO 10383 also standardizes and lists market category but not clear how useful it is
+Symbols can represent stocks, bonds, options...
+Symbols unique in an exchange or country code - need to associate with both + acronym for parsing
+Same stock can be traded on multiple exchanges but would have same ISIN / CUSIP
+ISIN = International Stock Identifier - format defined by ISO 6166
+- 12-char = Country Code + NSIN + check digit (algorithm)
+NSIN = National Stock Identifier, assigned by NNA = National Numbering Authority
+CUSIP - National Identifier in US and Canada; can be looked up (SEC) but full dataset requires $ (FactSet)
+Different formats for symbol + exchange: Reuters Instrument Codes (RIC), Bloomberg, Yahoo - need normalization logic
+
+Indices also have symbols preceded by ^ or .
+
+ISO 10962: CFI - Classification of Financial Instruments - 6-letter code, not clear if widely adopted / needed
+https://en.wikipedia.org/wiki/ISO_10962
+
+OTC markets have their own exchange codes: OTCB (OTCQB), OTCQ (OTCQX), PINK (https://en.wikipedia.org/wiki/OTC_Markets_Group)
+https://www.investopedia.com/terms/o/otc-markets-group-inc.asp
+
+CIK - Central Index Key - number given to company by SEC
+FIGI - Financial Industry Global Identifier, adopted by

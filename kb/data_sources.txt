@@ -1,0 +1,27 @@
+1) Exchanges + Acronyms + Country Codes - ISO 10383
+
+2) 	ftp://ftp.nasdaqtrader.com/symboldirectory/nasdaqlisted.txt - NASDAQ
+http://www.nasdaqtrader.com/trader.aspx?id=symboldirdefs
+Symbol|Security Name|Market Category|Test Issue|Financial Status|Round Lot Size|ETF|NextShares
+AAPL|Apple Inc. - Common Stock|Q|N|N|100|N|N
+
+3) ftp://ftp.nasdaqtrader.com/symboldirectory/otherlisted.txt - other US
+http://www.nasdaqtrader.com/trader.aspx?id=symboldirdefs
+ACT Symbol|Security Name|Exchange|CQS Symbol|ETF|Round Lot Size|Test Issue|NASDAQ Symbol
+
+4) Ticket Symbol Convention - http://www.nasdaqtrader.com/trader.aspx?id=CQSsymbolconvention
+Security Categorization|CQS Suffix|CMS Suffix|NASDAQ Integrated Platform Suffix|NASDAQ ACT/CTCI Suffixes|
+Preferred|p|PR|-|$
+
+5) Mutual Funds List - ftp://ftp.nasdaqtrader.com/symboldirectory/mfundslist.txt
+
+6) Options - ftp://ftp.nasdaqtrader.com/symboldirectory/options.txt
+
+7) OTC - full list not publicly available. EOD Historical data mainly has them. No Acronym in ISO 10383 :(
+
+https://eodhistoricaldata.com/api/exchange-symbol-list/{EXCHANGE_CODE}?api_token={YOUR_API_KEY}&delisted=1
+For US exchanges you can also get all US tickers, then you should use the ‘US’ exchange code
+and tickers only for the particular exchange, the list of possible US exchanges to request:
+
+'US', NYSE', 'NASDAQ', 'BATS', 'OTCQB', 'PINK', 'OTCQX', 'OTCMKTS',
+'NMFQS', 'NYSE MKT','OTCBB', 'OTCGREY', 'BATS', 'OTC'
