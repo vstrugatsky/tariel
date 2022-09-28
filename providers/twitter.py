@@ -64,7 +64,7 @@ def call_paginated_api(payload, paginate, backfill, next_token):
             match = re.search(r'\([A-Z.]+\)', tweet_url_description)
             if match:
                 symbol = match.group(0).strip("()")
-                if Symbol.lookup_symbol(symbol):
+                if Symbol.lookup_symbol(symbol, session):
                     print(f'Found match for {symbol}')
                 else:
                     print(f'WARN could not find {symbol} in Symbols')
@@ -106,6 +106,7 @@ if __name__ == '__main__':
 
     call_paginated_api(payload, False, True, None)
 
+
 class TestSymbolInParensRegex(unittest.TestCase):
     def runTest(self):
         desc = '''
@@ -114,5 +115,6 @@ class TestSymbolInParensRegex(unittest.TestCase):
         '''
         m = re.search(r'\([A-Z]+\)', desc)
         assert(m.group(0) == '(OGZPY)')
-        assert(Symbol.lookup_symbol(m.group(0).strip("()")))
+        with model.Session() as session:
+            assert(Symbol.lookup_symbol(m.group(0).strip("()"), session))
 

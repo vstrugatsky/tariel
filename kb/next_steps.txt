@@ -14,7 +14,12 @@ Data model re-work - think deeply
 2022-Sep-26
 - Setup Github repo - DONE
 
-Next
-- Start remapping classes to new tables
-- Reload symbols, dividends, splits
+2022-Sep-27
+- Remap exchanges, exchange acronyms, symbols to new tables
+- adopted with session() mechanism for lookups
+- Reloaded US and Canada symbols from EOD
+- Loaded XLON symbols from EOD
+
+Next steps:
+- Remap and reload dividends, splits
 - Get to earnings reports

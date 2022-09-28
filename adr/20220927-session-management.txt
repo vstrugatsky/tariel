@@ -1,0 +1,6 @@
+Keep lifecycle of session SEPARATE and EXTERNAL from functions and object that access and/or manipulate database data.
+
+use Python context manager:
+
+with model.Session() as session:
+    call lookupX(value, session)
