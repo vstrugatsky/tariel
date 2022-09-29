@@ -1,1 +1,1 @@
-no need to use mypy - PyCharm supports PEP-464 hints (context actions)
+no need to use mypy - PyCharm supports PEP-484 hints (context actions)

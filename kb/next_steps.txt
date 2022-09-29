@@ -18,8 +18,17 @@ Data model re-work - think deeply
 - Remap exchanges, exchange acronyms, symbols to new tables
 - adopted with session() mechanism for lookups
 - Reloaded US and Canada symbols from EOD
-- Loaded XLON symbols from EOD
+- Loaded UK (XLON) symbols from EOD
+
+2022-Sep-28
+- Remapped and reloaded splits
+- figured out how to define compound foreign keys
+- figured out how to use joins
+- figured out how to define a function args and return types in another function's signature - Callable
+- wrote tests for Symbol.find_exchange_by_symbol_and_country
 
 Next steps:
-- Remap and reload dividends, splits
+- Remap and reload dividends
+- refactor polygon load to make load_from_polygon less mysterious
+- think about how to deal with deactivated symbols
 - Get to earnings reports

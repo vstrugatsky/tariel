@@ -1,3 +1,6 @@
+import unittest
+
+from sqlalchemy.orm import relationship
 import model as model
 from sqlalchemy import Column, String, Boolean, PrimaryKeyConstraint, ForeignKey
 import requests
@@ -15,10 +18,17 @@ class Symbol(model.Base):
     currency = Column(String(10), nullable=False)
     isin = Column(String(12), nullable=True)
     PrimaryKeyConstraint(symbol, exchange, active)
+    exchange_object = relationship("Exchange")
 
     @staticmethod
     def lookup_symbol(symbol: str, session: model.Session):
         return session.query(Symbol.symbol).filter(Symbol.symbol == symbol).scalar()
+
+    @staticmethod
+    def find_exchange_by_symbol_and_country(symbol: str, iso_code_2: str, session: model.Session) -> str:
+        return session.query(Symbol.exchange).join(Symbol.exchange_object).\
+            filter(Symbol.symbol == symbol, Exchange.iso_country_code == iso_code_2, Symbol.active).\
+            scalar()
 
 
 def eod_update_symbols(exchange_code: str):
@@ -57,3 +67,13 @@ if __name__ == '__main__':
     # PolygonIo.call_paginated_api(model.polygonPrefix + 'v3/reference/tickers',
     #             {'market': 'otc', 'active': False, 'limit': 1000, 'order': 'asc', 'sort': 'ticker'},
     #             method=Symbol.from_polygon, paginate=True, cursor=None)
+
+
+class TestFindExchangeBySymbolAndCountry(unittest.TestCase):
+    @staticmethod
+    def runTest():
+        with model.Session() as session:
+            assert(Symbol.find_exchange_by_symbol_and_country('AAPL', 'US', session) == 'XNAS')
+            assert(Symbol.find_exchange_by_symbol_and_country('AAPL', 'CA', session) is None)
+            assert(Symbol.find_exchange_by_symbol_and_country('A', 'US', session) == 'XNYS')
+            assert(Symbol.find_exchange_by_symbol_and_country('A', 'CA', session) == 'XTSX')
