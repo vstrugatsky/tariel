@@ -1,8 +1,9 @@
 import unittest
+from typing import Optional, Any
 
 from sqlalchemy.orm import relationship
 import model as model
-from sqlalchemy import Column, String, Boolean, PrimaryKeyConstraint, ForeignKey
+from sqlalchemy import Column, String, Boolean, PrimaryKeyConstraint, ForeignKey, DateTime
 import requests
 from datetime import datetime
 from model.exchanges import Exchange
@@ -17,18 +18,46 @@ class Symbol(model.Base):
     type = Column(String(20), nullable=True)
     currency = Column(String(10), nullable=False)
     isin = Column(String(12), nullable=True)
+    created = Column(DateTime(timezone=True))
     PrimaryKeyConstraint(symbol, exchange, active)
     exchange_object = relationship("Exchange")
 
     @staticmethod
-    def lookup_symbol(symbol: str, session: model.Session):
-        return session.query(Symbol.symbol).filter(Symbol.symbol == symbol).scalar()
+    def lookup_symbol(symbol: str, session: model.Session) -> Optional[Any]:
+        returned_symbol = session.query(Symbol.symbol).\
+            filter(Symbol.symbol == symbol).\
+            order_by(Symbol.created.desc()).\
+            first()
+        if returned_symbol:
+            return returned_symbol[0]
+        else:
+            return Symbol.convert_polygon_symbol_to_eod(symbol)
 
     @staticmethod
-    def find_exchange_by_symbol_and_country(symbol: str, iso_code_2: str, session: model.Session) -> str:
-        return session.query(Symbol.exchange).join(Symbol.exchange_object).\
-            filter(Symbol.symbol == symbol, Exchange.iso_country_code == iso_code_2, Symbol.active).\
-            scalar()
+    def find_exchange_by_symbol_and_country(symbol: str, iso_code_2: str, session: model.Session) -> Optional[Any]:
+        exchange = session.query(Symbol.exchange).join(Symbol.exchange_object).\
+            filter(Symbol.symbol == symbol, Exchange.iso_country_code == iso_code_2, Symbol.active). \
+            order_by(Symbol.created.desc()). \
+            first()
+        if exchange:
+            return exchange[0]
+        else:
+            return None
+
+    @staticmethod
+    def convert_polygon_symbol_to_eod(symbol: str) -> Optional[Any]:
+        # Polygon format for preferred stock:
+        # replace lowercase p e.g. AAICpB -> AAIC-PB
+        # replace dot e.g. AKO.A -> AKO-A
+        index: int = symbol.find('p')
+        if index > 0:
+            return symbol[:index] + '-P' + symbol[index+1:]
+        else:
+            index = symbol.find('.')
+            if index > 0:
+                return symbol[:index] + '-' + symbol[index+1:]
+            else:
+                return None
 
 
 def eod_update_symbols(exchange_code: str):
@@ -77,3 +106,23 @@ class TestFindExchangeBySymbolAndCountry(unittest.TestCase):
             assert(Symbol.find_exchange_by_symbol_and_country('AAPL', 'CA', session) is None)
             assert(Symbol.find_exchange_by_symbol_and_country('A', 'US', session) == 'XNYS')
             assert(Symbol.find_exchange_by_symbol_and_country('A', 'CA', session) == 'XTSX')
+
+
+class TestLookupSymbol(unittest.TestCase):
+    @staticmethod
+    def runTest():
+        with model.Session() as session:
+            assert(Symbol.lookup_symbol('AAICpB', session) == 'AAIC-PB')
+            assert(Symbol.lookup_symbol('A', session) == 'A')
+            assert(Symbol.lookup_symbol('AAPL', session) == 'AAPL')
+            assert(Symbol.lookup_symbol('ZYZYZY', session) is None)
+
+
+class TestConvertPolygonSymbolToEod(unittest.TestCase):
+    @staticmethod
+    def runTest():
+        assert(Symbol.convert_polygon_symbol_to_eod('AAICpB') == 'AAIC-PB')
+        assert(Symbol.convert_polygon_symbol_to_eod('AAICP') is None)
+        assert(Symbol.convert_polygon_symbol_to_eod('ACRpC') == 'ACR-PC')
+        assert(Symbol.convert_polygon_symbol_to_eod('AAIC') is None)
+        assert(Symbol.convert_polygon_symbol_to_eod('AKO.A') == 'AKO-A')

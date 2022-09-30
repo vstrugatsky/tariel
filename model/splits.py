@@ -17,28 +17,34 @@ class Split(model.Base):
     ForeignKeyConstraint([symbol, exchange, active], ['symbols.symbol', 'symbols.exchange', 'symbols.active'])
 
     @staticmethod
-    def load_from_polygon(i: dict, country_code: str, session: model.Session) -> object:
-        exchange = Symbol.find_exchange_by_symbol_and_country(i.get('ticker'), country_code, session)
-        if exchange:
-            split = Split(symbol=i.get('ticker'),
-                          exchange=exchange,
-                          active=True,
-                          split_from=i.get('split_from'),
-                          split_to=i.get('split_to'),
-                          execution_date=i.get('execution_date'))
-            return split
-        else:
+    def load_from_polygon(i: dict, session: model.Session, method_params: dict) -> object:
+        symbol = Symbol.lookup_symbol(i.get('ticker'), session)
+        if symbol is None:
+            print(f'WARN {datetime.utcnow()} {i.get("ticker")} not found in Symbols')
+            return None
+
+        country_code = method_params.get("country_code")
+        exchange = Symbol.find_exchange_by_symbol_and_country(symbol, country_code, session)
+        if exchange is None:
             print(f'WARN {datetime.utcnow()} {i.get("ticker")} not found in Symbols for country={country_code}')
             return None
+
+        split = Split(symbol=symbol,
+                      exchange=exchange,
+                      active=True,
+                      split_from=i.get('split_from'),
+                      split_to=i.get('split_to'),
+                      execution_date=i.get('execution_date'))
+        return split
 
 
 if __name__ == '__main__':
     PolygonIo.call_paginated_api(
         PolygonIo.polygonPrefix + 'v3/reference/splits',
-        {'limit': 1000,
-         'execution_date.gt': datetime.utcnow() - timedelta(50),
-         'order': 'asc',
-         'sort': 'ticker'},
-        country_code='US',
+        payload={'limit': 1000,
+                 'execution_date.gt': datetime.utcnow() - timedelta(5),
+                 'order': 'asc',
+                 'sort': 'ticker'},
         method=Split.load_from_polygon,
+        method_params={'country_code': 'US'},
         commit=True, paginate=True, cursor=None)

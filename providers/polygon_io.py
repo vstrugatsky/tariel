@@ -12,8 +12,8 @@ class PolygonIo:
     @staticmethod
     def call_paginated_api(url_suffix: str,
                            payload: dict,
-                           country_code: str,
-                           method: Callable[[dict, model.Session], object],
+                           method: Callable[[dict, model.Session, dict], object],
+                           method_params: dict,
                            commit: bool,
                            paginate: bool,
                            cursor: str) -> None:
@@ -32,7 +32,7 @@ class PolygonIo:
         with model.Session() as session:
             for i in r.json()['results']:
                 print(i)
-                model_object = method(i, country_code, session)
+                model_object = method(i, session, method_params)
                 if model_object:
                     session.merge(model_object)
             if commit:
@@ -40,4 +40,4 @@ class PolygonIo:
 
         if cursor and paginate is True:
             sleep_if_needed(last_call_time, api_calls_per_minute=5)
-            PolygonIo.call_paginated_api(url_suffix, {}, country_code, method, commit, paginate, cursor)
+            PolygonIo.call_paginated_api(url_suffix, {}, method, method_params, commit, paginate, cursor)

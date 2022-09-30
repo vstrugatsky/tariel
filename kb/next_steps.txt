@@ -27,8 +27,14 @@ Data model re-work - think deeply
 - figured out how to define a function args and return types in another function's signature - Callable
 - wrote tests for Symbol.find_exchange_by_symbol_and_country
 
-Next steps:
+2022-Sep-29
 - Remap and reload dividends
+- create Polygon -> EOD symbol conversion
+- allow for more than one symbol per country (as long as exchanges are different)
 - refactor polygon load to make load_from_polygon less mysterious
+
+Next steps:
+- regularly run symbols, splits, dividends
+- requests: configure timeouts
 - think about how to deal with deactivated symbols
 - Get to earnings reports
