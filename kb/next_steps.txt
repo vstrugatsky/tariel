@@ -32,6 +32,7 @@ Data model re-work - think deeply
 - create Polygon -> EOD symbol conversion
 - allow for more than one symbol per country (as long as exchanges are different)
 - refactor polygon load to make load_from_polygon less mysterious
+- research failures to convert Polygon -> EOD: minor, not worth getting to perfection
 
 Next steps:
 - regularly run symbols, splits, dividends
