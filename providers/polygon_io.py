@@ -23,7 +23,7 @@ class PolygonIo:
             payload = {'apiKey': PolygonIo.polygonApiKey, 'cursor': cursor}
 
         last_call_time = datetime.utcnow()
-        r = requests.get(url_suffix, params=payload)
+        r = requests.get(url_suffix, params=payload, timeout=10)
         cursor = parse_query_param_value(r.json().get('next_url'), 'cursor')
 
         print(f'INFO {datetime.utcnow()} URL={r.url} \n Status={r.status_code} Count={r.json().get("count")}')

@@ -3,7 +3,7 @@ from typing import Optional, Any
 
 from sqlalchemy.orm import relationship
 import model as model
-from sqlalchemy import Column, String, Boolean, PrimaryKeyConstraint, ForeignKey, DateTime
+from sqlalchemy import Column, String, Boolean, PrimaryKeyConstraint, ForeignKey, DateTime, FetchedValue
 import requests
 from datetime import datetime
 from model.exchanges import Exchange
@@ -18,7 +18,8 @@ class Symbol(model.Base):
     type = Column(String(20), nullable=True)
     currency = Column(String(10), nullable=False)
     isin = Column(String(12), nullable=True)
-    created = Column(DateTime(timezone=True))
+    created = Column(DateTime(timezone=True), FetchedValue())
+    updated = Column(DateTime(timezone=True))
     PrimaryKeyConstraint(symbol, exchange, active)
     exchange_object = relationship("Exchange")
 
@@ -62,8 +63,11 @@ class Symbol(model.Base):
 
 def eod_update_symbols(exchange_code: str):
     payload = {'fmt': 'json', 'api_token': model.eodApiKey}
-    r = requests.get(model.eodPrefix + 'exchange-symbol-list/' + exchange_code, params=payload)
-    print(f'{datetime.utcnow()} URL = {r.url}; Status = {r.status_code}; JSON = {r.json()}')
+    r = requests.get(model.eodPrefix + 'exchange-symbol-list/' + exchange_code, params=payload, timeout=10)
+    print(f'{datetime.utcnow()} URL = {r.url}; Status = {r.status_code}')
+    if r.status_code != 200:
+        print(f'ERROR status={r.status_code}')
+        exit(1)
     with model.Session() as session:
         for i in r.json():
             print(i)
@@ -77,13 +81,20 @@ def eod_update_symbols(exchange_code: str):
                                 name=i.get('Name'),
                                 currency=i.get("Currency"),
                                 type=i.get('Type'),
-                                isin=i.get('Isin'))
+                                isin=i.get('Isin'),
+                                updated=datetime.now())  # no need for utcnow() - the column is set to timestamptz
                 session.merge(symbol)
         session.commit()
 
 
 if __name__ == '__main__':
-    eod_update_symbols('LSE')  # loaded US, V, TO
+    loaded_exchanges = [
+        'NEO', 'V', 'TO']   # Canada
+        # , 'LSE'              # London Stock Exchange
+        # , 'US'                # All US Exchanges
+    # ]
+    for e in loaded_exchanges:
+        eod_update_symbols(e)  # loaded US, V, TO, LSE, NEO
     # PolygonIo.call_paginated_api(model.polygonPrefix + 'v3/reference/tickers',
     #             {'market': 'stocks', 'active': True, 'limit': 1000, 'order': 'asc', 'sort': 'ticker'},
     #             method=Symbol.from_polygon, paginate=True, cursor=None)

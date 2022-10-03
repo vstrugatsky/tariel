@@ -34,8 +34,10 @@ Data model re-work - think deeply
 - refactor polygon load to make load_from_polygon less mysterious
 - research failures to convert Polygon -> EOD: minor, not worth getting to perfection
 
-Next steps:
-- regularly run symbols, splits, dividends
+2022-Oct-2:
+- regularly run (a) symbols, (b) splits, (c) dividends (d) update to false SQL
 - requests: configure timeouts
-- think about how to deal with deactivated symbols
+- deal with deactivated symbols (through UPDATED)
+
+Next steps:
 - Get to earnings reports

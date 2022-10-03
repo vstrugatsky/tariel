@@ -2,11 +2,13 @@ import model as model
 from model.symbols import Symbol
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String, Numeric, BigInteger, Date, ForeignKey, PrimaryKeyConstraint
-from datetime import datetime, timedelta
+from datetime import datetime
 from providers.fmp import Fmp
 import requests
+from deprecated import deprecated
 
 
+@deprecated("numbers not accurate")
 class Estimate(model.Base):
     __tablename__ = 'estimates'
     symbol = Column(String(10), ForeignKey("symbols.symbol"))
