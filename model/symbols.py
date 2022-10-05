@@ -1,12 +1,13 @@
 import unittest
-from typing import Optional, Any
+from typing import Optional, Any, Set
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 import model as model
-from sqlalchemy import Column, String, Boolean, PrimaryKeyConstraint, ForeignKey, DateTime, FetchedValue
+from sqlalchemy import Column, String, Boolean, Enum, PrimaryKeyConstraint, ForeignKey, DateTime, FetchedValue
 import requests
 from datetime import datetime
 from model.exchanges import Exchange
+from model.jobs import Job, Provider, JobType
 
 
 class Symbol(model.Base):
@@ -18,10 +19,23 @@ class Symbol(model.Base):
     type = Column(String(20), nullable=True)
     currency = Column(String(10), nullable=False)
     isin = Column(String(12), nullable=True)
+    cik = Column(String(10), nullable=True)
+    composite_figi = Column(String(12), nullable=True)
+    share_class_figi = Column(String(12), nullable=True)
+    provider_last_updated = Column(DateTime(timezone=True))
+    delisted = Column(DateTime(timezone=True))
     created = Column(DateTime(timezone=True), FetchedValue())
+    creator = Column(Enum(Provider))
+
     updated = Column(DateTime(timezone=True))
+    updater = Column(Enum(Provider))
+
     PrimaryKeyConstraint(symbol, exchange, active)
     exchange_object = relationship("Exchange")
+
+    @validates('currency')
+    def convert_upper(self, key, value):
+        return value.upper()
 
     @staticmethod
     def lookup_symbol(symbol: str, session: model.Session) -> Optional[Any]:
@@ -61,7 +75,8 @@ class Symbol(model.Base):
                 return None
 
 
-def eod_update_symbols(exchange_code: str):
+def eod_update_symbols(exchange_code: str) -> Set:
+    cached_exchanges = set()
     payload = {'fmt': 'json', 'api_token': model.eodApiKey}
     r = requests.get(model.eodPrefix + 'exchange-symbol-list/' + exchange_code, params=payload, timeout=10)
     print(f'{datetime.utcnow()} URL = {r.url}; Status = {r.status_code}')
@@ -71,10 +86,9 @@ def eod_update_symbols(exchange_code: str):
     with model.Session() as session:
         for i in r.json():
             print(i)
-            exchange = Exchange.lookup_by_acronym(i.get("Exchange"), session)
-            if exchange is None:
-                exchange = Exchange.lookup_by_code(i.get("Exchange"), session)
+            exchange = Exchange.lookup_by_acronym_or_code(i.get("Exchange"), session)
             if exchange:
+                cached_exchanges.add(exchange)
                 symbol = Symbol(symbol=i.get("Code"),
                                 exchange=exchange,
                                 active=True,
@@ -85,28 +99,40 @@ def eod_update_symbols(exchange_code: str):
                                 updated=datetime.now())  # no need for utcnow() - the column is set to timestamptz
                 session.merge(symbol)
         session.commit()
+        return cached_exchanges
 
 
 if __name__ == '__main__':
-    loaded_exchanges = [
-        'NEO', 'V', 'TO']   # Canada
-        # , 'LSE'              # London Stock Exchange
-        # , 'US'                # All US Exchanges
-    # ]
-    for e in loaded_exchanges:
-        eod_update_symbols(e)  # loaded US, V, TO, LSE, NEO
-    # PolygonIo.call_paginated_api(model.polygonPrefix + 'v3/reference/tickers',
-    #             {'market': 'stocks', 'active': True, 'limit': 1000, 'order': 'asc', 'sort': 'ticker'},
-    #             method=Symbol.from_polygon, paginate=True, cursor=None)
-    # PolygonIo.call_paginated_api(model.polygonPrefix + 'v3/reference/tickers',
-    #             {'market': 'stocks', 'active': False, 'limit': 1000, 'order': 'asc', 'sort': 'ticker'},
-    #             method=Symbol.from_polygon, paginate=True, cursor=None)
-    # PolygonIo.call_paginated_api(model.polygonPrefix + 'v3/reference/tickers',
-    #             {'market': 'otc', 'active': True, 'limit': 1000, 'order': 'asc', 'sort': 'ticker'},
-    #             method=Symbol.from_polygon, paginate=True, cursor=None)
-    # PolygonIo.call_paginated_api(model.polygonPrefix + 'v3/reference/tickers',
-    #             {'market': 'otc', 'active': False, 'limit': 1000, 'order': 'asc', 'sort': 'ticker'},
-    #             method=Symbol.from_polygon, paginate=True, cursor=None)
+    exchanges_to_load = [
+      'NEO', 'V', 'TO',   # Canada
+        # 'LSE'  # London Stock Exchange
+    # 'US'   # All US Exchanges
+    ]
+
+    job: Job
+    cached_exchanges = set()
+
+    with model.Session() as session:
+        job = Job(provider=Provider.EOD,
+                  job_type=JobType.Symbols,
+                  parameters='exchanges_to_load: ' + ",".join(exchanges_to_load),
+                  started=datetime.now())
+        session.merge(job)
+        session.commit()
+
+    for e in exchanges_to_load:
+        cached_exchanges.update(eod_update_symbols(e))
+        print(cached_exchanges)
+
+    with model.Session() as session:
+        job.completed = datetime.now()
+        session.merge(job)
+        session.query(Symbol). \
+            filter(Symbol.active is True,
+                   Symbol.updated < job.started,
+                   Symbol.exchange.in_(cached_exchanges)).\
+            update({'active': False}, synchronize_session=False)
+        session.commit()
 
 
 class TestFindExchangeBySymbolAndCountry(unittest.TestCase):

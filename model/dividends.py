@@ -2,7 +2,7 @@ import model as model
 from model.symbols import Symbol
 from sqlalchemy import Column, String, Numeric, Date, Boolean, ForeignKeyConstraint, PrimaryKeyConstraint
 from datetime import datetime, timedelta
-from providers.polygon_io import PolygonIo
+from providers.polygon import Polygon
 
 
 class Dividend(model.Base):
@@ -49,8 +49,8 @@ class Dividend(model.Base):
 
 
 if __name__ == '__main__':
-    PolygonIo.call_paginated_api(
-        PolygonIo.polygonPrefix + 'v3/reference/dividends',
+    Polygon.call_paginated_api(
+        Polygon.polygonPrefix + 'v3/reference/dividends',
         payload={'limit': 1000,
                  'declaration_date.gte': datetime.utcnow() - timedelta(50),
                  'order': 'asc',

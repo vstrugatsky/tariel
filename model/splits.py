@@ -2,7 +2,7 @@ import model as model
 from model.symbols import Symbol
 from sqlalchemy import Column, String, Boolean, BigInteger, Date, PrimaryKeyConstraint, ForeignKeyConstraint
 from datetime import datetime, timedelta
-from providers.polygon_io import PolygonIo
+from providers.polygon import Polygon
 
 
 class Split(model.Base):
@@ -39,8 +39,8 @@ class Split(model.Base):
 
 
 if __name__ == '__main__':
-    PolygonIo.call_paginated_api(
-        PolygonIo.polygonPrefix + 'v3/reference/splits',
+    Polygon.call_paginated_api(
+        Polygon.polygonPrefix + 'v3/reference/splits',
         payload={'limit': 1000,
                  'execution_date.gt': datetime.utcnow() - timedelta(5),
                  'order': 'asc',

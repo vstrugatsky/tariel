@@ -39,5 +39,20 @@ Data model re-work - think deeply
 - requests: configure timeouts
 - deal with deactivated symbols (through UPDATED)
 
+2022-Oct-3:
+- Struggled to deal with deactivated symbols because of poor data quality from EOD (delisted tickers appeared as active)
+- Introduced Jobs
+
+2022-Oct-4:
+- Started using Strategy pattern and isolate load jobs into separate classes - SUCCESS
+- Changed approach to limit to US stocks and rely on Polygon
+- Implemented LoadSymbolsFromPolygon
+- redone table Symbols
+
 Next steps:
+- Add test to MarketIdentifiers
+- Repoint dividends and splits back to symbols -> currently symbols_eod
+- Refactor all other model classes, esp. untangle EOD from Symbols
+- Implement writing warning messages to DB indexed off jobs
+- Jobs table: add limit to params
 - Get to earnings reports

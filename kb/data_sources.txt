@@ -25,3 +25,5 @@ and tickers only for the particular exchange, the list of possible US exchanges 
 
 'US', NYSE', 'NASDAQ', 'BATS', 'OTCQB', 'PINK', 'OTCQX', 'OTCMKTS',
 'NMFQS', 'NYSE MKT','OTCBB', 'OTCGREY', 'BATS', 'OTC'
+
+8) EOD Data Quality issue - delisted stocks sent as active

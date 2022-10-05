@@ -2,10 +2,10 @@ from providers import sleep_if_needed, parse_query_param_value
 import model
 import requests
 from datetime import datetime
-from typing import Callable
+from typing import Callable, Optional
 
 
-class PolygonIo:
+class Polygon:
     polygonApiKey = 'o_wd3aO1d9Dyi9KEjxbpxJNrbkM5ssmN' # 5/min
     polygonPrefix = 'https://api.polygon.io/'
 
@@ -16,11 +16,11 @@ class PolygonIo:
                            method_params: dict,
                            commit: bool,
                            paginate: bool,
-                           cursor: str) -> None:
+                           cursor: Optional[str]) -> None:
         if cursor is None:  # first or last execution
-            payload.update({'apiKey': PolygonIo.polygonApiKey})
+            payload.update({'apiKey': Polygon.polygonApiKey})
         else:
-            payload = {'apiKey': PolygonIo.polygonApiKey, 'cursor': cursor}
+            payload = {'apiKey': Polygon.polygonApiKey, 'cursor': cursor}
 
         last_call_time = datetime.utcnow()
         r = requests.get(url_suffix, params=payload, timeout=10)
@@ -40,4 +40,4 @@ class PolygonIo:
 
         if cursor and paginate is True:
             sleep_if_needed(last_call_time, api_calls_per_minute=5)
-            PolygonIo.call_paginated_api(url_suffix, {}, method, method_params, commit, paginate, cursor)
+            Polygon.call_paginated_api(url_suffix, {}, method, method_params, commit, paginate, cursor)
