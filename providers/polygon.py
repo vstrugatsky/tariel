@@ -33,8 +33,8 @@ class Polygon:
             for i in r.json()['results']:
                 print(i)
                 model_object = method(i, session, method_params)
-                if model_object:
-                    session.merge(model_object)
+                # if model_object:
+                #     session.merge(model_object)
             if commit:
                 session.commit()
 

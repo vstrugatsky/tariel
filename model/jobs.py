@@ -11,6 +11,8 @@ class Provider(enum.Enum):
 
 class JobType(enum.Enum):
     Symbols = 1
+    Dividends = 2
+    Splits = 3
 
 
 class Job(Base):

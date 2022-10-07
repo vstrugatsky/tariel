@@ -1,15 +1,17 @@
+from sqlalchemy.orm import relationship
 import model as model
 from model.symbols import Symbol
-from sqlalchemy import Column, String, Numeric, Date, Boolean, ForeignKeyConstraint, PrimaryKeyConstraint
+from sqlalchemy import Column, String, Numeric, Date, Boolean, Integer, \
+    Identity, ForeignKey, UniqueConstraint
 from datetime import datetime, timedelta
 from providers.polygon import Polygon
 
 
 class Dividend(model.Base):
     __tablename__ = 'dividends'
-    symbol = Column(String(10), nullable=False)
-    exchange = Column(String(4), nullable=False)
-    active = Column(Boolean, default=True)
+    id = Column('id', Integer, Identity(always=True), primary_key=True)
+    symbol_id = Column(Integer, ForeignKey("symbols.id"))
+    symbol = relationship("Symbol")
     dividend_type = Column(String(2), nullable=False)
     cash_amount = Column(Numeric, nullable=False)
     currency = Column(String(3), nullable=False)
@@ -18,8 +20,7 @@ class Dividend(model.Base):
     record_date = Column(Date, nullable=False)
     pay_date = Column(Date, nullable=False)
     frequency = Column(Numeric, nullable=False)
-    PrimaryKeyConstraint(symbol, exchange, active, ex_dividend_date)
-    ForeignKeyConstraint([symbol, exchange, active], ['symbols.symbol', 'symbols.exchange', 'symbols.active'])
+    UniqueConstraint(symbol_id, ex_dividend_date)
 
     @staticmethod
     def load_from_polygon(i: dict, session: model.Session, method_params: dict) -> object:

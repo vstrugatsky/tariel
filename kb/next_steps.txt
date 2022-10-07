@@ -49,9 +49,13 @@ Data model re-work - think deeply
 - Implemented LoadSymbolsFromPolygon
 - redone table Symbols
 
+2022-Oct-5,6,7:
+- Added test to MarketIdentifiers
+- Remodeled Symbols, Dividends to use integer primary and foreign keys and a unique key with delisted
+
 Next steps:
-- Add test to MarketIdentifiers
-- Repoint dividends and splits back to symbols -> currently symbols_eod
+- Implement symbol locator logic in Dividends
+- Remodel and implement Splits
 - Refactor all other model classes, esp. untangle EOD from Symbols
 - Implement writing warning messages to DB indexed off jobs
 - Jobs table: add limit to params
