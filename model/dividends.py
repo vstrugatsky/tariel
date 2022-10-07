@@ -10,7 +10,7 @@ from providers.polygon import Polygon
 class Dividend(model.Base):
     __tablename__ = 'dividends'
     id = Column('id', Integer, Identity(always=True), primary_key=True)
-    symbol_id = Column(Integer, ForeignKey("symbols.id"))
+    id_symbol = Column(Integer, ForeignKey("symbols.id"))
     symbol = relationship("Symbol")
     dividend_type = Column(String(2), nullable=False)
     cash_amount = Column(Numeric, nullable=False)
@@ -20,7 +20,7 @@ class Dividend(model.Base):
     record_date = Column(Date, nullable=False)
     pay_date = Column(Date, nullable=False)
     frequency = Column(Numeric, nullable=False)
-    UniqueConstraint(symbol_id, ex_dividend_date)
+    UniqueConstraint(id_symbol, ex_dividend_date)
 
     @staticmethod
     def load_from_polygon(i: dict, session: model.Session, method_params: dict) -> object:
