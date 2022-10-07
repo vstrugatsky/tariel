@@ -27,7 +27,7 @@ alter table dividends rename to dividends_polygon;
 
 create table if not exists dividends
 (   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_symbols bigint not null,
+    id_symbol bigint not null,
     dividend_type varchar(2) not null,
     cash_amount numeric not null,
     currency varchar(3) not null,
@@ -40,6 +40,6 @@ create table if not exists dividends
     creator varchar(20) not null,
     updated timestamptz,
     updater varchar(20),
-    constraint dividend_symbol foreign key (id_symbols) references symbols,
-    unique (id_symbols, ex_dividend_date)
+    constraint dividend_symbol foreign key (id_symbol) references symbols,
+    unique (id_symbol, ex_dividend_date)
 );
