@@ -5,6 +5,7 @@ from model.symbols import Symbol
 from datetime import datetime, timedelta
 from jsonpath_ng import parse
 import re
+import unittest
 
 
 def find_first_match(jsonpath, json):
@@ -104,3 +105,16 @@ if __name__ == '__main__':
                'tweet.fields': 'created_at,author_id,entities'}
 
     call_paginated_api(payload, False, True, None)
+
+
+class TestSymbolInParensRegex(unittest.TestCase):
+    def runTest(self):
+        desc = '''
+        Russia's Gazprom (OGZPY) said on Tuesday it earned a record net profit of 2.5T rubles ($41.75B) in H1 2022, 
+        "despite sanctions pressure and an unfavorable"
+        '''
+        m = re.search(r'\([A-Z]+\)', desc)
+        assert(m.group(0) == '(OGZPY)')
+        with model.Session() as session:
+            assert(Symbol.lookup_symbol(m.group(0).strip("()"), session))
+

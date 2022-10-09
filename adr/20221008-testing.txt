@@ -1,2 +1,0 @@
-- use pytest: requires a lot less boilerplate compared to unittest. Also Pycharm supports pytest
-- put all tests in the tests directory - they can all run together

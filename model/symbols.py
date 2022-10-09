@@ -76,6 +76,7 @@ class Symbol(model.Base):
             order_by(Symbol.created.desc()). \
             scalar()
 
+
     @staticmethod
     def convert_polygon_symbol_to_eod(symbol: str) -> Optional[Any]:
         # Polygon format for preferred stock:
@@ -152,6 +153,17 @@ if __name__ == '__main__':
         session.commit()
 
 
+class TestFindExchangeBySymbolAndCountry(unittest.TestCase):
+    @staticmethod
+    def runTest():
+        with model.Session() as session:
+            (exchange, active) = Symbol.find_exchange_by_symbol_and_country('AAPL', 'US', session)
+            print(exchange, active)
+            assert(Symbol.find_exchange_by_symbol_and_country('AAPL', 'US', session) == ('XNAS', True))
+            assert(Symbol.find_exchange_by_symbol_and_country('AAPL', 'CA', session) == (None, False))
+            assert(Symbol.find_exchange_by_symbol_and_country('A', 'US', session) == ('XNYS', True))
+
+
 class TestLookupSymbol(unittest.TestCase):
     @staticmethod
     def runTest():
@@ -170,3 +182,13 @@ class TestConvertPolygonSymbolToEod(unittest.TestCase):
         assert(Symbol.convert_polygon_symbol_to_eod('ACRpC') == 'ACR-PC')
         assert(Symbol.convert_polygon_symbol_to_eod('AAIC') is None)
         assert(Symbol.convert_polygon_symbol_to_eod('AKO.A') == 'AKO-A')
+
+
+class TestGetSymbolsBySymbolAndExchange(unittest.TestCase):
+    @staticmethod
+    def runTest():
+        with model.Session() as session:
+            assert(len(Symbol.get_symbols_by_symbol_and_exchange(session, 'AAPL', 'XNAS')) == 1)
+            assert(len(Symbol.get_symbols_by_symbol_and_exchange(session, 'AAPL', 'XNYS')) == 0)
+            assert(len(Symbol.get_symbols_by_symbol_and_exchange(session, 'AA', 'XNYS')) == 3)
+

@@ -1,3 +1,5 @@
+import unittest
+
 import model as model
 from sqlalchemy import Column, String, Text, ForeignKey, PrimaryKeyConstraint
 
@@ -32,3 +34,14 @@ class ExchangeAcronym(model.Base):
     operating_mic = Column(String(4), ForeignKey("exchanges.operating_mic"))
     acronym = Column(String(30), nullable=False)
     PrimaryKeyConstraint(operating_mic, acronym)
+
+
+class TestLookupExchangeByAcronymOrCode(unittest.TestCase):
+    @staticmethod
+    def runTest():
+        with model.Session() as session:
+            assert(Exchange.lookup_by_acronym_or_code('V', session) == 'XTSX')
+            assert(Exchange.lookup_by_acronym_or_code('XTSX', session) == 'XTSX')
+
+
+
