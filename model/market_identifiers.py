@@ -1,5 +1,3 @@
-import unittest
-
 import model as model
 from sqlalchemy import Column, String, Text, ForeignKey, PrimaryKeyConstraint
 
@@ -13,11 +11,3 @@ class MarketIdentifier(model.Base):
     def lookup_operating_mic_by_mic(mic: str, session: model.Session):
         return session.query(MarketIdentifier.operating_mic).filter(MarketIdentifier.mic == mic).scalar()
 
-
-class TestLookupOperatingMicByMic(unittest.TestCase):
-    @staticmethod
-    def runTest():
-        with model.Session() as session:
-            assert(MarketIdentifier.lookup_operating_mic_by_mic('ARCX', session) == 'XNYS')
-            assert(MarketIdentifier.lookup_operating_mic_by_mic('XNYS', session) == 'XNYS')
-            assert(MarketIdentifier.lookup_operating_mic_by_mic('XXXX', session) is None)
