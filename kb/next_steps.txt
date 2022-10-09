@@ -53,8 +53,14 @@ Data model re-work - think deeply
 - Added test to MarketIdentifiers
 - Remodeled Symbols, Dividends to use integer primary and foreign keys and a unique key with delisted
 
+2022-Oct-8:
+- Implemented symbol locator logic in Dividends
+- introduced pytest and the tests directory
+- tests for symbol locator logic
+- loaded dividends
+- python object sort using lambda coolness
+
 Next steps:
-- Implement symbol locator logic in Dividends
 - Remodel and implement Splits
 - Refactor all other model classes, esp. untangle EOD from Symbols
 - Implement writing warning messages to DB indexed off jobs
