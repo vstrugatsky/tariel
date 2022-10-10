@@ -1,3 +1,6 @@
+from __future__ import annotations
+from loaders.loader_base import LoaderBase
+from model.job_log import MsgSeverity
 from model.jobs import Provider, Job, JobType
 from model.symbols import Symbol
 from model.market_identifiers import MarketIdentifier
@@ -8,6 +11,13 @@ import time
 
 
 class LoadSymbolsFromPolygon:
+    @staticmethod
+    def manual_data_cleanup(ticker: str) -> str | None:
+        if ticker == 'CASY':
+            return 'XNAS'
+        else:
+            return None
+
     @staticmethod
     def update_symbol_from_polygon(symbol: Symbol, i: dict):
         symbol.name = i.get('name')
@@ -24,6 +34,10 @@ class LoadSymbolsFromPolygon:
             exchange = 'OTCM'
         else:
             exchange = MarketIdentifier.lookup_operating_mic_by_mic(i.get('primary_exchange'), session)
+
+        if not exchange:
+            exchange = LoadSymbolsFromPolygon.manual_data_cleanup(i.get('ticker'))
+
         if exchange:
             symbol = Symbol.get_unique(session, i.get('ticker'), exchange, i.get('active'), i.get('delisted_utc'))
             if symbol:
@@ -39,31 +53,25 @@ class LoadSymbolsFromPolygon:
                 LoadSymbolsFromPolygon.update_symbol_from_polygon(symbol, i)
                 session.add(symbol)
         else:
-            print(f'WARN {datetime.utcnow()} exchange {i.get("primary_exchange")} \
-            not found for ticker {i.get("ticker")}')
+            msg = 'exchange ' + i.get("primary_exchange", 'None') + ' not found for ticker ' + i.get("ticker")
+            LoaderBase.write_job_log(session, method_params.get("job_id"), MsgSeverity.ERROR, msg)
 
 
 if __name__ == '__main__':
-    job: Job
-    params: [dict] = [{'market': 'stocks', 'active': True},
+    commit = True
+    paginate = True
+    params: [dict] = [  # {'market': 'stocks', 'active': True},
                       {'market': 'stocks', 'active': False},
                       {'market': 'otc', 'active': True},
-                      {'market': 'otc', 'active': False}]
+                      {'market': 'otc', 'active': False}
+                      ]
     for param in params:
-        with model.Session() as session:
-            job = Job(provider=Provider.Polygon,
-                      job_type=JobType.Symbols,
-                      parameters=str(param),
-                      started=datetime.now())
-            session.add(job)
-            session.commit()
+        job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Symbols,
+                                      params=str(param) + ' commit: ' + str(commit) + ' paginate: ' + str(paginate))
         time.sleep(5)
         Polygon.call_paginated_api(Polygon.polygonPrefix + 'v3/reference/tickers',
                                    param | {'limit': 1000, 'order': 'asc', 'sort': 'ticker'},
-                                   method=LoadSymbolsFromPolygon.load, method_params={},
-                                   commit=True, paginate=True, cursor=None)
+                                   method=LoadSymbolsFromPolygon.load, method_params={"job_id": job_id},
+                                   commit=commit, paginate=paginate, cursor=None)
 
-        with model.Session() as session:
-            job.completed = datetime.now()
-            session.merge(job)
-            session.commit()
+        LoaderBase.complete_job(job_id)

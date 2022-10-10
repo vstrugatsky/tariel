@@ -60,9 +60,13 @@ Data model re-work - think deeply
 - loaded dividends
 - python object sort using lambda coolness
 
-Next steps:
-- Remodel and implement Splits
-- Refactor all other model classes, esp. untangle EOD from Symbols
+2022-Oct-9:
+- Remodeled, implemented and loaded Splits
 - Implement writing warning messages to DB indexed off jobs
-- Jobs table: add limit to params
+- Jobs table: added limit to params
+- Refactor all other model classes, esp. untangle EOD from Symbols
+- Fixed important bug in Symbol.find_exchange_by_symbol_and_country
+- SQL to delete duplicate rows in Job_Log
+
+Next steps:
 - Get to earnings reports

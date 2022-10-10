@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, DateTime, Enum, PrimaryKeyConstraint, Text
+from sqlalchemy import Column, DateTime, Enum, Text, Integer, Identity, UniqueConstraint, BigInteger
 from model import Base
 
 
@@ -17,9 +17,10 @@ class JobType(enum.Enum):
 
 class Job(Base):
     __tablename__ = 'jobs'
+    id = Column('id', BigInteger, Identity(always=True), primary_key=True)
     provider = Column(Enum(Provider))
     job_type = Column(Enum(JobType))
     parameters = Column(Text)
     started = Column(DateTime(timezone=True), nullable=False)
     completed = Column(DateTime(timezone=True))
-    PrimaryKeyConstraint(provider, job_type, started)
+    UniqueConstraint(provider, job_type, started)
