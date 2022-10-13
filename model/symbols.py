@@ -39,30 +39,38 @@ class Symbol(model.Base):
         return value.upper()
 
     @staticmethod
-    def get_unique(session: model.Session, symbol: str, exchange: str, active: bool, delisted: datetime) \
-            -> Optional[Symbol]:
-        return session.query(Symbol). \
-            filter(Symbol.symbol == symbol,
-                   Symbol.exchange == exchange,
-                   Symbol.active == active,
-                   Symbol.delisted == delisted). \
-            scalar()
+    def get_unique_by_ticker_and_country(session: model.Session, ticker: str, iso_code_2: str) -> Optional[Symbol]:
+        exchange: str = Symbol.find_exchange_by_ticker_and_country(session, ticker, iso_code_2)
+        if exchange:
+            return Symbol.get_unique(session, ticker, exchange, active=True, delisted=None)
+        else:
+            return None
 
     @staticmethod
-    def get_symbols_by_symbol_and_exchange(session: model.Session, symbol: str, exchange: str) -> [Symbol]:
-        return session.query(Symbol). \
-            filter(Symbol.symbol == symbol,
-                   Symbol.exchange == exchange). \
-            order_by(Symbol.active.asc(), Symbol.delisted.asc()). \
-            all()
-
-    @staticmethod
-    def find_exchange_by_symbol_and_country(symbol: str, iso_code_2: str, session: model.Session) -> Optional[str]:
+    def find_exchange_by_ticker_and_country(session: model.Session, ticker: str, iso_code_2: str) -> Optional[str]:
         exchange = session.query(Symbol.exchange).join(Symbol.exchange_object).\
-            filter(Symbol.symbol == symbol, Exchange.iso_country_code == iso_code_2). \
+            filter(Symbol.symbol == ticker, Exchange.iso_country_code == iso_code_2). \
             order_by(Symbol.active.desc(), Symbol.created.desc()). \
             first()
         if exchange:
             return exchange[0]
         else:
             return None
+
+    @staticmethod
+    def get_unique(session: model.Session, ticker: str, exchange: str, active: bool, delisted: datetime) \
+            -> Optional[Symbol]:
+        return session.query(Symbol). \
+            filter(Symbol.symbol == ticker,
+                   Symbol.exchange == exchange,
+                   Symbol.active == active,
+                   Symbol.delisted == delisted). \
+            scalar()
+
+    @staticmethod
+    def get_symbols_by_ticker_and_exchange(session: model.Session, ticker: str, exchange: str) -> [Symbol]:
+        return session.query(Symbol). \
+            filter(Symbol.symbol == ticker,
+                   Symbol.exchange == exchange). \
+            order_by(Symbol.active.asc(), Symbol.delisted.asc()). \
+            all()

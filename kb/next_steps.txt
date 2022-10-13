@@ -73,6 +73,12 @@ Data model re-work - think deeply
 - Refactored twitter.py to conform to new design patterns
 - Massive regex -> tested!
 
+2022-Oct-11-12:
+- support CAD
+- wrote all transformations and tests
+- saving works!
+- fixed rounding issue
+
 Next steps:
 - Deal with NII, British currency, reaffirms / updates / ups guidance
 - Start saving

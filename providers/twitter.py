@@ -1,3 +1,4 @@
+from __future__ import annotations
 import requests
 from typing import Callable
 import model
@@ -17,7 +18,7 @@ class Twitter:
                            payload: dict,
                            method: Callable[[dict, model.Session, dict], object],
                            method_params: dict,
-                           paginate: bool, commit: bool, next_token: str):
+                           paginate: bool, commit: bool, next_token: str | None):
 
         if next_token and paginate:  # first or last execution
             payload.update({'pagination_token': next_token})
@@ -28,18 +29,19 @@ class Twitter:
 
         print(f'INFO {datetime.utcnow()} {r.headers["content-type"]} {r.encoding} {r.url} \n Status={r.status_code}')
         if r.status_code != 200:
+            print(f'ERROR status code {r.status_code} and response {r.json()}')
             exit(1)
         print(f'Meta={r.json()["meta"]}')
         next_token = r.json()["meta"].get("next_token", None)
 
         count = 0
-        while count < r.json()["meta"]["result_count"]:
-            # print('r.json=' + str(r.json()))
-            with model.Session() as session:
+        with model.Session() as session:
+            while count < r.json()["meta"]["result_count"]:
+                # print('r.json=' + str(r.json()))
                 method(r.json()['data'][count], session, method_params)
-                if commit:
-                    session.commit()
-            count += 1
+                count += 1
+            if commit:
+                session.commit()
 
         if paginate and next_token:
             Twitter.call_paginated_api(

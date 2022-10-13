@@ -60,7 +60,7 @@ class LoadSymbolsFromPolygon:
 if __name__ == '__main__':
     commit = True
     paginate = True
-    params: [dict] = [  # {'market': 'stocks', 'active': True},
+    params: [dict] = [{'market': 'stocks', 'active': True},
                       {'market': 'stocks', 'active': False},
                       {'market': 'otc', 'active': True},
                       {'market': 'otc', 'active': False}

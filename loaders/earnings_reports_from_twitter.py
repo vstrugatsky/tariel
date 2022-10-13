@@ -1,144 +1,163 @@
 from __future__ import annotations
+from typing import Optional
 import model
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta, date
+from model.jobs import Provider
 from model.symbols import Symbol
 from model.earnings_reports import EarningsReport
-from loaders.loader_base import LoaderBase
-from jsonpath_ng import parse
+from utils.utils import Utils
 import re
 from providers.twitter import Twitter
 
 
 class LoadEarningsReportsFromTwitter:
-
     @staticmethod
     def lookup_currency(symbol: str) -> str | None:
         if symbol == '$':
             return 'USD'
+        elif symbol == 'C$':
+            return 'CAD'
         else:
             return None
 
     @staticmethod
+    def determine_currency(eps_currency, revenue_currency) -> str | None:
+        currency = eps_currency if eps_currency else revenue_currency
+        return LoadEarningsReportsFromTwitter.lookup_currency(currency)
+
+    @staticmethod
+    def determine_eps(eps_sign: str | None, eps: str | None) -> float:
+        if eps_sign == '-':
+            return 0.0 - float(eps)
+        else:
+            return float(eps) if eps else 0
+
+    @staticmethod
+    def determine_surprise(surprise_direction: str, surprise_amount: str, surprise_uom: str | None) -> float | None:
+        if not surprise_direction:
+            return None
+        if surprise_direction.lower() == 'misses':
+            return LoadEarningsReportsFromTwitter.apply_uom(0.0 - float(surprise_amount), surprise_uom)
+        elif surprise_direction.lower() == 'beats':
+            return LoadEarningsReportsFromTwitter.apply_uom(float(surprise_amount), surprise_uom)
+        else:
+            return None
+
+    @staticmethod
+    def apply_uom(amount: float, uom: str | None) -> float:
+        if not uom:
+            return amount
+        elif uom.upper() == 'K':
+            return round(amount * 1000)
+        elif uom.upper() == 'M':
+            return round(amount * 1000000)
+        elif uom.upper() == 'B':
+            return round(amount * 1000000000)
+        else:
+            return amount
+
+    @staticmethod
+    def update_earnings_fields(er: EarningsReport, match_dict: dict):
+        er.currency = LoadEarningsReportsFromTwitter.determine_currency(
+            match_dict.get('eps_currency'), match_dict.get('revenue_currency'))
+
+        er.eps = LoadEarningsReportsFromTwitter.determine_eps(match_dict.get('eps_sign'), match_dict.get('eps'))
+
+        er.revenue = LoadEarningsReportsFromTwitter.apply_uom(float(match_dict.get('revenue')), match_dict.get('revenue_uom'))
+
+        er.eps_surprise = LoadEarningsReportsFromTwitter.determine_surprise(
+            match_dict.get('eps_surprise_direction'), match_dict.get('eps_surprise_amount'), surprise_uom=None)
+        er.revenue_surprise = LoadEarningsReportsFromTwitter.determine_surprise(
+            match_dict.get('revenue_surprise_direction'), match_dict.get('revenue_surprise_amount'), match_dict.get('revenue_surprise_uom'))
+
+        # TODO : er.guidance_direction
+
+    @staticmethod
+    def update_twitter_fields(er: EarningsReport, i: dict):
+        er.provider_info = {
+            'tweet_id': i['id'],
+            'tweet_date': i['created_at'],
+            'twitter_account': Twitter.account + '(' + i['author_id'] + ')',
+            'tweet_text': i['text'],
+            'tweet_short_url': Utils.find_first_match("entities.urls[0].url", i),
+            'tweet_expanded_url': Utils.find_first_match("entities.urls[0].expanded_url", i),
+            'tweet_url_status': Utils.find_first_match("entities.urls[0].status", i),
+            'tweet_url_title': Utils.find_first_match("entities.urls[0].title", i),
+            'tweet_url_description': Utils.find_first_match("entities.urls[0].description", i),
+        }
+
+    @staticmethod
     def parse_tweet(tweet_text: str) -> re.Match:
         p = re.compile(r'''
-           EPS[ ]of[ ](?P<eps_sign>[-])?(?P<eps_currency>[$])      
+           EPS[ ]of[ ](?P<eps_sign>[-])?(?P<eps_currency>C?[$])      
            (?P<eps>\d+\.\d+)
            [ ]?(?P<eps_surprise_direction>misses|beats)?
-           ([ ]by[ ])?(?P<eps_surprise_currency>[$])?
+           ([ ]by[ ])?(?P<eps_surprise_currency>C?[$])?
            (?P<eps_surprise_amount>\d+\.\d+)?
            .+
-           revenue[ ]of[ ](?P<revenue_currency>[$])
+           revenue[ ]of[ ](?P<revenue_currency>C?[$])
            (?P<revenue>\d+\.?\d*)
            (?P<revenue_uom>[MBK])
            [ ]?(?P<revenue_surprise_direction>misses|beats)?
-           ([ ]by[ ])?(?P<revenue_surprise_currency>[$])?
+           ([ ]by[ ])?(?P<revenue_surprise_currency>C?[$])?
            (?P<revenue_surprise_amount>\d+\.?\d*)?
            (?P<revenue_surprise_uom>[MBK])?
            ''', re.VERBOSE | re.IGNORECASE)
         return p.search(tweet_text)
 
     @staticmethod
-    def load(i: dict, session: model.Session, method_params: dict):
-        print(i['created_at'] + ' ' + i['text'])
-        # $BABB GAAP EPS of $0.02, revenue of $0.88M
-        # $AZZ - AZZ declares $0.17 dividend
-        # $RL $PVH $HBI - Levi Strauss earnings miss sends apparel stocks lower
-        # $CVS $HUM $CANO - Cano Health jumps 10 % on report CVS in exclusive talks to acquire
-        # $YASKY - YASKAWA Electric reports 1H results
-        # $PGR - Progressive upgraded to Buy at Jefferies on widening margins, NII gains
-        # $TSM - Taiwan Semiconductor reports 36 % revenue growth in September
-        # $HZNP - Horizon Therapeutics cuts FY adj.EBITDA guidance to reflect new milestone related expense
-        # $SACH - Sachem Capital to repurchase up to $7.5 M of shares
-        # $TLRY $TLRY:CA - Tilray posts Q1 miss for fiscal 2023 as topline contracts
-        # $TLRY $TLRY:CA - Tilray Non - GAAP EPS of -$0.08 misses by $0.01, revenue of $153.21M misses by $3.64M
-        # $ASIX - AdvanSix expects Q3 adjusted EBITDA of $31M -$34M
-        # $MTYFF $MTY:CA - MTY Food Group GAAP EPS of $0.92, revenue of $171.54M
-        # $MTRX - Matrix Service Non - GAAP EPS of -$0.52 misses by $0.22, revenue of $200.7 M beats by $18.86M
-        # $IMOS - ChipMOS' Q3 revenue down 26.6% Y/Y
-        # $SSNLF $SSNNF - Samsung Electronics sees bleak Q3 operating profit KRW10.8T vs. KRW12.1T consensus as demand for memory chips dip
-        # $GRRR - Gorilla Technology Group GAAP EPS of -$0.29, revenue of $13.8M
-        # $IDT - IDT Corporation Non - GAAP EPS of $0.70, revenue of $329M
-        # $NRIX - Nurix Therapeutics GAAP EPS of -$0.90 beats by $0.07, revenue of $10.79 M misses by $1.29M
-        # $LEVI - Levi Strauss Non - GAAP EPS of $0.40 beats by $0.03, revenue of $1.52B misses by $80M
-        # $EDUC - Educational Development reports Q2 results
-        # $ANGO - AngioDynamics Non - GAAP EPS of -$0.06 misses by $0.04, revenue of $81.5 M misses by $1.93 M, reaffirms FY guidance
-        # $TROX $CC $VNTR - Venator plunges after warning of TiO2 sales weakness
-        # $MKC - McCormick & Company notches in -line, reaffirms outlook
-        # $MKC - McCormick Non - GAAP EPS of $0.69 misses by $0.03, revenue of $1.6B beats by $10M
-        # $PPG - PPG cuts earnings guidance on expected soft demand from Europe
-        # $FIVN - Five9 guides Q3 earnings above consensus estimates, names new CEO
-        # $SPY $WMT $AAPL - Earnings season kicks off with gloomy expectation
-        # $MACE - Mace Security completes restructuring, Q3 adj. earnings now positive
-        # $CAG - ConAgra Brands shares boosted by earnings beat, reaffirmed full-year forecast
-        # AngioDynamics Q1 2023 Earnings Preview
-        # $MKC - McCormick Q3 2022 Earnings Preview
-        # $RPM - RPM International on the rise after sold earnings beat
-        # $LW - Lamb Weston Holdings rises above earnings expectations, reaffirms guidance
-        # $TJX $DECK $DKS - Watch these retail stocks for earnings jolts
-        # $AEP - AEP narrows 2022 earnings guidance, issues in-line 2023 outlook
-        m = LoadEarningsReportsFromTwitter.parse_tweet(i['text'])
-        if m:
-            print(m.groupdict())
-
-        if '$EARNINGS' in i['text']:
-            tweet_url_description = LoadEarningsReportsFromTwitter.find_first_match("entities.urls[0].description", i)
-            # e.g.
-            # Ambarella press release (AMBA):
-            # Q2 Non-GAAP EPS of $0.20 beats by $0.01.Revenue of $80.88M (+2.0% Y/Y) beats by $0.67M.
-            # Gross margin on a non-GAAP basis for the second quarter of
-
-            match = re.search(r'\([A-Z.]+\)', tweet_url_description)
-            if match:
-                symbol = match.group(0).strip("()")
-                print('matched symbol=' + symbol)
-        #         if Symbol.lookup_symbol(symbol, session):
-        #             print(f'Found match for {symbol}')
-        #         else:
-        #             print(f'WARN could not find {symbol} in Symbols')
-        #             # NEXT: deal with exchanges, e.g.: CTRL:CA, AIP.U:CA, PUL:CA - use regex groups
-        #             return
-            else:
-                print(f'WARN - Could not find symbol in tweet_url_description')
-                return
-
-        #     earnings_report = EarningsReport(
-        #         tweet_id=i['id'],
-        #         tweet_date=i['created_at'],
-        #         twitter_account=Twitter.account,
-        #         tweet_text=i['text'],
-        #         tweet_short_url=find_first_match("entities.urls[0].url", i),
-        #         tweet_expanded_url=find_first_match("entities.urls[0].expanded_url", i),
-        #         tweet_url_status=find_first_match("entities.urls[0].status", i),
-        #         tweet_url_title=find_first_match("entities.urls[0].title", i),
-        #         tweet_url_description=find_first_match("entities.urls[0].description", i))
-            # parsed_symbol = Column(String(10), ForeignKey("symbols.symbol"), nullable=True)
-            # symbol_object = relationship("Symbol")
-            # currency = Column(String(3))
-            # eps = Column(Numeric)
-            # eps_surprise = Column(Numeric)
-            # revenue = Column(BigInteger)
-            # revenue_surprise = Column(BigInteger)
-            # guidance_direction = Column(String(20)
+    def associate_tweet_with_symbol(session: model.Session, cashtags: [dict]) -> Optional[Symbol]:
+        symbol: Optional[Symbol] = None
+        if not cashtags:
+            return None
+        for d in cashtags:
+            cashtag: str = d.get('tag')
+            if cashtag:
+                candidate_symbol: Symbol = Symbol.get_unique_by_ticker_and_country(session, cashtag, 'US')
+                if candidate_symbol and symbol is None:
+                    symbol = candidate_symbol
+                if candidate_symbol and symbol is not None and symbol.id != candidate_symbol.id:
+                    return None  # two valid and different symbols -> can't associate
+        return symbol
 
     @staticmethod
-    def find_first_match(jsonpath, json):
-        jsonpath_expr = parse(jsonpath)
-        matches = jsonpath_expr.find(json)
-        if len(matches) > 0:
-            return matches[0].value
+    def load(i: dict, session: model.Session, method_params: dict):
+        cashtags = i['entities'].get('cashtags', None)
+        print(f'TWEET {i["created_at"]} {i["text"]} {str(cashtags)}')
+        if not cashtags:
+            return
+        symbol = LoadEarningsReportsFromTwitter.associate_tweet_with_symbol(session, cashtags)
+        if not symbol:
+            print(f'INFO cannot associate symbol with {cashtags}')
+            return
+
+        match: re.Match = LoadEarningsReportsFromTwitter.parse_tweet(i['text'])
+        if not match:
+            print(f'INFO cannot parse earnings from {i["text"]}')
+            return
+
+        print(f'INFO associated {Symbol.symbol} and matched {match.groupdict()}')
+        report_date: date = datetime.strptime(i['created_at'], '%Y-%m-%dT%H:%M:%S.%fZ').date()
+        er = EarningsReport.get_unique(session, symbol, report_date)
+        if not er:
+            er = EarningsReport(symbol=symbol, report_date=report_date, creator=Provider.Twitter)
+            session.add(er)
         else:
-            return None
+            er.updated = datetime.now()
+            er.updater = Provider.Twitter
+        LoadEarningsReportsFromTwitter.update_earnings_fields(er, match.groupdict())
+        LoadEarningsReportsFromTwitter.update_twitter_fields(er, i)
 
 
 if __name__ == '__main__':
     backfill = True
-    commit = False
+    commit = True
     paginate = True
     max_results = 100
     if backfill:
-        max_date = datetime.utcnow() - timedelta(days=7)
+        max_date = datetime.utcnow() - timedelta(days=6, hours=23)  # to not hit the 7 days issue
     else:
-        max_date = EarningsReport.get_max_date() or datetime.utcnow() - timedelta(days=7)
+        max_date = EarningsReport.get_max_date() or datetime.utcnow() - timedelta(days=6, hours=23)
 
     payload = {'query': 'from:' + Twitter.account,  # + ' earnings',
                'max_results': max_results,

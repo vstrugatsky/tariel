@@ -1,10 +1,13 @@
+from __future__ import annotations
+from typing import Optional
 import model as model
 from model.jobs import Provider
+from model.symbols import Symbol
 from sqlalchemy.orm import relationship
 from sqlalchemy import func, Enum, Column, String, Numeric, BigInteger, DateTime, Text, Date, ForeignKey, Integer, \
     Identity, UniqueConstraint, FetchedValue
 from sqlalchemy.dialects.postgresql import JSONB
-from datetime import datetime, timedelta
+from datetime import date
 
 
 class EarningsReport(model.Base):
@@ -29,15 +32,12 @@ class EarningsReport(model.Base):
 
     UniqueConstraint(id_symbol, report_date)
 
-    tweet_id = Column(BigInteger, primary_key=True)
-    tweet_date = Column(DateTime(timezone=True), nullable=False)
-    twitter_account = Column(String(15), nullable=False)
-    tweet_text = Column(Text, nullable=False)
-    tweet_short_url = Column(String(23))
-    tweet_expanded_url = Column(Text)
-    tweet_url_status = Column(Numeric)
-    tweet_url_title = Column(Text)
-    tweet_url_description = Column(Text)
+    @staticmethod
+    def get_unique(session: model.Session, symbol: Symbol, report_date: date) -> Optional[EarningsReport]:
+        return session.query(EarningsReport). \
+            filter(EarningsReport.id_symbol == symbol.id,
+                   EarningsReport.report_date == report_date). \
+            scalar()
 
     @staticmethod
     def get_max_date():

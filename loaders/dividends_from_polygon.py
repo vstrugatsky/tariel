@@ -29,13 +29,13 @@ class LoadDividendsFromPolygon:
         ex_dividend_date: date = datetime.strptime(i.get('ex_dividend_date'), "%Y-%m-%d").date()
         country_code: str = method_params.get("country_code")
 
-        exchange: str = Symbol.find_exchange_by_symbol_and_country(ticker, country_code, session)
+        exchange: str = Symbol.find_exchange_by_ticker_and_country(session, ticker, country_code)
         if exchange is None:
             msg = ticker + ' not found in Symbols for country=' + country_code
             LoaderBase.write_job_log(session, method_params.get("job_id"), MsgSeverity.WARN, msg)
             return
 
-        symbols = Symbol.get_symbols_by_symbol_and_exchange(session, ticker, exchange)
+        symbols = Symbol.get_symbols_by_ticker_and_exchange(session, ticker, exchange)
         candidate_symbol: Symbol = LoaderBase.find_candidate_symbol(symbols, ex_dividend_date)
 
         if candidate_symbol:
@@ -55,11 +55,11 @@ class LoadDividendsFromPolygon:
 
 
 if __name__ == '__main__':
-    days_to_go_back = 365
+    days_to_go_back = 5
     commit = True
     paginate = True
-    params = {'limit': 1000, # 'declaration_date.gte': datetime.utcnow().date() - timedelta(days_to_go_back)
-               }
+    params = {'limit': 1000,
+              'declaration_date.gte': datetime.utcnow().date() - timedelta(days_to_go_back)}
 
     job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Dividends,
                                   params=str(params) + ' paginate: ' + str(paginate))
