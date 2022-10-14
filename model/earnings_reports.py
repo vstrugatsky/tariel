@@ -42,5 +42,5 @@ class EarningsReport(model.Base):
     @staticmethod
     def get_max_date():
         session = model.Session()
-        return session.query(func.max(EarningsReport.tweet_date)).scalar()
+        return session.query(func.max(EarningsReport.created)).scalar()
 

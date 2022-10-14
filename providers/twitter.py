@@ -47,5 +47,5 @@ class Twitter:
             Twitter.call_paginated_api(
                 url=url,
                 payload=payload,
-                method=method, method_params={},
+                method=method, method_params=method_params,
                 paginate=paginate, commit=commit, next_token=next_token)

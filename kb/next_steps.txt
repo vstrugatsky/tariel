@@ -79,7 +79,16 @@ Data model re-work - think deeply
 - saving works!
 - fixed rounding issue
 
+2022-Oct-13:
+Tweets loading:
+- Added support for NII
+- Added support for basic guidance
+- Added logging
+- Added support and tests for canadian symbols in cashtags
+
 Next steps:
-- Deal with NII, British currency, reaffirms / updates / ups guidance
-- Start saving
+- automate daily jobs
+- load financials including reporting period
+- parse tweets from LiveSquawk
+- Research and implement financials including reporting periods
 

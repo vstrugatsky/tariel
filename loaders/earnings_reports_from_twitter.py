@@ -2,8 +2,11 @@ from __future__ import annotations
 from typing import Optional
 import model
 from datetime import datetime, timedelta, date
-from model.jobs import Provider
+from loaders.loader_base import LoaderBase
+from model.job_log import MsgSeverity
+from model.jobs import Provider, JobType
 from model.symbols import Symbol
+from model.currency import Currency
 from model.earnings_reports import EarningsReport
 from utils.utils import Utils
 import re
@@ -12,18 +15,9 @@ from providers.twitter import Twitter
 
 class LoadEarningsReportsFromTwitter:
     @staticmethod
-    def lookup_currency(symbol: str) -> str | None:
-        if symbol == '$':
-            return 'USD'
-        elif symbol == 'C$':
-            return 'CAD'
-        else:
-            return None
-
-    @staticmethod
     def determine_currency(eps_currency, revenue_currency) -> str | None:
         currency = eps_currency if eps_currency else revenue_currency
-        return LoadEarningsReportsFromTwitter.lookup_currency(currency)
+        return Currency.currencies.get(currency, None)
 
     @staticmethod
     def determine_eps(eps_sign: str | None, eps: str | None) -> float:
@@ -45,16 +39,11 @@ class LoadEarningsReportsFromTwitter:
 
     @staticmethod
     def apply_uom(amount: float, uom: str | None) -> float:
-        if not uom:
+        scale = {'K': 1000, 'M': 1000000, 'B': 1000000000}
+        if not uom or uom.upper() not in scale.keys():
             return amount
-        elif uom.upper() == 'K':
-            return round(amount * 1000)
-        elif uom.upper() == 'M':
-            return round(amount * 1000000)
-        elif uom.upper() == 'B':
-            return round(amount * 1000000000)
         else:
-            return amount
+            return round(amount * scale.get(uom.upper()))
 
     @staticmethod
     def update_earnings_fields(er: EarningsReport, match_dict: dict):
@@ -70,7 +59,7 @@ class LoadEarningsReportsFromTwitter:
         er.revenue_surprise = LoadEarningsReportsFromTwitter.determine_surprise(
             match_dict.get('revenue_surprise_direction'), match_dict.get('revenue_surprise_amount'), match_dict.get('revenue_surprise_uom'))
 
-        # TODO : er.guidance_direction
+        er.guidance_direction = match_dict.get('guidance_1')
 
     @staticmethod
     def update_twitter_fields(er: EarningsReport, i: dict):
@@ -89,30 +78,32 @@ class LoadEarningsReportsFromTwitter:
     @staticmethod
     def parse_tweet(tweet_text: str) -> re.Match:
         p = re.compile(r'''
-           EPS[ ]of[ ](?P<eps_sign>[-])?(?P<eps_currency>C?[$])      
+           (EPS|NII)[ ]of[ ](?P<eps_sign>[-])?(?P<eps_currency>C?[$])      
            (?P<eps>\d+\.\d+)
            [ ]?(?P<eps_surprise_direction>misses|beats)?
            ([ ]by[ ])?(?P<eps_surprise_currency>C?[$])?
            (?P<eps_surprise_amount>\d+\.\d+)?
            .+
-           revenue[ ]of[ ](?P<revenue_currency>C?[$])
+           (revenue|investment[ ]income)[ ]of[ ](?P<revenue_currency>C?[$])
            (?P<revenue>\d+\.?\d*)
            (?P<revenue_uom>[MBK])
            [ ]?(?P<revenue_surprise_direction>misses|beats)?
            ([ ]by[ ])?(?P<revenue_surprise_currency>C?[$])?
            (?P<revenue_surprise_amount>\d+\.?\d*)?
            (?P<revenue_surprise_uom>[MBK])?
+           ([,;]?[ ]?(?P<guidance_1>reaffirms|updates|raises|ups|lowers|revises).+guidance)?
            ''', re.VERBOSE | re.IGNORECASE)
         return p.search(tweet_text)
 
     @staticmethod
-    def associate_tweet_with_symbol(session: model.Session, cashtags: [dict]) -> Optional[Symbol]:
+    def associate_tweet_with_symbol(session: model.Session, cashtags: [dict], tweet_text: str) -> Optional[Symbol]:
         symbol: Optional[Symbol] = None
         if not cashtags:
             return None
         for d in cashtags:
             cashtag: str = d.get('tag')
-            if cashtag:
+            if cashtag and (cashtag + ' ') in tweet_text:
+                # A hack to account for Canadian symbols in cashtags - they would appear as symbol:CA in text - ignore them
                 candidate_symbol: Symbol = Symbol.get_unique_by_ticker_and_country(session, cashtag, 'US')
                 if candidate_symbol and symbol is None:
                     symbol = candidate_symbol
@@ -126,14 +117,16 @@ class LoadEarningsReportsFromTwitter:
         print(f'TWEET {i["created_at"]} {i["text"]} {str(cashtags)}')
         if not cashtags:
             return
-        symbol = LoadEarningsReportsFromTwitter.associate_tweet_with_symbol(session, cashtags)
-        if not symbol:
-            print(f'INFO cannot associate symbol with {cashtags}')
-            return
 
         match: re.Match = LoadEarningsReportsFromTwitter.parse_tweet(i['text'])
         if not match:
             print(f'INFO cannot parse earnings from {i["text"]}')
+            return
+
+        symbol = LoadEarningsReportsFromTwitter.associate_tweet_with_symbol(session, cashtags, i['text'])
+        if not symbol:
+            msg = 'Parsed an earnings tweet, but cannot associate symbol with cashtags ' + str(cashtags)
+            LoaderBase.write_job_log(session, method_params.get("job_id"), MsgSeverity.WARN, msg)
             return
 
         print(f'INFO associated {Symbol.symbol} and matched {match.groupdict()}')
@@ -160,12 +153,15 @@ if __name__ == '__main__':
         max_date = EarningsReport.get_max_date() or datetime.utcnow() - timedelta(days=6, hours=23)
 
     payload = {'query': 'from:' + Twitter.account,  # + ' earnings',
-               'max_results': max_results,
-               'start_time': max_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
-               'tweet.fields': 'created_at,author_id,entities'}
+               'start_time': max_date.strftime("%Y-%m-%dT%H:%M:%SZ")}
+
+    job_id = LoaderBase.start_job(provider=Provider.Twitter, job_type=JobType.EarningsReports,
+                                  params=str(payload) + ' paginate: ' + str(paginate))
 
     Twitter.call_paginated_api(
         url=Twitter.url_prefix + '/tweets/search/recent',
-        payload=payload,
-        method=LoadEarningsReportsFromTwitter.load, method_params={},
+        payload=payload | {'tweet.fields': 'created_at,author_id,entities', 'max_results': max_results},
+        method=LoadEarningsReportsFromTwitter.load, method_params={'job_id': job_id},
         paginate=paginate, commit=commit, next_token=None)
+
+    LoaderBase.complete_job(job_id)

@@ -13,6 +13,7 @@ class JobType(enum.Enum):
     Symbols = 1
     Dividends = 2
     Splits = 3
+    EarningsReports = 4
 
 
 class Job(Base):
