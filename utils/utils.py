@@ -1,3 +1,4 @@
+from __future__ import annotations
 from jsonpath_ng import parse
 
 
@@ -10,3 +11,11 @@ class Utils:
             return matches[0].value
         else:
             return None
+
+    @staticmethod
+    def apply_uom(amount: float, uom: str | None) -> float:
+        scale = {'K': 1000, 'M': 1000000, 'B': 1000000000}
+        if not uom or uom.upper() not in scale.keys():
+            return amount
+        else:
+            return round(amount * scale.get(uom.upper()))

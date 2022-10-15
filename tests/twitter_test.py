@@ -1,6 +1,9 @@
 import re
 import model
 from loaders.earnings_reports_from_twitter import LoadEarningsReportsFromTwitter
+from loaders.twitter_livesquawk import Livesquawk
+from loaders.twitter_marketcurrents import Marketcurrents
+from utils.utils import Utils
 
 
 def test_determine_currency():
@@ -18,21 +21,44 @@ def test_determine_eps():
     assert(LoadEarningsReportsFromTwitter.determine_eps('-', eps='1') == -1)
 
 
-def test_determine_surprise():
-    assert(LoadEarningsReportsFromTwitter.determine_surprise(surprise_direction=None, surprise_amount=0.01, surprise_uom=None) is None)
-    assert(LoadEarningsReportsFromTwitter.determine_surprise('BAD', 0.01, None) is None)
-    assert(LoadEarningsReportsFromTwitter.determine_surprise('beats', 0.01, None) == 0.01)
-    assert(LoadEarningsReportsFromTwitter.determine_surprise('MISSES', 0.01, 'm') == -10000)
-    assert(LoadEarningsReportsFromTwitter.determine_surprise('misses', 64.24, 'M') == -64240000)
+def test_determine_surprise_marketcurrents():
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+
+    match_dict = {'eps_surprise_direction': None, 'eps_surprise_amount': None, 'eps_surprise_uom': None}
+    assert(loader.account.determine_surprise(match_dict=match_dict, metrics='eps') is None)
+
+    match_dict = {'eps_surprise_direction': 'BAD', 'eps_surprise_amount': 0.01, 'eps_surprise_uom': None}
+    assert (loader.account.determine_surprise(match_dict=match_dict, metrics='eps') is None)
+
+    match_dict = {'eps_surprise_direction': 'beats', 'eps_surprise_amount': 0.01, 'eps_surprise_uom': None}
+    assert (loader.account.determine_surprise(match_dict=match_dict, metrics='eps') == 0.01)
+
+    match_dict = {'revenue_surprise_direction': 'MISSES', 'revenue_surprise_amount': 0.01, 'revenue_surprise_uom': 'm'}
+    assert (loader.account.determine_surprise(match_dict=match_dict, metrics='revenue') == -10000)
+
+    match_dict = {'revenue_surprise_direction': 'misses', 'revenue_surprise_amount': 64.24, 'revenue_surprise_uom': 'M'}
+    assert (loader.account.determine_surprise(match_dict=match_dict, metrics='revenue') == -64240000)
+
+
+def test_determine_surprise_livesquawk():
+    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    match_dict = {'eps': '1.51', 'eps_estimate_amount': '1.54'}
+    assert (loader.account.determine_surprise(match_dict=match_dict, metrics='eps') == -0.03)
+
+    match_dict = {'revenue': '12.84', 'revenue_uom': 'b', 'revenue_estimate_amount': '12.83', 'revenue_estimate_uom': 'B'}
+    assert (loader.account.determine_surprise(match_dict=match_dict, metrics='revenue') == 10000000)
+
+    match_dict = {'revenue': '12.84', 'revenue_uom': None, 'revenue_estimate_amount': '12.83', 'revenue_estimate_uom': None}
+    assert (loader.account.determine_surprise(match_dict=match_dict, metrics='revenue') == 10000000)
 
 
 def test_apply_uom():
-    assert(LoadEarningsReportsFromTwitter.apply_uom(amount=0.07, uom=None) == 0.07)
-    assert(LoadEarningsReportsFromTwitter.apply_uom(0.07, 'Z') == 0.07)
-    assert(LoadEarningsReportsFromTwitter.apply_uom(0.07, 'k') == 70)
-    assert(LoadEarningsReportsFromTwitter.apply_uom(0.07, 'M') == 70000)
-    assert(LoadEarningsReportsFromTwitter.apply_uom(1.1, 'b') == 1100000000)
-    assert(LoadEarningsReportsFromTwitter.apply_uom(64.24, 'M') == 64240000)
+    assert(Utils.apply_uom(amount=0.07, uom=None) == 0.07)
+    assert(Utils.apply_uom(0.07, 'Z') == 0.07)
+    assert(Utils.apply_uom(0.07, 'k') == 70)
+    assert(Utils.apply_uom(0.07, 'M') == 70000)
+    assert(Utils.apply_uom(1.1, 'b') == 1100000000)
+    assert(Utils.apply_uom(64.24, 'M') == 64240000)
 
 
 def test_associate_tweet_with_symbol():
@@ -76,7 +102,8 @@ def test_associate_tweet_with_symbol():
 
 def test_parse_tweet_nii():
     tweet = '$SAR - Saratoga Investment Non-GAAP NII of $0.58 beats by $0.07, total Investment Income of $21.85M beats by $1.95M'
-    m: re.Match = LoadEarningsReportsFromTwitter.parse_tweet(tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    m: re.Match = loader.account.parse_tweet(tweet)
     assert(m.groupdict().get('eps_sign') is None)
     assert(m.groupdict().get('eps_currency') == '$')
     assert(m.groupdict().get('eps') == '0.58')
@@ -94,7 +121,8 @@ def test_parse_tweet_nii():
 
 def test_parse_tweet_basic():
     tweet = '$BABB GAAP EPS of $0.02, revenue of $0.88M'
-    m: re.Match = LoadEarningsReportsFromTwitter.parse_tweet(tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    m: re.Match = loader.account.parse_tweet(tweet)
     assert(m.groupdict().get('eps_sign') is None)
     assert(m.groupdict().get('eps_currency') == '$')
     assert(m.groupdict().get('eps') == '0.02')
@@ -112,7 +140,8 @@ def test_parse_tweet_basic():
 
 def test_parse_tweet_with_surprises():
     tweet = '$TLRY $TLRY:CA - Tilray Non - GAAP EPS of -$0.08 misses by $0.01, revenue of $153M misses by $3.6M'
-    m: re.Match = LoadEarningsReportsFromTwitter.parse_tweet(tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    m: re.Match = loader.account.parse_tweet(tweet)
     assert (m.groupdict().get('eps_sign') == '-')
     assert(m.groupdict().get('eps_currency') == '$')
     assert(m.groupdict().get('eps') == '0.08')
@@ -130,7 +159,8 @@ def test_parse_tweet_with_surprises():
 
 def test_parse_tweet_canadian():
     tweet = '$ATZAF $ATZ:CA - Aritzia&amp;nbsp; GAAP EPS of C$0.44, revenue of C$525.5M'
-    m: re.Match = LoadEarningsReportsFromTwitter.parse_tweet(tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    m: re.Match = loader.account.parse_tweet(tweet)
     assert (m.groupdict().get('eps_sign') is None)
     assert(m.groupdict().get('eps_currency') == 'C$')
     assert(m.groupdict().get('eps') == '0.44')
@@ -148,7 +178,8 @@ def test_parse_tweet_canadian():
 
 def test_parse_tweet_with_guidance_1():
     tweet = 'AngioDynamics Non-GAAP EPS of -$0.06 misses by $0.04, revenue of $81.5M misses by $1.93M, reaffirms FY guidance'
-    m: re.Match = LoadEarningsReportsFromTwitter.parse_tweet(tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    m: re.Match = loader.account.parse_tweet(tweet)
     assert (m.groupdict().get('eps_sign') == '-')
     assert(m.groupdict().get('eps_currency') == '$')
     assert(m.groupdict().get('eps') == '0.06')
@@ -167,8 +198,53 @@ def test_parse_tweet_with_guidance_1():
 
 def test_parse_tweet_not_earnings():
     tweet = '$AZZ declares $0.17 dividend'
-    m = LoadEarningsReportsFromTwitter.parse_tweet(tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    m: re.Match = loader.account.parse_tweet(tweet)
     assert(m is None)
+
+
+def test_parse_tweet_livesquawk():
+    tweet = '''
+    $DAL Delta Airlines Q3 22 Earnings: \
+      - Adj EPS $1.51 (est $1.54) \
+      - Adj Revenue $12.84B (est $12.83B) \
+      - Sees Q4 Adj EPS $1 To $1.25 (est $0.80)
+      '''
+    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    m: re.Match = loader.account.parse_tweet(tweet)
+    assert(m.groupdict().get('eps_sign') is None)
+    assert(m.groupdict().get('eps_currency') == '$')
+    assert(m.groupdict().get('eps') == '1.51')
+    assert(m.groupdict().get('eps_estimate_currency') == '$')
+    assert(m.groupdict().get('eps_estimate_amount') == '1.54')
+    assert(m.groupdict().get('revenue_currency') == '$')
+    assert(m.groupdict().get('revenue') == '12.84')
+    assert(m.groupdict().get('revenue_uom') == 'B')
+    assert(m.groupdict().get('revenue_estimate_currency') == '$')
+    assert(m.groupdict().get('revenue_estimate_amount') == '12.83')
+    assert(m.groupdict().get('revenue_estimate_uom') == 'B')
+
+
+def test_parse_tweet_livesquawk_without_uom():
+    tweet = '''
+    $UNH UnitedHealth Q3 22 Earnings: 
+- EPS $5.55 (est $5.20) 
+- Revenue $46.56 (est $45.54) 
+- Sees FY EPS $ 20.85 To $21.05 (prev $20.45 To $20.95
+'''
+    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    m: re.Match = loader.account.parse_tweet(tweet)
+    assert(m.groupdict().get('eps_sign') is None)
+    assert(m.groupdict().get('eps_currency') == '$')
+    assert(m.groupdict().get('eps') == '5.55')
+    assert(m.groupdict().get('eps_estimate_currency') == '$')
+    assert(m.groupdict().get('eps_estimate_amount') == '5.20')
+    assert(m.groupdict().get('revenue_currency') == '$')
+    assert(m.groupdict().get('revenue') == '46.56')
+    assert(m.groupdict().get('revenue_uom') is None)
+    assert(m.groupdict().get('revenue_estimate_currency') == '$')
+    assert(m.groupdict().get('revenue_estimate_amount') == '45.54')
+    assert(m.groupdict().get('revenue_estimate_uom') is None)
 
     tweet = 'AngioDynamics Non-GAAP EPS of -$0.06 misses by $0.04, revenue of $81.5M misses by $1.93M, reaffirms FY guidance'
     tweet = 'Tesco PLC Non-GAAP EPS of 10.67p, revenue of £28.18B'
@@ -183,17 +259,13 @@ def test_parse_tweet_not_earnings():
     tweet = '$INMD - InMode gains after setting strong-than-anticipated Q3 pre-results, guidance'
     tweet = '$PCRX - Pacira BioSciences guides Q3 revenue below consensus'
     tweet = '$BKSC - Bank of South Carolina GAAP EPS of $0.33'
+    tweet = '$UNTY - Unity Bancorp GAAP EPS of $0.93'
     tweet = '$THTX $TH:CA - Theratechnologies reports Q3 results, FY22 guidance is on track'
     tweet = '$RWT - Redwood Trust stock gains 5% after hours on preliminary Q3 results'
     tweet = 'NEWS: $INMD InMode Expects Record Third Quarter 2022 Revenue of $120.5M-$120.9M, Raising Full-Year 2022 Revenue Guidance to $445M-450M'
     tweet_acct = '@marketwirenews'
-
-
-    # @LiveSquawk
-    tweet = 'LiveSquawk @LiveSquawk $DAL Delta Airlines Q3 22 Earnings: \
-      - Adj EPS $1.51 (est $1.54) \
-      - Adj Revenue $12.84B (est $12.83B) \
-      - Sees Q4 Adj EPS $1 To $1.25 (est $0.80)'
+    tweet = '$UNH - UnitedHealth stock trades higher as revenue soars 12%, FY22 outlook raised again'
+    tweet = '$PLUG - Plug Power plunges as full-year revenues seen missing guidance'
 
     tweet = '$WBA Walgreens Boots Q4 22 Earnings: \
         - Adj EPS $0.80 (est $0.77) \
@@ -206,4 +278,3 @@ def test_parse_tweet_not_earnings():
             - AUM $7.96T (est $8.27T)'
 
     # DAL missing!!
-

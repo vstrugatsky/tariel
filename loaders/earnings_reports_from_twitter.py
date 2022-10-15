@@ -3,6 +3,9 @@ from typing import Optional
 import model
 from datetime import datetime, timedelta, date
 from loaders.loader_base import LoaderBase
+from loaders.twitter_account import TwitterAccount
+from loaders.twitter_livesquawk import Livesquawk
+from loaders.twitter_marketcurrents import Marketcurrents
 from model.job_log import MsgSeverity
 from model.jobs import Provider, JobType
 from model.symbols import Symbol
@@ -14,6 +17,9 @@ from providers.twitter import Twitter
 
 
 class LoadEarningsReportsFromTwitter:
+    def __init__(self, account):
+        self.account: TwitterAccount = account
+
     @staticmethod
     def determine_currency(eps_currency, revenue_currency) -> str | None:
         currency = eps_currency if eps_currency else revenue_currency
@@ -27,46 +33,24 @@ class LoadEarningsReportsFromTwitter:
             return float(eps) if eps else 0
 
     @staticmethod
-    def determine_surprise(surprise_direction: str, surprise_amount: str, surprise_uom: str | None) -> float | None:
-        if not surprise_direction:
-            return None
-        if surprise_direction.lower() == 'misses':
-            return LoadEarningsReportsFromTwitter.apply_uom(0.0 - float(surprise_amount), surprise_uom)
-        elif surprise_direction.lower() == 'beats':
-            return LoadEarningsReportsFromTwitter.apply_uom(float(surprise_amount), surprise_uom)
-        else:
-            return None
-
-    @staticmethod
-    def apply_uom(amount: float, uom: str | None) -> float:
-        scale = {'K': 1000, 'M': 1000000, 'B': 1000000000}
-        if not uom or uom.upper() not in scale.keys():
-            return amount
-        else:
-            return round(amount * scale.get(uom.upper()))
-
-    @staticmethod
-    def update_earnings_fields(er: EarningsReport, match_dict: dict):
+    def update_earnings_fields(er: EarningsReport, match_dict: dict, account: TwitterAccount):
         er.currency = LoadEarningsReportsFromTwitter.determine_currency(
             match_dict.get('eps_currency'), match_dict.get('revenue_currency'))
 
         er.eps = LoadEarningsReportsFromTwitter.determine_eps(match_dict.get('eps_sign'), match_dict.get('eps'))
+        er.revenue = account.determine_revenue(match_dict)
 
-        er.revenue = LoadEarningsReportsFromTwitter.apply_uom(float(match_dict.get('revenue')), match_dict.get('revenue_uom'))
-
-        er.eps_surprise = LoadEarningsReportsFromTwitter.determine_surprise(
-            match_dict.get('eps_surprise_direction'), match_dict.get('eps_surprise_amount'), surprise_uom=None)
-        er.revenue_surprise = LoadEarningsReportsFromTwitter.determine_surprise(
-            match_dict.get('revenue_surprise_direction'), match_dict.get('revenue_surprise_amount'), match_dict.get('revenue_surprise_uom'))
+        er.eps_surprise = account.determine_surprise(match_dict, 'eps')
+        er.revenue_surprise = account.determine_surprise(match_dict, 'revenue')
 
         er.guidance_direction = match_dict.get('guidance_1')
 
     @staticmethod
-    def update_twitter_fields(er: EarningsReport, i: dict):
+    def update_twitter_fields(er: EarningsReport, i: dict, account: TwitterAccount):
         er.provider_info = {
             'tweet_id': i['id'],
             'tweet_date': i['created_at'],
-            'twitter_account': Twitter.account + '(' + i['author_id'] + ')',
+            'twitter_account': account.account_name + '(' + i['author_id'] + ')',
             'tweet_text': i['text'],
             'tweet_short_url': Utils.find_first_match("entities.urls[0].url", i),
             'tweet_expanded_url': Utils.find_first_match("entities.urls[0].expanded_url", i),
@@ -74,26 +58,6 @@ class LoadEarningsReportsFromTwitter:
             'tweet_url_title': Utils.find_first_match("entities.urls[0].title", i),
             'tweet_url_description': Utils.find_first_match("entities.urls[0].description", i),
         }
-
-    @staticmethod
-    def parse_tweet(tweet_text: str) -> re.Match:
-        p = re.compile(r'''
-           (EPS|NII)[ ]of[ ](?P<eps_sign>[-])?(?P<eps_currency>C?[$])      
-           (?P<eps>\d+\.\d+)
-           [ ]?(?P<eps_surprise_direction>misses|beats)?
-           ([ ]by[ ])?(?P<eps_surprise_currency>C?[$])?
-           (?P<eps_surprise_amount>\d+\.\d+)?
-           .+
-           (revenue|investment[ ]income)[ ]of[ ](?P<revenue_currency>C?[$])
-           (?P<revenue>\d+\.?\d*)
-           (?P<revenue_uom>[MBK])
-           [ ]?(?P<revenue_surprise_direction>misses|beats)?
-           ([ ]by[ ])?(?P<revenue_surprise_currency>C?[$])?
-           (?P<revenue_surprise_amount>\d+\.?\d*)?
-           (?P<revenue_surprise_uom>[MBK])?
-           ([,;]?[ ]?(?P<guidance_1>reaffirms|updates|raises|ups|lowers|revises).+guidance)?
-           ''', re.VERBOSE | re.IGNORECASE)
-        return p.search(tweet_text)
 
     @staticmethod
     def associate_tweet_with_symbol(session: model.Session, cashtags: [dict], tweet_text: str) -> Optional[Symbol]:
@@ -113,12 +77,14 @@ class LoadEarningsReportsFromTwitter:
 
     @staticmethod
     def load(i: dict, session: model.Session, method_params: dict):
-        cashtags = i['entities'].get('cashtags', None)
+        account: TwitterAccount = method_params.get("account")
+        entities = i.get('entities', None)
+        cashtags = entities.get('cashtags', None) if entities else None
         print(f'TWEET {i["created_at"]} {i["text"]} {str(cashtags)}')
         if not cashtags:
             return
 
-        match: re.Match = LoadEarningsReportsFromTwitter.parse_tweet(i['text'])
+        match: re.Match = account.parse_tweet(i['text'])
         if not match:
             print(f'INFO cannot parse earnings from {i["text"]}')
             return
@@ -138,12 +104,14 @@ class LoadEarningsReportsFromTwitter:
         else:
             er.updated = datetime.now()
             er.updater = Provider.Twitter
-        LoadEarningsReportsFromTwitter.update_earnings_fields(er, match.groupdict())
-        LoadEarningsReportsFromTwitter.update_twitter_fields(er, i)
+        LoadEarningsReportsFromTwitter.update_earnings_fields(er, match.groupdict(), account)
+        LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, account)
 
 
 if __name__ == '__main__':
-    backfill = True
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    # loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    backfill = False
     commit = True
     paginate = True
     max_results = 100
@@ -152,7 +120,7 @@ if __name__ == '__main__':
     else:
         max_date = EarningsReport.get_max_date() or datetime.utcnow() - timedelta(days=6, hours=23)
 
-    payload = {'query': 'from:' + Twitter.account,  # + ' earnings',
+    payload = {'query': 'from:' + loader.account.account_name,  # + ' earnings',
                'start_time': max_date.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
     job_id = LoaderBase.start_job(provider=Provider.Twitter, job_type=JobType.EarningsReports,
@@ -161,7 +129,8 @@ if __name__ == '__main__':
     Twitter.call_paginated_api(
         url=Twitter.url_prefix + '/tweets/search/recent',
         payload=payload | {'tweet.fields': 'created_at,author_id,entities', 'max_results': max_results},
-        method=LoadEarningsReportsFromTwitter.load, method_params={'job_id': job_id},
+        method=LoadEarningsReportsFromTwitter.load,
+        method_params={'job_id': job_id, 'account': loader.account},
         paginate=paginate, commit=commit, next_token=None)
 
     LoaderBase.complete_job(job_id)

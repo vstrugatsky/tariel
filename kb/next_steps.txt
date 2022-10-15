@@ -86,9 +86,11 @@ Tweets loading:
 - Added logging
 - Added support and tests for canadian symbols in cashtags
 
+2022-Oct-14:
+Supported parsing of earnings from more than one Twitter account using Strategy pattern
+
 Next steps:
 - automate daily jobs
-- load financials including reporting period
-- parse tweets from LiveSquawk
-- Research and implement financials including reporting periods
+- parse guidance from Livesquawk
+- research and load financials including reporting period
 

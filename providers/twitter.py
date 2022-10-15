@@ -9,9 +9,7 @@ class Twitter:
     api_key = '5jVxQ7fmxfkoZ7ZCJLALNhQX7'
     api_key_secret = 'dg0rQIF04VG2LL1IZm161MEOy9T8oLbkKWXDw4Agw1ILZlQokd'
     bearer_token = 'AAAAAAAAAAAAAAAAAAAAABPogAEAAAAAByMCjcuMzPZwxBBPsVvcwQu8XhQ%3DwgMrQIkMpzwRQZz2cQUEfspZ17wxWSpldiyd5GSOxgvckfGjsg'
-
     url_prefix = 'https://api.twitter.com/2'
-    account = 'marketcurrents'
 
     @staticmethod
     def call_paginated_api(url: str,
