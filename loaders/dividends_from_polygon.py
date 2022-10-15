@@ -1,7 +1,4 @@
 from __future__ import annotations
-
-from sqlalchemy import BigInteger
-
 from loaders.loader_base import LoaderBase
 from model.job_log import MsgSeverity
 from model.jobs import Provider, Job, JobType
@@ -12,7 +9,7 @@ import model as model
 from datetime import date, datetime, timedelta
 
 
-class LoadDividendsFromPolygon:
+class LoadDividendsFromPolygon(LoaderBase):
     @staticmethod
     def update_dividend_from_polygon(dividend: Dividend, i: dict):
         dividend.dividend_type = i.get('dividend_type'),
@@ -25,6 +22,7 @@ class LoadDividendsFromPolygon:
 
     @staticmethod
     def load(i: dict, session: model.Session, method_params: dict):
+        loader: LoadDividendsFromPolygon = method_params.get('loader')
         ticker: str = i.get('ticker')
         ex_dividend_date: date = datetime.strptime(i.get('ex_dividend_date'), "%Y-%m-%d").date()
         country_code: str = method_params.get("country_code")
@@ -32,7 +30,8 @@ class LoadDividendsFromPolygon:
         exchange: str = Symbol.find_exchange_by_ticker_and_country(session, ticker, country_code)
         if exchange is None:
             msg = ticker + ' not found in Symbols for country=' + country_code
-            LoaderBase.write_job_log(session, method_params.get("job_id"), MsgSeverity.WARN, msg)
+            LoaderBase.write_job_log(session, loader.job_id, MsgSeverity.WARN, msg)
+            loader.warnings += 1
             return
 
         symbols = Symbol.get_symbols_by_ticker_and_exchange(session, ticker, exchange)
@@ -43,31 +42,35 @@ class LoadDividendsFromPolygon:
             if dividend:
                 dividend.updated = datetime.now()
                 dividend.updater = Provider.Polygon
+                loader.records_updated += 1
             else:
                 dividend = Dividend(symbol=candidate_symbol,
                                     ex_dividend_date=ex_dividend_date, creator=Provider.Polygon)
                 session.add(dividend)
+                loader.records_added += 1
 
             LoadDividendsFromPolygon.update_dividend_from_polygon(dividend, i)
         else:
             msg = 'could not find matching Symbol for ' + ticker + ' and ex_dividend_date=' + str(ex_dividend_date)
-            LoaderBase.write_job_log(session, method_params.get("job_id"), MsgSeverity.WARN, msg)
+            LoaderBase.write_job_log(session, loader.job_id, MsgSeverity.WARN, msg)
+            loader.warnings += 1
 
 
 if __name__ == '__main__':
+    loader = LoadDividendsFromPolygon()
     days_to_go_back = 5
     commit = True
     paginate = True
     params = {'limit': 1000,
               'declaration_date.gte': datetime.utcnow().date() - timedelta(days_to_go_back)}
 
-    job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Dividends,
+    loader.job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Dividends,
                                   params=str(params) + ' paginate: ' + str(paginate))
 
     Polygon.call_paginated_api(url=Polygon.polygonPrefix + 'v3/reference/dividends',
                                payload=params | {'order': 'asc', 'sort': 'ticker'},
                                method=LoadDividendsFromPolygon.load,
-                               method_params={'country_code': 'US', 'job_id': job_id},
+                               method_params={'country_code': 'US', 'loader': loader},
                                commit=commit, paginate=paginate, cursor=None)
 
-    LoaderBase.complete_job(job_id)
+    LoaderBase.finish_job(loader)

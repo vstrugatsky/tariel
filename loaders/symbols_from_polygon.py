@@ -10,7 +10,7 @@ from datetime import datetime
 import time
 
 
-class LoadSymbolsFromPolygon:
+class LoadSymbolsFromPolygon(LoaderBase):
     @staticmethod
     def manual_data_cleanup(ticker: str) -> str | None:
         if ticker == 'CASY':
@@ -30,6 +30,7 @@ class LoadSymbolsFromPolygon:
 
     @staticmethod
     def load(i: dict, session: model.Session, method_params: dict):
+        loader: LoadSymbolsFromPolygon = method_params.get('loader')
         if i.get('market') == 'otc':
             exchange = 'OTCM'
         else:
@@ -41,9 +42,11 @@ class LoadSymbolsFromPolygon:
         if exchange:
             symbol = Symbol.get_unique(session, i.get('ticker'), exchange, i.get('active'), i.get('delisted_utc'))
             if symbol:
-                symbol.updated = datetime.now()
-                symbol.updater = Provider.Polygon
-                LoadSymbolsFromPolygon.update_symbol_from_polygon(symbol, i)
+                if symbol.updated is None or symbol.updated < symbol.provider_last_updated:
+                    symbol.updated = datetime.now()
+                    symbol.updater = Provider.Polygon
+                    LoadSymbolsFromPolygon.update_symbol_from_polygon(symbol, i)
+                    loader.records_updated += 1
             else:
                 symbol = Symbol(symbol=i.get('ticker'),
                                 exchange=exchange,
@@ -52,9 +55,12 @@ class LoadSymbolsFromPolygon:
                                 creator=Provider.Polygon)
                 LoadSymbolsFromPolygon.update_symbol_from_polygon(symbol, i)
                 session.add(symbol)
+                loader.records_added += 1
         else:
-            msg = 'exchange ' + i.get("primary_exchange", 'None') + ' not found for ticker ' + i.get("ticker")
-            LoaderBase.write_job_log(session, method_params.get("job_id"), MsgSeverity.ERROR, msg)
+            if i.get('active'):
+                msg = 'exchange ' + i.get("primary_exchange", 'None') + ' not found for active ticker ' + i.get("ticker")
+                LoaderBase.write_job_log(session, loader.job_id, MsgSeverity.ERROR, msg)
+                loader.errors += 1
 
 
 if __name__ == '__main__':
@@ -66,12 +72,13 @@ if __name__ == '__main__':
                       {'market': 'otc', 'active': False}
                       ]
     for param in params:
-        job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Symbols,
+        loader = LoadSymbolsFromPolygon()
+        loader.job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Symbols,
                                       params=str(param) + ' commit: ' + str(commit) + ' paginate: ' + str(paginate))
         time.sleep(5)
         Polygon.call_paginated_api(Polygon.polygonPrefix + 'v3/reference/tickers',
                                    param | {'limit': 1000, 'order': 'asc', 'sort': 'ticker'},
-                                   method=LoadSymbolsFromPolygon.load, method_params={"job_id": job_id},
+                                   method=LoadSymbolsFromPolygon.load, method_params={'loader': loader},
                                    commit=commit, paginate=paginate, cursor=None)
 
-        LoaderBase.complete_job(job_id)
+        LoaderBase.finish_job(loader)

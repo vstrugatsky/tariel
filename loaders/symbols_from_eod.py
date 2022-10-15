@@ -8,7 +8,7 @@ from loaders.loader_base import LoaderBase
 from model.jobs import Provider, JobType
 
 
-class LoadSymbolsFromEOD:
+class LoadSymbolsFromEOD(LoaderBase):
 
     @staticmethod
     def eod_update_symbols(exchange_code: str):
@@ -36,16 +36,17 @@ class LoadSymbolsFromEOD:
 
 
 if __name__ == '__main__':
+    loader = LoadSymbolsFromEOD()
     exchanges_to_load = [
         'NEO', 'V', 'TO',   # Canada
         # 'LSE'  # London Stock Exchange
         # 'US'   # All US Exchanges
     ]
 
-    job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Symbols,
+    loader.job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Symbols,
                                   params=str(exchanges_to_load))
 
     for e in exchanges_to_load:
         LoadSymbolsFromEOD.eod_update_symbols(e)
 
-    LoaderBase.complete_job(job_id)
+    LoaderBase.finish_job(loader)

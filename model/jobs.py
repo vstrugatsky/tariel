@@ -1,5 +1,6 @@
 import enum
 from sqlalchemy import Column, DateTime, Enum, Text, Integer, Identity, UniqueConstraint, BigInteger
+from sqlalchemy.dialects.postgresql import JSONB
 from model import Base
 
 
@@ -22,6 +23,7 @@ class Job(Base):
     provider = Column(Enum(Provider))
     job_type = Column(Enum(JobType))
     parameters = Column(Text)
+    job_info = Column(JSONB)
     started = Column(DateTime(timezone=True), nullable=False)
     completed = Column(DateTime(timezone=True))
     UniqueConstraint(provider, job_type, started)

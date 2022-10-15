@@ -9,7 +9,7 @@ import model as model
 from datetime import date, datetime, timedelta
 
 
-class LoadSplitsFromPolygon:
+class LoadSplitsFromPolygon(LoaderBase):
     @staticmethod
     def update_split_from_polygon(split: Split, i: dict):
         split.split_from = i.get('split_from'),
@@ -17,6 +17,7 @@ class LoadSplitsFromPolygon:
 
     @staticmethod
     def load(i: dict, session: model.Session, method_params: dict):
+        loader: LoadSplitsFromPolygon = method_params.get('loader')
         ticker: str = i.get('ticker')
         execution_date: date = datetime.strptime(i.get('execution_date'), "%Y-%m-%d").date()
         country_code: str = method_params.get("country_code")
@@ -24,7 +25,8 @@ class LoadSplitsFromPolygon:
         exchange: str = Symbol.find_exchange_by_ticker_and_country(session, ticker, country_code)
         if exchange is None:
             msg = ticker + ' not found in Symbols for country=' + country_code
-            LoaderBase.write_job_log(session, method_params.get("job_id"), MsgSeverity.WARN, msg)
+            LoaderBase.write_job_log(session, loader.job_id, MsgSeverity.WARN, msg)
+            loader.warnings += 1
             return
 
         symbols = Symbol.get_symbols_by_ticker_and_exchange(session, ticker, exchange)
@@ -35,31 +37,35 @@ class LoadSplitsFromPolygon:
             if split:
                 split.updated = datetime.now()
                 split.updater = Provider.Polygon
+                loader.records_updated += 1
             else:
                 split = Split(symbol=candidate_symbol,
                               execution_date=execution_date, creator=Provider.Polygon)
                 session.add(split)
+                loader.records_added += 1
 
             LoadSplitsFromPolygon.update_split_from_polygon(split, i)
         else:
             msg = 'could not find matching Symbol for ' + ticker + ' and execution_date=' + str(execution_date)
-            LoaderBase.write_job_log(session, method_params.get("job_id"), MsgSeverity.ERROR, msg)
+            LoaderBase.write_job_log(session, loader.job_id, MsgSeverity.ERROR, msg)
+            loader.warnings += 1
 
 
 if __name__ == '__main__':
+    loader = LoadSplitsFromPolygon()
     days_to_go_back = 5
     commit = True
     paginate = True
     params = {'limit': 1000,
               'execution_date.gte': datetime.utcnow().date() - timedelta(days_to_go_back)}
 
-    job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Splits,
+    loader.job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Splits,
                                   params=str(params) + ' commit: ' + str(commit) + ' paginate: ' + str(paginate))
 
     Polygon.call_paginated_api(url=Polygon.polygonPrefix + 'v3/reference/splits',
                                payload=params | {'order': 'asc', 'sort': 'ticker'},
                                method=LoadSplitsFromPolygon.load,
-                               method_params={'country_code': 'US', 'job_id': job_id},
+                               method_params={'country_code': 'US', 'loader': loader},
                                commit=commit, paginate=paginate, cursor=None)
 
-    LoaderBase.complete_job(job_id)
+    LoaderBase.finish_job(loader)

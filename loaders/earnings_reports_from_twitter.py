@@ -16,9 +16,10 @@ import re
 from providers.twitter import Twitter
 
 
-class LoadEarningsReportsFromTwitter:
+class LoadEarningsReportsFromTwitter(LoaderBase):
     def __init__(self, account):
         self.account: TwitterAccount = account
+        super(LoadEarningsReportsFromTwitter, self).__init__()
 
     @staticmethod
     def determine_currency(eps_currency, revenue_currency) -> str | None:
@@ -77,6 +78,7 @@ class LoadEarningsReportsFromTwitter:
 
     @staticmethod
     def load(i: dict, session: model.Session, method_params: dict):
+        loader: LoadEarningsReportsFromTwitter = method_params.get('loader')
         account: TwitterAccount = method_params.get("account")
         entities = i.get('entities', None)
         cashtags = entities.get('cashtags', None) if entities else None
@@ -84,7 +86,7 @@ class LoadEarningsReportsFromTwitter:
         if not cashtags:
             return
 
-        match: re.Match = account.parse_tweet(i['text'])
+        match: re.Match = loader.account.parse_tweet(i['text'])
         if not match:
             print(f'INFO cannot parse earnings from {i["text"]}')
             return
@@ -92,7 +94,8 @@ class LoadEarningsReportsFromTwitter:
         symbol = LoadEarningsReportsFromTwitter.associate_tweet_with_symbol(session, cashtags, i['text'])
         if not symbol:
             msg = 'Parsed an earnings tweet, but cannot associate symbol with cashtags ' + str(cashtags)
-            LoaderBase.write_job_log(session, method_params.get("job_id"), MsgSeverity.WARN, msg)
+            LoaderBase.write_job_log(session, loader.job_id, MsgSeverity.WARN, msg)
+            loader.warnings += 1
             return
 
         print(f'INFO associated {Symbol.symbol} and matched {match.groupdict()}')
@@ -101,16 +104,18 @@ class LoadEarningsReportsFromTwitter:
         if not er:
             er = EarningsReport(symbol=symbol, report_date=report_date, creator=Provider.Twitter)
             session.add(er)
+            loader.records_added += 1
         else:
             er.updated = datetime.now()
             er.updater = Provider.Twitter
-        LoadEarningsReportsFromTwitter.update_earnings_fields(er, match.groupdict(), account)
-        LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, account)
+            loader.records_updated += 1
+        LoadEarningsReportsFromTwitter.update_earnings_fields(er, match.groupdict(), loader.account)
+        LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, loader.account)
 
 
 if __name__ == '__main__':
-    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
-    # loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    # loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
     backfill = False
     commit = True
     paginate = True
@@ -123,14 +128,14 @@ if __name__ == '__main__':
     payload = {'query': 'from:' + loader.account.account_name,  # + ' earnings',
                'start_time': max_date.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
-    job_id = LoaderBase.start_job(provider=Provider.Twitter, job_type=JobType.EarningsReports,
+    loader.job_id = LoaderBase.start_job(provider=Provider.Twitter, job_type=JobType.EarningsReports,
                                   params=str(payload) + ' paginate: ' + str(paginate))
 
     Twitter.call_paginated_api(
         url=Twitter.url_prefix + '/tweets/search/recent',
         payload=payload | {'tweet.fields': 'created_at,author_id,entities', 'max_results': max_results},
         method=LoadEarningsReportsFromTwitter.load,
-        method_params={'job_id': job_id, 'account': loader.account},
+        method_params={'loader': loader},
         paginate=paginate, commit=commit, next_token=None)
 
-    LoaderBase.complete_job(job_id)
+    LoaderBase.finish_job(loader)

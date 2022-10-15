@@ -9,6 +9,13 @@ from datetime import datetime, date
 
 
 class LoaderBase(ABC):
+    def __init__(self):
+        self.records_added = 0
+        self.records_updated = 0
+        self.errors = 0
+        self.warnings = 0
+        self.job_id = 0
+
     @staticmethod
     def start_job(provider: Provider, job_type: JobType, params: str) -> BigInteger:
         started = datetime.now()
@@ -21,10 +28,14 @@ class LoaderBase(ABC):
             scalar()
 
     @staticmethod
-    def complete_job(job_id: BigInteger):
+    def finish_job(loader: LoaderBase):
         with model.Session() as session:
-            job: Job = session.query(Job).filter(Job.id == job_id).scalar()
+            job: Job = session.query(Job).filter(Job.id == loader.job_id).scalar()
             job.completed = datetime.now()
+            job.job_info = {'added': loader.records_added,
+                            'updated': loader.records_updated,
+                            'errors': loader.errors,
+                            'warnings': loader.warnings}
             session.commit()
 
     @staticmethod
