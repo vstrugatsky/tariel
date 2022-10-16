@@ -1,0 +1,21 @@
+TARIEL
+Tariel is a Python project that collects equity data from public sources and fintech APIs
+
+REQUIREMENTS
+- Python 3.9
+- Postgres database v14
+- Developer API accounts at Polygon.io and Twitter. The project presently respects the free account limits.
+
+GETTING STARTED
+1) Create a config/config.py file with the following keys:
+db = {'db_connect_string': 'XXX',
+      'db_schema': 'XXX'}
+
+polygon = {'api_key': 'XXX'}
+
+twitter = {'bearer_token': 'XXX'}
+
+2) Run sql/consolidated.sql against the db_schema
+
+LICENSE
+The code in the project is not open source. It cannot be shared or distributed.
