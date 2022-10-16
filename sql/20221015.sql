@@ -1,0 +1,1 @@
+alter table jobs add column job_info jsonb;

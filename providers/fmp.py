@@ -5,7 +5,6 @@ from datetime import datetime
 
 
 class Fmp:
-    fmpApiKey = 'd9d9541d1eaa345ec8ec35fadb381229'
     fmpPrefix = 'https://financialmodelingprep.com/api'
 
     # historical / earning_calendar / AAPL

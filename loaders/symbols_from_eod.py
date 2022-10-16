@@ -6,13 +6,14 @@ from datetime import datetime
 from model.exchanges import Exchange
 from loaders.loader_base import LoaderBase
 from model.jobs import Provider, JobType
+import config
 
 
 class LoadSymbolsFromEOD(LoaderBase):
 
     @staticmethod
     def eod_update_symbols(exchange_code: str):
-        payload = {'fmt': 'json', 'api_token': model.eodApiKey}
+        payload = {'fmt': 'json', 'api_token': config.eod['api_key']}
         r = requests.get(model.eodPrefix + 'exchange-symbol-list/' + exchange_code, params=payload, timeout=10)
         print(f'{datetime.utcnow()} URL = {r.url}; Status = {r.status_code}')
         if r.status_code != 200:

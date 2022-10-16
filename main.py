@@ -2,12 +2,12 @@
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import model as model
 import requests
-import feedparser
+from config import config
 
 
 def time_series_daily(symbol, outputsize='full'):
     payload = {'function': 'TIME_SERIES_DAILY',
-               'apikey': model.alphavantageApiKey, 'symbol': symbol, 'outputsize': outputsize}
+               'apikey': config.alphavantage('api_key'), 'symbol': symbol, 'outputsize': outputsize}
     r = requests.get(model.alphavantagePrefix, params=payload)
     print(r.url)
     print(r.json())

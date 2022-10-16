@@ -76,7 +76,7 @@ if __name__ == '__main__':
         loader.job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Symbols,
                                       params=str(param) + ' commit: ' + str(commit) + ' paginate: ' + str(paginate))
         time.sleep(5)
-        Polygon.call_paginated_api(Polygon.polygonPrefix + 'v3/reference/tickers',
+        Polygon.call_paginated_api(Polygon.url_prefix + 'v3/reference/tickers',
                                    param | {'limit': 1000, 'order': 'asc', 'sort': 'ticker'},
                                    method=LoadSymbolsFromPolygon.load, method_params={'loader': loader},
                                    commit=commit, paginate=paginate, cursor=None)

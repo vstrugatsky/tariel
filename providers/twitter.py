@@ -3,12 +3,10 @@ import requests
 from typing import Callable
 import model
 from datetime import datetime
+from config import config
 
 
 class Twitter:
-    api_key = '5jVxQ7fmxfkoZ7ZCJLALNhQX7'
-    api_key_secret = 'dg0rQIF04VG2LL1IZm161MEOy9T8oLbkKWXDw4Agw1ILZlQokd'
-    bearer_token = 'AAAAAAAAAAAAAAAAAAAAABPogAEAAAAAByMCjcuMzPZwxBBPsVvcwQu8XhQ%3DwgMrQIkMpzwRQZz2cQUEfspZ17wxWSpldiyd5GSOxgvckfGjsg'
     url_prefix = 'https://api.twitter.com/2'
 
     @staticmethod
@@ -23,7 +21,7 @@ class Twitter:
 
         r = requests.get(url=url,
                          params=payload,
-                         headers={'Authorization': 'Bearer ' + Twitter.bearer_token})
+                         headers={'Authorization': 'Bearer ' + config.twitter['bearer_token']})
 
         print(f'INFO {datetime.utcnow()} {r.headers["content-type"]} {r.encoding} {r.url} \n Status={r.status_code}')
         if r.status_code != 200:

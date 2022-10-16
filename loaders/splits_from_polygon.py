@@ -62,7 +62,7 @@ if __name__ == '__main__':
     loader.job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Splits,
                                   params=str(params) + ' commit: ' + str(commit) + ' paginate: ' + str(paginate))
 
-    Polygon.call_paginated_api(url=Polygon.polygonPrefix + 'v3/reference/splits',
+    Polygon.call_paginated_api(url=Polygon.url_prefix + 'v3/reference/splits',
                                payload=params | {'order': 'asc', 'sort': 'ticker'},
                                method=LoadSplitsFromPolygon.load,
                                method_params={'country_code': 'US', 'loader': loader},

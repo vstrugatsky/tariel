@@ -4,11 +4,11 @@ import model
 import requests
 from datetime import datetime
 from typing import Callable, Optional
+from config import config
 
 
 class Polygon:
-    polygonApiKey = 'o_wd3aO1d9Dyi9KEjxbpxJNrbkM5ssmN'  # 5/min
-    polygonPrefix = 'https://api.polygon.io/'
+    url_prefix = 'https://api.polygon.io/'  # 5/min for a free key
 
     @staticmethod
     def convert_polygon_symbol_to_eod(symbol: str) -> str | None:
@@ -34,9 +34,9 @@ class Polygon:
                            paginate: bool,
                            cursor: Optional[str]) -> None:
         if cursor is None:  # first or last execution
-            payload.update({'apiKey': Polygon.polygonApiKey})
+            payload.update({'apiKey': config.polygon['api_key']})
         else:
-            payload = {'apiKey': Polygon.polygonApiKey, 'cursor': cursor}
+            payload = {'apiKey': config.polygon['api_key'], 'cursor': cursor}
 
         last_call_time = datetime.utcnow()
         r = requests.get(url, params=payload, timeout=10)

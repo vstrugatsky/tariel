@@ -1,11 +1,10 @@
 from providers import sleep_if_needed, parse_query_param_value
 import model
 import requests
-from datetime import datetime
+from config import config
 
 
 class Atom:
-    apiKey = '269827fd-3c33-4a82-a4b5-17fc7a229d10'
     apiPrefix = 'https://platform.atom.finance/api/2.0'
 
     # curl - -request POST \
@@ -33,5 +32,5 @@ if __name__ == '__main__':
     }
     # r = requests.post(Atom.apiPrefix + '/price/snapshot?api_key=' + Atom.apiKey, json=payload, headers=headers)
     # r = requests.post(Atom.apiPrefix + '/equity/estimates?api_key=' + Atom.apiKey, json=payload, headers=headers)
-    r = requests.post(Atom.apiPrefix + '/peers?api_key=' + Atom.apiKey, json=payload, headers=headers)
+    r = requests.post(Atom.apiPrefix + '/peers?api_key=' + config.atom['api_key'], json=payload, headers=headers)
     print(r.text)

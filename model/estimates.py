@@ -5,12 +5,13 @@ from sqlalchemy import Column, String, Numeric, BigInteger, Date, ForeignKey, Pr
 from datetime import datetime
 from providers.fmp import Fmp
 import requests
+from config import config
 from deprecated import deprecated
 
 
 @deprecated("numbers not accurate")
 class Estimate(model.Base):
-    __tablename__ = 'estimates'
+    __tablename__ = 'deprecated_estimates'
     symbol = Column(String(10), ForeignKey("symbols.symbol"))
     symbol_object = relationship("Symbol")
     period_end_date = Column(Date, nullable=False)
@@ -72,6 +73,7 @@ class Estimate(model.Base):
             print(f'WARN {datetime.utcnow()} {i.get("ticker")} not found in Symbols')
             return None
 
+
 # data quality poor, does not match SeekingAlpha or Zacks
 def load_from_fmp(symbol, payload, method):
     r = requests.get(Fmp.fmpPrefix + '/v3/analyst-estimates/' + symbol, params=payload)
@@ -88,4 +90,4 @@ def load_from_fmp(symbol, payload, method):
 
 
 if __name__ == '__main__':
-    load_from_fmp('AAPL', {'apikey': Fmp.fmpApiKey, 'period': 'quarter'}, Estimate.load_from_fmp)
+    load_from_fmp('AAPL', {'apikey': config.fmp['api_key'], 'period': 'quarter'}, Estimate.load_from_fmp)

@@ -3,6 +3,13 @@ Also a regular or a Segment (SGMT) MIC
 MICs are defined by ISO 10383 (free data). Has acronym field useful for display and parsing
 https://www.iso20022.org/sites/default/files/2021-12/ISO10383_MIC_Release_2_0_Factsheet.pdf
 
+BBO - best bid & offer
+NBBO - national best bid & offer
+
+CTA/CQ Plans (Consolidated Tape) - the Consolidated Tape is overseen by the Consolidated Tape Association.
+OTC/UTP Plan - Tape C contains stocks listed on the NASDAQ Exchange or NASDAQ Small Cap Market, and is overseen by the OTC/UTP Operating Committee.[3]
+OPRA Plan - The Options Price Reporting Authority provides trade and quote information for selected Market Centers.
+
 ISO 10383 also lists LEI (Legal Entity Identifier) in turn defined by ISO 17442-1
 ISO 10383 also standardizes and lists market category but not clear how useful it is
 Symbols can represent stocks, bonds, options...
