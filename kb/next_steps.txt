@@ -93,8 +93,15 @@ Supported parsing of earnings from more than one Twitter account using Strategy 
 Improved error logging
 Added logging of additions, updates, errors and warnings
 
+2020-Oct-16:
+- externalize configuration
+- parameterize to allow external running
+- daily_jobs.sh
+- consolidated_schema and reference data
+
 Next steps:
-- automate daily jobs (also let Twitter jobs use dates more intelligently)
+- automate daily jobs via launchd
+- Twitter jobs use dates more intelligently
 - parse guidance from Livesquawk
-- research and load financials including reporting period
+- research and load historical prices
 

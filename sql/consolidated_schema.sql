@@ -1,3 +1,5 @@
+# set search_path =;
+
 create type iso_10383_mic_type as enum ('OPRT', 'SGMT');
 
 create type iso_10383_status as enum ('ACTIVE', 'MODIFIED', 'DELETED');

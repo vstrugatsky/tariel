@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import Optional
+
+import sys
+from typing import Optional, Type
 import model
 from datetime import datetime, timedelta, date
 from loaders.loader_base import LoaderBase
@@ -115,7 +117,10 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
 
 if __name__ == '__main__':
     # loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
-    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    account = sys.argv[1] if len(sys.argv) > 1 else 'Livesquawk'
+    account_class: Type[TwitterAccount] = getattr(sys.modules['loaders.twitter_' + account.lower()], account)
+    print(account, account_class)
+    loader = LoadEarningsReportsFromTwitter(account_class(account))
     backfill = False
     commit = True
     paginate = True
@@ -128,8 +133,9 @@ if __name__ == '__main__':
     payload = {'query': 'from:' + loader.account.account_name,  # + ' earnings',
                'start_time': max_date.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
-    loader.job_id = LoaderBase.start_job(provider=Provider.Twitter, job_type=JobType.EarningsReports,
-                                  params=str(payload) + ' paginate: ' + str(paginate))
+    loader.job_id = LoaderBase.start_job(
+        provider=Provider.Twitter, job_type=JobType.EarningsReports,
+        params=str(payload) + ' paginate: ' + str(paginate))
 
     Twitter.call_paginated_api(
         url=Twitter.url_prefix + '/tweets/search/recent',
