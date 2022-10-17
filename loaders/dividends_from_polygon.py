@@ -30,8 +30,7 @@ class LoadDividendsFromPolygon(LoaderBase):
         exchange: str = Symbol.find_exchange_by_ticker_and_country(session, ticker, country_code)
         if exchange is None:
             msg = ticker + ' not found in Symbols for country=' + country_code
-            LoaderBase.write_job_log(session, loader.job_id, MsgSeverity.WARN, msg)
-            loader.warnings += 1
+            LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
             return
 
         symbols = Symbol.get_symbols_by_ticker_and_exchange(session, ticker, exchange)
@@ -52,8 +51,7 @@ class LoadDividendsFromPolygon(LoaderBase):
             LoadDividendsFromPolygon.update_dividend_from_polygon(dividend, i)
         else:
             msg = 'could not find matching Symbol for ' + ticker + ' and ex_dividend_date=' + str(ex_dividend_date)
-            LoaderBase.write_job_log(session, loader.job_id, MsgSeverity.WARN, msg)
-            loader.warnings += 1
+            LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
 
 
 if __name__ == '__main__':

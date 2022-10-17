@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Optional
 from loaders.twitter_account import TwitterAccount
 import re
 from utils.utils import Utils
@@ -6,6 +7,39 @@ from utils.utils import Utils
 
 class Livesquawk(TwitterAccount):
     account_name = 'livesquawk'
+
+    def parse_eps(self, tweet_text: str) -> Optional[re.Match]:
+        p = re.compile(r'''
+           EPS(:?)[ ](?P<eps_sign>[-])?(?P<eps_currency>C?[$])
+           (?P<eps>\d+\.\d+)
+           .+?
+           (est|exp)[ ](?P<eps_estimate_currency>C?[$])?
+           (?P<eps_estimate_amount>\d+\.\d+)?
+           ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
+        return p.search(tweet_text)
+
+    def parse_revenue(self, tweet_text: str) -> Optional[re.Match]:
+        p = re.compile(r'''
+           Revenue(:?)[ ](?P<revenue_currency>C?[$])
+           (?P<revenue>\d+\.?\d*)
+           (?P<revenue_uom>[MBK])?
+           .+?
+           (est|exp)[ ](?P<revenue_estimate_currency>C?[$])?
+           (?P<revenue_estimate_amount>\d+\.\d+)?
+           (?P<revenue_estimate_uom>[MBK])?
+           ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
+        return p.search(tweet_text)
+
+    def parse_tweet_v2(self, tweet_text: str) -> Optional[dict]:
+        return_dict = {}
+        eps_match: Optional[re.Match] = self.parse_eps(tweet_text)
+        if eps_match:
+            return_dict |= eps_match.groupdict()
+
+        revenue_match: Optional[re.Match] = self.parse_revenue(tweet_text)
+        if revenue_match:
+            return_dict |= revenue_match.groupdict()
+        return return_dict
 
     def parse_tweet(self, tweet_text: str) -> re.Match:
         # examples
@@ -24,18 +58,24 @@ class Livesquawk(TwitterAccount):
            EPS[ ](?P<eps_sign>[-])?(?P<eps_currency>C?[$])
            (?P<eps>\d+\.\d+)
            .+?
-           est[ ](?P<eps_estimate_currency>C?[$])?
+           (est|exp)[ ](?P<eps_estimate_currency>C?[$])?
            (?P<eps_estimate_amount>\d+\.\d+)?
            .+?
            Revenue[ ](?P<revenue_currency>C?[$])
            (?P<revenue>\d+\.?\d*)
            (?P<revenue_uom>[MBK])?
            .+?
-           est[ ](?P<revenue_estimate_currency>C?[$])?
+           (est|exp)[ ](?P<revenue_estimate_currency>C?[$])?
            (?P<revenue_estimate_amount>\d+\.\d+)?
            (?P<revenue_estimate_uom>[MBK])?
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
+
+    def should_raise_parse_warning(self, tweet_text: str) -> bool:
+        if 'Earnings:' in tweet_text:
+            return True
+        else:
+            return False
 
     def determine_surprise(self, match_dict: dict, metrics: str) -> float | None:
         if metrics == 'eps':

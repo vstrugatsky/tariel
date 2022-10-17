@@ -39,9 +39,14 @@ class LoaderBase(ABC):
             session.commit()
 
     @staticmethod
-    def write_job_log(session: model.Session, job_id: BigInteger, severity: MsgSeverity, msg: str):
+    def write_log(session: model.Session, loader: LoaderBase, severity: MsgSeverity, msg: str):
+        print(f'{severity.name} {msg}')
+        if severity == MsgSeverity.WARN:
+            loader.warnings += 1
+        elif severity == MsgSeverity.ERROR:
+            loader.errors += 1
         with session:
-            job_log: JobLog = JobLog(id_job=job_id, severity=severity, msg=msg)
+            job_log: JobLog = JobLog(id_job=loader.job_id, severity=severity, msg=msg)
             session.add(job_log)
             session.commit()
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from loaders.loader_base import LoaderBase
 from model.job_log import MsgSeverity
-from model.jobs import Provider, Job, JobType
+from model.jobs import Provider, JobType
 from model.symbols import Symbol
 from model.market_identifiers import MarketIdentifier
 from providers.polygon import Polygon
@@ -59,8 +59,7 @@ class LoadSymbolsFromPolygon(LoaderBase):
         else:
             if i.get('active'):
                 msg = 'exchange ' + i.get("primary_exchange", 'None') + ' not found for active ticker ' + i.get("ticker")
-                LoaderBase.write_job_log(session, loader.job_id, MsgSeverity.ERROR, msg)
-                loader.errors += 1
+                LoaderBase.write_log(session, loader, MsgSeverity.ERROR, msg)
 
 
 if __name__ == '__main__':

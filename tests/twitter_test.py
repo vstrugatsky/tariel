@@ -235,6 +235,20 @@ def test_parse_tweet_livesquawk():
       - Sees Q4 Adj EPS $1 To $1.25 (est $0.80)
       '''
     loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    
+    dict = loader.account.parse_tweet_v2(tweet)
+    assert(dict.get('eps_sign') is None)
+    assert(dict.get('eps_currency') == '$')
+    assert(dict.get('eps') == '1.51')
+    assert(dict.get('eps_estimate_currency') == '$')
+    assert(dict.get('eps_estimate_amount') == '1.54')
+    assert(dict.get('revenue_currency') == '$')
+    assert(dict.get('revenue') == '12.84')
+    assert(dict.get('revenue_uom') == 'B')
+    assert(dict.get('revenue_estimate_currency') == '$')
+    assert(dict.get('revenue_estimate_amount') == '12.83')
+    assert(dict.get('revenue_estimate_uom') == 'B')
+    
     m: re.Match = loader.account.parse_tweet(tweet)
     assert(m.groupdict().get('eps_sign') is None)
     assert(m.groupdict().get('eps_currency') == '$')
@@ -253,10 +267,23 @@ def test_parse_tweet_livesquawk_without_uom():
     tweet = '''
     $UNH UnitedHealth Q3 22 Earnings: 
 - EPS $5.55 (est $5.20) 
-- Revenue $46.56 (est $45.54) 
+- Revenue $46.56 (exp $45.54) 
 - Sees FY EPS $ 20.85 To $21.05 (prev $20.45 To $20.95
 '''
     loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    dict = loader.account.parse_tweet_v2(tweet)
+    assert(dict.get('eps_sign') is None)
+    assert(dict.get('eps_currency') == '$')
+    assert(dict.get('eps') == '5.55')
+    assert(dict.get('eps_estimate_currency') == '$')
+    assert(dict.get('eps_estimate_amount') == '5.20')
+    assert(dict.get('revenue_currency') == '$')
+    assert(dict.get('revenue') == '46.56')
+    assert(dict.get('revenue_uom') is None)
+    assert(dict.get('revenue_estimate_currency') == '$')
+    assert(dict.get('revenue_estimate_amount') == '45.54')
+    assert(dict.get('revenue_estimate_uom') is None)
+
     m: re.Match = loader.account.parse_tweet(tweet)
     assert(m.groupdict().get('eps_sign') is None)
     assert(m.groupdict().get('eps_currency') == '$')
@@ -269,6 +296,25 @@ def test_parse_tweet_livesquawk_without_uom():
     assert(m.groupdict().get('revenue_estimate_currency') == '$')
     assert(m.groupdict().get('revenue_estimate_amount') == '45.54')
     assert(m.groupdict().get('revenue_estimate_uom') is None)
+
+def test_parse_tweet_livesquawk_revenue_first():
+    tweet = '''
+    $SCHW Charles Schwab Q3 22 Earnings:  
+    - Revenue: $5.5B (exp $5.41B)  
+    - Adj EPS: $1.10 (exp $1.05)'''
+    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    dict = loader.account.parse_tweet_v2(tweet)
+    assert (dict.get('eps_sign') is None)
+    assert (dict.get('eps_currency') == '$')
+    assert (dict.get('eps') == '1.10')
+    assert (dict.get('eps_estimate_currency') == '$')
+    assert (dict.get('eps_estimate_amount') == '1.05')
+    assert (dict.get('revenue_currency') == '$')
+    assert (dict.get('revenue') == '5.5')
+    assert (dict.get('revenue_uom') == 'B')
+    assert (dict.get('revenue_estimate_currency') == '$')
+    assert (dict.get('revenue_estimate_amount') == '5.41')
+    assert (dict.get('revenue_estimate_uom') == 'B')
 
     tweet = 'AngioDynamics Non-GAAP EPS of -$0.06 misses by $0.04, revenue of $81.5M misses by $1.93M, reaffirms FY guidance'
     tweet = 'Tesco PLC Non-GAAP EPS of 10.67p, revenue of £28.18B'

@@ -5,8 +5,8 @@ import model
 from datetime import datetime, timedelta, date
 from loaders.loader_base import LoaderBase
 from loaders.twitter_account import TwitterAccount
-from loaders.twitter_livesquawk import Livesquawk
-from loaders.twitter_marketcurrents import Marketcurrents
+from loaders.twitter_livesquawk import Livesquawk  # noqa
+from loaders.twitter_marketcurrents import Marketcurrents  # noqa
 from model.job_log import MsgSeverity
 from model.jobs import Provider, JobType
 from model.symbols import Symbol
@@ -88,32 +88,34 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
         if not cashtags:
             return
 
-        match: re.Match = account.parse_tweet(i['text'])
-        if not match:
+        match_dict = account.parse_tweet_v2(i['text'])
+        if not match_dict:
             print(f'INFO cannot parse earnings from {i["text"]}')
+            if account.should_raise_parse_warning(i['text']):
+                msg = 'Failed to parse likely earnings from ' + i['text']
+                LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
             return
 
         symbol = LoadEarningsReportsFromTwitter.associate_tweet_with_symbol(session, cashtags, i['text'])
         if not symbol:
             msg = 'Parsed an earnings tweet, but cannot associate symbol with cashtags ' + str(cashtags)
-            LoaderBase.write_job_log(session, loader.job_id, MsgSeverity.WARN, msg)
-            loader.warnings += 1
+            LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
             return
 
-        print(f'INFO associated {Symbol.symbol} and matched {match.groupdict()}')
+        print(f'INFO associated {Symbol.symbol} and matched {match_dict}')
         report_date: date = datetime.strptime(i['created_at'], '%Y-%m-%dT%H:%M:%S.%fZ').date()
         er = EarningsReport.get_unique(session, symbol, report_date)
         if not er:
             er = EarningsReport(symbol=symbol, report_date=report_date, creator=Provider[provider])
             session.add(er)
-            LoadEarningsReportsFromTwitter.update_earnings_fields(er, match.groupdict(), loader.account)
+            LoadEarningsReportsFromTwitter.update_earnings_fields(er, match_dict, loader.account)
             LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, loader.account)
             loader.records_added += 1
         else:
             if LoadEarningsReportsFromTwitter.should_update(er, provider):
                 er.updated = datetime.now()
                 er.updater = Provider[provider]
-                LoadEarningsReportsFromTwitter.update_earnings_fields(er, match.groupdict(), loader.account)
+                LoadEarningsReportsFromTwitter.update_earnings_fields(er, match_dict, loader.account)
                 LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, loader.account)
                 loader.records_updated += 1
 

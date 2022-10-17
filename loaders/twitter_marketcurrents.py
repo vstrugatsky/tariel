@@ -8,6 +8,9 @@ from utils.utils import Utils
 class Marketcurrents(TwitterAccount):
     account_name = 'marketcurrents'
 
+    def parse_tweet_v2(self, tweet_text: str):
+        pass
+
     def parse_tweet(self, tweet_text: str) -> re.Match:
         p = re.compile(r'''
            (EPS|NII)[ ]of[ ](?P<eps_sign>[-])?(?P<eps_currency>C?[$])      
@@ -26,6 +29,9 @@ class Marketcurrents(TwitterAccount):
            ([,;]?[ ]?(?P<guidance_1>reaffirms|updates|raises|ups|lowers|revises).+guidance)?
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
+
+    def should_raise_parse_warning(self, tweet_text: str) -> bool:
+        return False
 
     def determine_surprise(self, match_dict: dict, metrics: str) -> float | None:
         if metrics == 'eps':

@@ -103,11 +103,15 @@ Added logging of additions, updates, errors and warnings
 - support priorities of Twitter providers (Livesquawk over Marketcurrents)
 - support separate starting date for Twitter providers
 
+2022-Oct-17-#2:
+- roll out flake8 with .flake
+- introduced separate regex parsing - more resilient!
+- confirmed good operation of job_log!
+
 Next steps:
-- parsing format at Livesquawk changed: improve and improve detection when format changes
-- check out flake8
-- test job_log: recently nothing added
+- improve resiliency when no EPS or no Revenue - check that 3 reports from Livesquawk are now ok
+- separate regex parsing for Marketcurrents and update tests
+- parse guidance
 - automate daily jobs via launchd
-- parse guidance from Livesquawk
 - research and load historical prices
 

@@ -1,0 +1,6 @@
+[flake8]
+exclude = .git,*migrations*
+extend-ignore =
+    # H101: Use TODO(NAME)
+    H101
+max-line-length = 119
