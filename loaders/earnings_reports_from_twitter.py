@@ -116,10 +116,8 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
 
 
 if __name__ == '__main__':
-    # loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
     account = sys.argv[1] if len(sys.argv) > 1 else 'Livesquawk'
     account_class: Type[TwitterAccount] = getattr(sys.modules['loaders.twitter_' + account.lower()], account)
-    print(account, account_class)
     loader = LoadEarningsReportsFromTwitter(account_class(account))
     backfill = False
     commit = True

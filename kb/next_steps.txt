@@ -100,6 +100,7 @@ Added logging of additions, updates, errors and warnings
 - consolidated_schema and reference data
 
 Next steps:
+- test job_log: recently nothing added
 - automate daily jobs via launchd
 - Twitter jobs use dates more intelligently
 - parse guidance from Livesquawk
