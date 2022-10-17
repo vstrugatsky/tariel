@@ -4,7 +4,7 @@ import model as model
 from model.jobs import Provider
 from model.symbols import Symbol
 from sqlalchemy.orm import relationship
-from sqlalchemy import func, Enum, Column, String, Numeric, BigInteger, DateTime, Text, Date, ForeignKey, Integer, \
+from sqlalchemy import func, Enum, Column, String, Numeric, BigInteger, DateTime, Date, ForeignKey, Integer, \
     Identity, UniqueConstraint, FetchedValue
 from sqlalchemy.dialects.postgresql import JSONB
 from datetime import date
@@ -40,7 +40,9 @@ class EarningsReport(model.Base):
             scalar()
 
     @staticmethod
-    def get_max_date():
+    def get_max_date(provider: str) -> Optional[DateTime]:
         session = model.Session()
-        return session.query(func.max(EarningsReport.created)).scalar()
+        return session.query(func.max(EarningsReport.created)). \
+            filter(EarningsReport.creator == provider). \
+            scalar()
 

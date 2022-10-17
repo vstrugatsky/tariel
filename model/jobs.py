@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, DateTime, Enum, Text, Integer, Identity, UniqueConstraint, BigInteger
+from sqlalchemy import Column, DateTime, Enum, Text, Identity, UniqueConstraint, BigInteger
 from sqlalchemy.dialects.postgresql import JSONB
 from model import Base
 
@@ -7,7 +7,8 @@ from model import Base
 class Provider(enum.Enum):
     EOD = 1
     Polygon = 2
-    Twitter = 3
+    Twitter_Marketcurrents = 10  # lower-priority
+    Twitter_Livesquawk = 11      # higher-priority
 
 
 class JobType(enum.Enum):

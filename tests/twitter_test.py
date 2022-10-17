@@ -3,7 +3,31 @@ import model
 from loaders.earnings_reports_from_twitter import LoadEarningsReportsFromTwitter
 from loaders.twitter_livesquawk import Livesquawk
 from loaders.twitter_marketcurrents import Marketcurrents
+from model.earnings_reports import EarningsReport
+from model.jobs import Provider
 from utils.utils import Utils
+
+
+def test_should_update():
+    er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=None)
+    provider = 'Twitter_Livesquawk'
+    assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is True)
+
+    er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=None)
+    provider = 'Twitter_Livesquawk'
+    assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is True)
+
+    er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=None)
+    provider = 'Twitter_Marketcurrents'
+    assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is False)
+
+    er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=Provider['Twitter_Livesquawk'])
+    provider = 'Twitter_Marketcurrents'
+    assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is False)
+
+    er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=Provider['Twitter_Marketcurrents'])
+    provider = 'Twitter_Livesquawk'
+    assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is True)
 
 
 def test_determine_currency():
@@ -276,5 +300,23 @@ def test_parse_tweet_livesquawk_without_uom():
             - Adj EPS $9.55 (est $7.03) \
             - Revenue $4.31B (est $4.33B) \
             - AUM $7.96T (est $8.27T)'
+
+    tweet = '''
+    $SCHW Charles Schwab Q3 22 Earnings:  
+- Revenue: $5.5B (exp $5.41B)  
+- Adj EPS: $1.10 (exp $1.05)
+'''
+
+    twwet = '''
+    $BAC Bank Of America Q3 22 Earnings:  
+- EPS: $0.81 (exp $0.77)  
+- Investment Banking Rev: $1.17B (est $1.17B) 
+- Trading Revenue Ex DVA: $4.1B (est $3.81B) 
+- Revenue Net Of Interest Expense: $24.50B'''
+
+    tweet = '''
+    $BNY Bank of NY Mellon Q3 22 Earnings:  
+- Revenue: $4.28B (exp $4.21B)  
+- Adj EPS: $1.21 (exp $1.01)'''
 
     # DAL missing!!

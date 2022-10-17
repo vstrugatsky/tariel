@@ -17,11 +17,13 @@ polygon = {'api_key': 'XXX'}
 
 twitter = {'bearer_token': 'XXX'}
 
-2) Run sql/consolidated_schema.sql against the db_schema
+2) Run sql/consolidated_schema_20221016.sql against the db_schema
 
-3) Run sql/consolidated_reference_data.sql against the db_schema
+3) Run sql/consolidated_reference_data_20221016.sql against the db_schema
 
-4) To load the latest data, refer to daily_jobs.sh
+4) Run files in the sql directory dated 20221017 and after
+
+5) To load the latest data, refer to daily_jobs.sh
 
 
 LICENSE

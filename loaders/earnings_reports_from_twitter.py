@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import sys
 from typing import Optional, Type
 import model
@@ -81,14 +80,15 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
     @staticmethod
     def load(i: dict, session: model.Session, method_params: dict):
         loader: LoadEarningsReportsFromTwitter = method_params.get('loader')
-        account: TwitterAccount = method_params.get("account")
+        account: TwitterAccount = loader.account
+        provider = 'Twitter_' + account.account_name
         entities = i.get('entities', None)
         cashtags = entities.get('cashtags', None) if entities else None
         print(f'TWEET {i["created_at"]} {i["text"]} {str(cashtags)}')
         if not cashtags:
             return
 
-        match: re.Match = loader.account.parse_tweet(i['text'])
+        match: re.Match = account.parse_tweet(i['text'])
         if not match:
             print(f'INFO cannot parse earnings from {i["text"]}')
             return
@@ -104,21 +104,39 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
         report_date: date = datetime.strptime(i['created_at'], '%Y-%m-%dT%H:%M:%S.%fZ').date()
         er = EarningsReport.get_unique(session, symbol, report_date)
         if not er:
-            er = EarningsReport(symbol=symbol, report_date=report_date, creator=Provider.Twitter)
+            er = EarningsReport(symbol=symbol, report_date=report_date, creator=Provider[provider])
             session.add(er)
+            LoadEarningsReportsFromTwitter.update_earnings_fields(er, match.groupdict(), loader.account)
+            LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, loader.account)
             loader.records_added += 1
         else:
-            er.updated = datetime.now()
-            er.updater = Provider.Twitter
-            loader.records_updated += 1
-        LoadEarningsReportsFromTwitter.update_earnings_fields(er, match.groupdict(), loader.account)
-        LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, loader.account)
+            if LoadEarningsReportsFromTwitter.should_update(er, provider):
+                er.updated = datetime.now()
+                er.updater = Provider[provider]
+                LoadEarningsReportsFromTwitter.update_earnings_fields(er, match.groupdict(), loader.account)
+                LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, loader.account)
+                loader.records_updated += 1
+
+    @staticmethod
+    def should_update(er: EarningsReport, provider: str) -> bool:
+        # Allow update if updater is the same as creator or if updater's priority is higher than creator's
+        new_updater = Provider[provider]
+        new_updater_priority = new_updater.value
+        creator_priority = er.creator.value
+        if new_updater_priority < creator_priority:
+            return False
+        if er.updater:
+            updater_priority = er.updater.value
+            if new_updater_priority < updater_priority:
+                return False
+        return True
 
 
 if __name__ == '__main__':
-    account = sys.argv[1] if len(sys.argv) > 1 else 'Livesquawk'
-    account_class: Type[TwitterAccount] = getattr(sys.modules['loaders.twitter_' + account.lower()], account)
-    loader = LoadEarningsReportsFromTwitter(account_class(account))
+    account_name = sys.argv[1] if len(sys.argv) > 1 else 'Livesquawk'
+    account_class: Type[TwitterAccount] = getattr(sys.modules['loaders.twitter_' + account_name.lower()], account_name)
+    loader = LoadEarningsReportsFromTwitter(account_class(account_name))
+    provider = 'Twitter_' + account_name
     backfill = False
     commit = True
     paginate = True
@@ -126,13 +144,13 @@ if __name__ == '__main__':
     if backfill:
         max_date = datetime.utcnow() - timedelta(days=6, hours=23)  # to not hit the 7 days issue
     else:
-        max_date = EarningsReport.get_max_date() or datetime.utcnow() - timedelta(days=6, hours=23)
+        max_date = EarningsReport.get_max_date(provider) or datetime.utcnow() - timedelta(days=6, hours=23)
 
     payload = {'query': 'from:' + loader.account.account_name,  # + ' earnings',
                'start_time': max_date.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
     loader.job_id = LoaderBase.start_job(
-        provider=Provider.Twitter, job_type=JobType.EarningsReports,
+        provider=Provider[provider], job_type=JobType.EarningsReports,
         params=str(payload) + ' paginate: ' + str(paginate))
 
     Twitter.call_paginated_api(

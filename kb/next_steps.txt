@@ -99,10 +99,15 @@ Added logging of additions, updates, errors and warnings
 - daily_jobs.sh
 - consolidated_schema and reference data
 
+2022-Oct-17:
+- support priorities of Twitter providers (Livesquawk over Marketcurrents)
+- support separate starting date for Twitter providers
+
 Next steps:
+- parsing format at Livesquawk changed: improve and improve detection when format changes
+- check out flake8
 - test job_log: recently nothing added
 - automate daily jobs via launchd
-- Twitter jobs use dates more intelligently
 - parse guidance from Livesquawk
 - research and load historical prices
 
