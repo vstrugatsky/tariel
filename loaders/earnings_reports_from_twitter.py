@@ -23,6 +23,24 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
         super(LoadEarningsReportsFromTwitter, self).__init__()
 
     @staticmethod
+    def parse_tweet(account: TwitterAccount, tweet_text: str) -> Optional[dict]:
+        return_dict = {}
+        eps_match = account.parse_eps(tweet_text)
+        if eps_match:
+            return_dict |= eps_match.groupdict()
+
+        revenue_match = account.parse_revenue(tweet_text)
+        if revenue_match:
+            return_dict |= revenue_match.groupdict()
+
+        if not return_dict == {}:  # only parse guidance if we have either revenue or EPS
+            guidance_match = account.parse_guidance(tweet_text)
+            if guidance_match:
+                return_dict |= guidance_match.groupdict()
+
+        return None if return_dict == {} else return_dict
+
+    @staticmethod
     def determine_currency(eps_currency, revenue_currency) -> str | None:
         currency = eps_currency if eps_currency else revenue_currency
         return Currency.currencies.get(currency, None)
@@ -45,7 +63,7 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
         er.eps_surprise = account.determine_surprise(match_dict, 'eps')
         er.revenue_surprise = account.determine_surprise(match_dict, 'revenue')
 
-        er.guidance_direction = match_dict.get('guidance_1')
+        er.guidance_direction = match_dict.get('guidance_1').lower() if match_dict.get('guidance_1') else None
 
     @staticmethod
     def update_twitter_fields(er: EarningsReport, i: dict, account: TwitterAccount):
@@ -88,7 +106,7 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
         if not cashtags:
             return
 
-        match_dict = account.parse_tweet_v2(i['text'])
+        match_dict = LoadEarningsReportsFromTwitter.parse_tweet(account, i['text'])
         if not match_dict:
             print(f'INFO cannot parse earnings from {i["text"]}')
             if account.should_raise_parse_warning(i['text']):
@@ -139,7 +157,7 @@ if __name__ == '__main__':
     account_class: Type[TwitterAccount] = getattr(sys.modules['loaders.twitter_' + account_name.lower()], account_name)
     loader = LoadEarningsReportsFromTwitter(account_class(account_name))
     provider = 'Twitter_' + account_name
-    backfill = False
+    backfill = True
     commit = True
     paginate = True
     max_results = 100

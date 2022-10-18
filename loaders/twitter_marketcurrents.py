@@ -1,32 +1,37 @@
 from __future__ import annotations
 from loaders.twitter_account import TwitterAccount
 import re
-
 from utils.utils import Utils
 
 
 class Marketcurrents(TwitterAccount):
     account_name = 'marketcurrents'
 
-    def parse_tweet_v2(self, tweet_text: str):
-        pass
-
-    def parse_tweet(self, tweet_text: str) -> re.Match:
+    def parse_eps(self, tweet_text: str):
         p = re.compile(r'''
-           (EPS|NII)[ ]of[ ](?P<eps_sign>[-])?(?P<eps_currency>C?[$])      
+           (EPS|NII|EPADR|FFO)[ ]of[ ](?P<eps_sign>[-])?(?P<eps_currency>C[$]|[$]|€|₹|SEK)      
            (?P<eps>\d+\.\d+)
            [ ]?(?P<eps_surprise_direction>misses|beats)?
-           ([ ]by[ ])?(?P<eps_surprise_currency>C?[$])?
+           ([ ]by[ ])?(?P<eps_surprise_currency>C[$]|[$]|€|₹|SEK)?
            (?P<eps_surprise_amount>\d+\.\d+)?
-           .+
-           (revenue|investment[ ]income)[ ]of[ ](?P<revenue_currency>C?[$])
+           ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
+        return p.search(tweet_text)
+
+    def parse_revenue(self, tweet_text: str):
+        p = re.compile(r'''
+           (revenue|investment[ ]income)[ ]of[ ](?P<revenue_currency>C[$]|[$]|€|₹|SEK)
            (?P<revenue>\d+\.?\d*)
            (?P<revenue_uom>[MBK])
            [ ]?(?P<revenue_surprise_direction>misses|beats)?
-           ([ ]by[ ])?(?P<revenue_surprise_currency>C?[$])?
+           ([ ]by[ ])?(?P<revenue_surprise_currency>C[$]|[$]|€|₹|SEK)?
            (?P<revenue_surprise_amount>\d+\.?\d*)?
            (?P<revenue_surprise_uom>[MBK])?
-           ([,;]?[ ]?(?P<guidance_1>reaffirms|updates|raises|ups|lowers|revises).+guidance)?
+        ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
+        return p.search(tweet_text)
+
+    def parse_guidance(self, tweet_text: str):
+        p = re.compile(r'''
+           (?P<guidance_1>raises|lowers|reaffirms)
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
 
@@ -53,4 +58,6 @@ class Marketcurrents(TwitterAccount):
             return None
 
     def determine_revenue(self, match_dict: dict) -> float | None:
-        return Utils.apply_uom(float(match_dict.get('revenue')), match_dict.get('revenue_uom'))
+        if not match_dict.get('revenue'):
+            return None
+        return Utils.apply_uom(match_dict.get('revenue'), match_dict.get('revenue_uom'))

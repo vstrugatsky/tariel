@@ -6,11 +6,15 @@ class TwitterAccount(ABC):
         self.account_name = account_name
 
     @abstractmethod
-    def parse_tweet(self, tweet_text: str):
+    def parse_eps(self, tweet_text: str):
         pass
 
     @abstractmethod
-    def parse_tweet_v2(self, tweet_text: str):
+    def parse_revenue(self, tweet_text: str):
+        pass
+
+    @abstractmethod
+    def parse_guidance(self, tweet_text: str):
         pass
 
     @abstractmethod

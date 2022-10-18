@@ -30,44 +30,9 @@ class Livesquawk(TwitterAccount):
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
 
-    def parse_tweet_v2(self, tweet_text: str) -> Optional[dict]:
-        return_dict = {}
-        eps_match: Optional[re.Match] = self.parse_eps(tweet_text)
-        if eps_match:
-            return_dict |= eps_match.groupdict()
-
-        revenue_match: Optional[re.Match] = self.parse_revenue(tweet_text)
-        if revenue_match:
-            return_dict |= revenue_match.groupdict()
-        return return_dict
-
-    def parse_tweet(self, tweet_text: str) -> re.Match:
-        # examples
-        # tweet = 'LiveSquawk @LiveSquawk $DAL Delta Airlines Q3 22 Earnings: \
-        #   - Adj EPS $1.51 (est $1.54) \
-        #   - Adj Revenue $12.84B (est $12.83B) \
-        #   - Sees Q4 Adj EPS $1 To $1.25 (est $0.80)'
-
-        # tweet = '''
-        #     $UNH UnitedHealth Q3 22 Earnings:
-        # - EPS $5.55 (est $5.20)
-        # - Revenue $46.56 (est $45.54)
-        # - Sees FY EPS $ 20.85 To $21.05 (prev $20.45 To $20.95
-        # '''
+    def parse_guidance(self, tweet_text: str) -> Optional[re.Match]:
         p = re.compile(r'''
-           EPS[ ](?P<eps_sign>[-])?(?P<eps_currency>C?[$])
-           (?P<eps>\d+\.\d+)
-           .+?
-           (est|exp)[ ](?P<eps_estimate_currency>C?[$])?
-           (?P<eps_estimate_amount>\d+\.\d+)?
-           .+?
-           Revenue[ ](?P<revenue_currency>C?[$])
-           (?P<revenue>\d+\.?\d*)
-           (?P<revenue_uom>[MBK])?
-           .+?
-           (est|exp)[ ](?P<revenue_estimate_currency>C?[$])?
-           (?P<revenue_estimate_amount>\d+\.\d+)?
-           (?P<revenue_estimate_uom>[MBK])?
+           (?P<guidance_1>raises|lowers)
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
 
@@ -79,19 +44,27 @@ class Livesquawk(TwitterAccount):
 
     def determine_surprise(self, match_dict: dict, metrics: str) -> float | None:
         if metrics == 'eps':
-            eps = float(match_dict.get('eps')) or None
-            eps_estimate = float(match_dict.get('eps_estimate_amount')) or None
-            return round(eps - eps_estimate, 2)
+            eps = match_dict.get('eps')
+            eps_estimate = match_dict.get('eps_estimate_amount')
+            if eps and eps_estimate:
+                return round(float(eps) - float(eps_estimate), 2)
+            else:
+                return None
         elif metrics == 'revenue':
-            revenue = float(match_dict.get('revenue')) or None
-            revenue_estimate = float(match_dict.get('revenue_estimate_amount')) or None
+            revenue = match_dict.get('revenue')
+            revenue_estimate = match_dict.get('revenue_estimate_amount')
             # default to billions if none - Livesquawk mainly covers large companies
             revenue_uom = match_dict.get('revenue_uom') or 'B'
             revenue_estimate_uom = match_dict.get('revenue_estimate_uom') or 'B'
-            return round(
-                Utils.apply_uom(revenue, revenue_uom) - Utils.apply_uom(revenue_estimate, revenue_estimate_uom), 2)
+            if revenue and revenue_estimate:
+                return round(Utils.apply_uom(revenue, revenue_uom) -
+                             Utils.apply_uom(revenue_estimate, revenue_estimate_uom), 2)
+            else:
+                return None
 
     def determine_revenue(self, match_dict: dict) -> float | None:
         # default to billions if none - Livesquawk mainly covers large companies
+        if not match_dict.get('revenue'):
+            return None
         revenue_uom = match_dict.get('revenue_uom') or 'B'
-        return Utils.apply_uom(float(match_dict.get('revenue')), revenue_uom)
+        return Utils.apply_uom(match_dict.get('revenue'), revenue_uom)

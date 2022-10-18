@@ -108,10 +108,14 @@ Added logging of additions, updates, errors and warnings
 - introduced separate regex parsing - more resilient!
 - confirmed good operation of job_log!
 
+2022-Oct-17#3:
+- improved resiliency when no EPS or no Revenue - check that 3 reports from Livesquawk are now ok
+- separated regex parsing for Marketcurrents and updated tests
+- initial rudimentary parsing of guidance
+- collected examples of sentiment analysis
+
 Next steps:
-- improve resiliency when no EPS or no Revenue - check that 3 reports from Livesquawk are now ok
-- separate regex parsing for Marketcurrents and update tests
-- parse guidance
 - automate daily jobs via launchd
+- parse sentiment analysis
 - research and load historical prices
 

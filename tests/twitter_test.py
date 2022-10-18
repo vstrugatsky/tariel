@@ -126,105 +126,105 @@ def test_associate_tweet_with_symbol():
 
 def test_parse_tweet_nii():
     tweet = '$SAR - Saratoga Investment Non-GAAP NII of $0.58 beats by $0.07, total Investment Income of $21.85M beats by $1.95M'
-    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
-    m: re.Match = loader.account.parse_tweet(tweet)
-    assert(m.groupdict().get('eps_sign') is None)
-    assert(m.groupdict().get('eps_currency') == '$')
-    assert(m.groupdict().get('eps') == '0.58')
-    assert(m.groupdict().get('eps_surprise_direction') == 'beats')
-    assert(m.groupdict().get('eps_surprise_currency') == '$')
-    assert(m.groupdict().get('eps_surprise_amount') == '0.07')
-    assert(m.groupdict().get('revenue_currency') == '$')
-    assert(m.groupdict().get('revenue') == '21.85')
-    assert(m.groupdict().get('revenue_uom') == 'M')
-    assert(m.groupdict().get('revenue_surprise_direction') == 'beats')
-    assert(m.groupdict().get('revenue_surprise_currency') == '$')
-    assert(m.groupdict().get('revenue_surprise_amount') == '1.95')
-    assert(m.groupdict().get('revenue_surprise_uom') == 'M')
+    account = Marketcurrents(Marketcurrents.account_name)
+    dict = LoadEarningsReportsFromTwitter.parse_tweet(account, tweet)
+    assert(dict.get('eps_sign') is None)
+    assert(dict.get('eps_currency') == '$')
+    assert(dict.get('eps') == '0.58')
+    assert(dict.get('eps_surprise_direction') == 'beats')
+    assert(dict.get('eps_surprise_currency') == '$')
+    assert(dict.get('eps_surprise_amount') == '0.07')
+    assert(dict.get('revenue_currency') == '$')
+    assert(dict.get('revenue') == '21.85')
+    assert(dict.get('revenue_uom') == 'M')
+    assert(dict.get('revenue_surprise_direction') == 'beats')
+    assert(dict.get('revenue_surprise_currency') == '$')
+    assert(dict.get('revenue_surprise_amount') == '1.95')
+    assert(dict.get('revenue_surprise_uom') == 'M')
 
 
 def test_parse_tweet_basic():
     tweet = '$BABB GAAP EPS of $0.02, revenue of $0.88M'
-    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
-    m: re.Match = loader.account.parse_tweet(tweet)
-    assert(m.groupdict().get('eps_sign') is None)
-    assert(m.groupdict().get('eps_currency') == '$')
-    assert(m.groupdict().get('eps') == '0.02')
-    assert(m.groupdict().get('eps_surprise_direction') is None)
-    assert(m.groupdict().get('eps_surprise_currency') is None)
-    assert(m.groupdict().get('eps_surprise_amount') is None)
-    assert(m.groupdict().get('revenue_currency') == '$')
-    assert(m.groupdict().get('revenue') == '0.88')
-    assert(m.groupdict().get('revenue_uom') == 'M')
-    assert(m.groupdict().get('revenue_surprise_direction') is None)
-    assert(m.groupdict().get('revenue_surprise_currency') is None)
-    assert(m.groupdict().get('revenue_surprise_amount') is None)
-    assert(m.groupdict().get('revenue_surprise_uom') is None)
+    account = Marketcurrents(Marketcurrents.account_name)
+    dict = LoadEarningsReportsFromTwitter.parse_tweet(account, tweet)
+    assert(dict.get('eps_sign') is None)
+    assert(dict.get('eps_currency') == '$')
+    assert(dict.get('eps') == '0.02')
+    assert(dict.get('eps_surprise_direction') is None)
+    assert(dict.get('eps_surprise_currency') is None)
+    assert(dict.get('eps_surprise_amount') is None)
+    assert(dict.get('revenue_currency') == '$')
+    assert(dict.get('revenue') == '0.88')
+    assert(dict.get('revenue_uom') == 'M')
+    assert(dict.get('revenue_surprise_direction') is None)
+    assert(dict.get('revenue_surprise_currency') is None)
+    assert(dict.get('revenue_surprise_amount') is None)
+    assert(dict.get('revenue_surprise_uom') is None)
 
 
 def test_parse_tweet_with_surprises():
     tweet = '$TLRY $TLRY:CA - Tilray Non - GAAP EPS of -$0.08 misses by $0.01, revenue of $153M misses by $3.6M'
-    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
-    m: re.Match = loader.account.parse_tweet(tweet)
-    assert (m.groupdict().get('eps_sign') == '-')
-    assert(m.groupdict().get('eps_currency') == '$')
-    assert(m.groupdict().get('eps') == '0.08')
-    assert(m.groupdict().get('eps_surprise_direction') == 'misses')
-    assert(m.groupdict().get('eps_surprise_currency') == '$')
-    assert(m.groupdict().get('eps_surprise_amount') == '0.01')
-    assert(m.groupdict().get('revenue_currency') == '$')
-    assert(m.groupdict().get('revenue') == '153')
-    assert(m.groupdict().get('revenue_uom') == 'M')
-    assert(m.groupdict().get('revenue_surprise_direction') == 'misses')
-    assert(m.groupdict().get('revenue_surprise_currency') == '$')
-    assert(m.groupdict().get('revenue_surprise_amount') == '3.6')
-    assert(m.groupdict().get('revenue_surprise_uom') == 'M')
+    account = Marketcurrents(Marketcurrents.account_name)
+    dict = LoadEarningsReportsFromTwitter.parse_tweet(account, tweet)
+    assert(dict.get('eps_sign') == '-')
+    assert(dict.get('eps_currency') == '$')
+    assert(dict.get('eps') == '0.08')
+    assert(dict.get('eps_surprise_direction') == 'misses')
+    assert(dict.get('eps_surprise_currency') == '$')
+    assert(dict.get('eps_surprise_amount') == '0.01')
+    assert(dict.get('revenue_currency') == '$')
+    assert(dict.get('revenue') == '153')
+    assert(dict.get('revenue_uom') == 'M')
+    assert(dict.get('revenue_surprise_direction') == 'misses')
+    assert(dict.get('revenue_surprise_currency') == '$')
+    assert(dict.get('revenue_surprise_amount') == '3.6')
+    assert(dict.get('revenue_surprise_uom') == 'M')
 
 
 def test_parse_tweet_canadian():
     tweet = '$ATZAF $ATZ:CA - Aritzia&amp;nbsp; GAAP EPS of C$0.44, revenue of C$525.5M'
-    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
-    m: re.Match = loader.account.parse_tweet(tweet)
-    assert (m.groupdict().get('eps_sign') is None)
-    assert(m.groupdict().get('eps_currency') == 'C$')
-    assert(m.groupdict().get('eps') == '0.44')
-    assert(m.groupdict().get('eps_surprise_direction') is None)
-    assert(m.groupdict().get('eps_surprise_currency') is None)
-    assert(m.groupdict().get('eps_surprise_amount') is None)
-    assert(m.groupdict().get('revenue_currency') == 'C$')
-    assert(m.groupdict().get('revenue') == '525.5')
-    assert(m.groupdict().get('revenue_uom') == 'M')
-    assert(m.groupdict().get('revenue_surprise_direction') is None)
-    assert(m.groupdict().get('revenue_surprise_currency') is None)
-    assert(m.groupdict().get('revenue_surprise_amount') is None)
-    assert(m.groupdict().get('revenue_surprise_uom') is None)
+    account = Marketcurrents(Marketcurrents.account_name)
+    dict = LoadEarningsReportsFromTwitter.parse_tweet(account, tweet)
+    assert(dict.get('eps_sign') is None)
+    assert(dict.get('eps_currency') == 'C$')
+    assert(dict.get('eps') == '0.44')
+    assert(dict.get('eps_surprise_direction') is None)
+    assert(dict.get('eps_surprise_currency') is None)
+    assert(dict.get('eps_surprise_amount') is None)
+    assert(dict.get('revenue_currency') == 'C$')
+    assert(dict.get('revenue') == '525.5')
+    assert(dict.get('revenue_uom') == 'M')
+    assert(dict.get('revenue_surprise_direction') is None)
+    assert(dict.get('revenue_surprise_currency') is None)
+    assert(dict.get('revenue_surprise_amount') is None)
+    assert(dict.get('revenue_surprise_uom') is None)
 
 
 def test_parse_tweet_with_guidance_1():
     tweet = 'AngioDynamics Non-GAAP EPS of -$0.06 misses by $0.04, revenue of $81.5M misses by $1.93M, reaffirms FY guidance'
-    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
-    m: re.Match = loader.account.parse_tweet(tweet)
-    assert (m.groupdict().get('eps_sign') == '-')
-    assert(m.groupdict().get('eps_currency') == '$')
-    assert(m.groupdict().get('eps') == '0.06')
-    assert(m.groupdict().get('eps_surprise_direction') == 'misses')
-    assert(m.groupdict().get('eps_surprise_currency') == '$')
-    assert(m.groupdict().get('eps_surprise_amount') == '0.04')
-    assert(m.groupdict().get('revenue_currency') == '$')
-    assert(m.groupdict().get('revenue') == '81.5')
-    assert(m.groupdict().get('revenue_uom') == 'M')
-    assert(m.groupdict().get('revenue_surprise_direction') == 'misses')
-    assert(m.groupdict().get('revenue_surprise_currency') == '$')
-    assert(m.groupdict().get('revenue_surprise_amount') == '1.93')
-    assert(m.groupdict().get('revenue_surprise_uom') == 'M')
-    assert(m.groupdict().get('guidance_1') == 'reaffirms')
+    account = Marketcurrents(Marketcurrents.account_name)
+    dict = LoadEarningsReportsFromTwitter.parse_tweet(account, tweet)
+    assert (dict.get('eps_sign') == '-')
+    assert(dict.get('eps_currency') == '$')
+    assert(dict.get('eps') == '0.06')
+    assert(dict.get('eps_surprise_direction') == 'misses')
+    assert(dict.get('eps_surprise_currency') == '$')
+    assert(dict.get('eps_surprise_amount') == '0.04')
+    assert(dict.get('revenue_currency') == '$')
+    assert(dict.get('revenue') == '81.5')
+    assert(dict.get('revenue_uom') == 'M')
+    assert(dict.get('revenue_surprise_direction') == 'misses')
+    assert(dict.get('revenue_surprise_currency') == '$')
+    assert(dict.get('revenue_surprise_amount') == '1.93')
+    assert(dict.get('revenue_surprise_uom') == 'M')
+    assert(dict.get('guidance_1') == 'reaffirms')
 
 
 def test_parse_tweet_not_earnings():
     tweet = '$AZZ declares $0.17 dividend'
-    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
-    m: re.Match = loader.account.parse_tweet(tweet)
-    assert(m is None)
+    account = Marketcurrents(Marketcurrents.account_name)
+    dict = LoadEarningsReportsFromTwitter.parse_tweet(account, tweet)
+    assert(dict is None)
 
 
 def test_parse_tweet_livesquawk():
@@ -232,11 +232,11 @@ def test_parse_tweet_livesquawk():
     $DAL Delta Airlines Q3 22 Earnings: \
       - Adj EPS $1.51 (est $1.54) \
       - Adj Revenue $12.84B (est $12.83B) \
-      - Sees Q4 Adj EPS $1 To $1.25 (est $0.80)
+      - Sees Q4 Adj EPS $1 To $1.25 (est $0.80) \
+      - Raises Q4 EPS to $1.00
       '''
-    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
-    
-    dict = loader.account.parse_tweet_v2(tweet)
+    account = Livesquawk(Livesquawk.account_name)
+    dict = LoadEarningsReportsFromTwitter.parse_tweet(account, tweet)
     assert(dict.get('eps_sign') is None)
     assert(dict.get('eps_currency') == '$')
     assert(dict.get('eps') == '1.51')
@@ -248,19 +248,7 @@ def test_parse_tweet_livesquawk():
     assert(dict.get('revenue_estimate_currency') == '$')
     assert(dict.get('revenue_estimate_amount') == '12.83')
     assert(dict.get('revenue_estimate_uom') == 'B')
-    
-    m: re.Match = loader.account.parse_tweet(tweet)
-    assert(m.groupdict().get('eps_sign') is None)
-    assert(m.groupdict().get('eps_currency') == '$')
-    assert(m.groupdict().get('eps') == '1.51')
-    assert(m.groupdict().get('eps_estimate_currency') == '$')
-    assert(m.groupdict().get('eps_estimate_amount') == '1.54')
-    assert(m.groupdict().get('revenue_currency') == '$')
-    assert(m.groupdict().get('revenue') == '12.84')
-    assert(m.groupdict().get('revenue_uom') == 'B')
-    assert(m.groupdict().get('revenue_estimate_currency') == '$')
-    assert(m.groupdict().get('revenue_estimate_amount') == '12.83')
-    assert(m.groupdict().get('revenue_estimate_uom') == 'B')
+    assert(dict.get('guidance_1').lower() == 'raises')
 
 
 def test_parse_tweet_livesquawk_without_uom():
@@ -270,8 +258,8 @@ def test_parse_tweet_livesquawk_without_uom():
 - Revenue $46.56 (exp $45.54) 
 - Sees FY EPS $ 20.85 To $21.05 (prev $20.45 To $20.95
 '''
-    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
-    dict = loader.account.parse_tweet_v2(tweet)
+    account = Livesquawk(Livesquawk.account_name)
+    dict = LoadEarningsReportsFromTwitter.parse_tweet(account, tweet)
     assert(dict.get('eps_sign') is None)
     assert(dict.get('eps_currency') == '$')
     assert(dict.get('eps') == '5.55')
@@ -284,26 +272,14 @@ def test_parse_tweet_livesquawk_without_uom():
     assert(dict.get('revenue_estimate_amount') == '45.54')
     assert(dict.get('revenue_estimate_uom') is None)
 
-    m: re.Match = loader.account.parse_tweet(tweet)
-    assert(m.groupdict().get('eps_sign') is None)
-    assert(m.groupdict().get('eps_currency') == '$')
-    assert(m.groupdict().get('eps') == '5.55')
-    assert(m.groupdict().get('eps_estimate_currency') == '$')
-    assert(m.groupdict().get('eps_estimate_amount') == '5.20')
-    assert(m.groupdict().get('revenue_currency') == '$')
-    assert(m.groupdict().get('revenue') == '46.56')
-    assert(m.groupdict().get('revenue_uom') is None)
-    assert(m.groupdict().get('revenue_estimate_currency') == '$')
-    assert(m.groupdict().get('revenue_estimate_amount') == '45.54')
-    assert(m.groupdict().get('revenue_estimate_uom') is None)
 
 def test_parse_tweet_livesquawk_revenue_first():
     tweet = '''
     $SCHW Charles Schwab Q3 22 Earnings:  
     - Revenue: $5.5B (exp $5.41B)  
     - Adj EPS: $1.10 (exp $1.05)'''
-    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
-    dict = loader.account.parse_tweet_v2(tweet)
+    account = Livesquawk(Livesquawk.account_name)
+    dict = LoadEarningsReportsFromTwitter.parse_tweet(account, tweet)
     assert (dict.get('eps_sign') is None)
     assert (dict.get('eps_currency') == '$')
     assert (dict.get('eps') == '1.10')
@@ -316,53 +292,60 @@ def test_parse_tweet_livesquawk_revenue_first():
     assert (dict.get('revenue_estimate_amount') == '5.41')
     assert (dict.get('revenue_estimate_uom') == 'B')
 
-    tweet = 'AngioDynamics Non-GAAP EPS of -$0.06 misses by $0.04, revenue of $81.5M misses by $1.93M, reaffirms FY guidance'
-    tweet = 'Tesco PLC Non-GAAP EPS of 10.67p, revenue of £28.18B'
-    tweet = '$HELE - Helen of Troy Non-GAAP EPS of $2.27 beats by $0.06, revenue of $521.4M beats by $2.33M, updates FY guidance'
-    tweet = '$ORC - Orchid Island Capital provides prelim Q3 numbers'
-    tweet = '$TWO - Two Harbors Investment dips 4% on prelim FQ3 numbers'
-    tweet = '$QDEL - QuidelOrtho forecasts strong Q3 revenue above estimates, shares rise ~6% after hours'
-    tweet = '$RYAAY $DLAKY $EJTTF - Strong forecasts from IAG, easyJet send European airline stocks soaring'
-    tweet = '$INO - Inovio reports positive phase 1/2 results for recurrent respiratory papillomatosis drug'
-    tweet = '$KMX $AN $ABG - Carvana stock crashes as used auto prices continue to decline'
-    tweet = '$INFY - Infosys GAAP EPS of $0.18 in-line, revenue of $4.55B beats by $110M, revises FY guidance'
-    tweet = '$INMD - InMode gains after setting strong-than-anticipated Q3 pre-results, guidance'
-    tweet = '$PCRX - Pacira BioSciences guides Q3 revenue below consensus'
-    tweet = '$BKSC - Bank of South Carolina GAAP EPS of $0.33'
-    tweet = '$UNTY - Unity Bancorp GAAP EPS of $0.93'
-    tweet = '$THTX $TH:CA - Theratechnologies reports Q3 results, FY22 guidance is on track'
-    tweet = '$RWT - Redwood Trust stock gains 5% after hours on preliminary Q3 results'
-    tweet = 'NEWS: $INMD InMode Expects Record Third Quarter 2022 Revenue of $120.5M-$120.9M, Raising Full-Year 2022 Revenue Guidance to $445M-450M'
-    tweet_acct = '@marketwirenews'
-    tweet = '$UNH - UnitedHealth stock trades higher as revenue soars 12%, FY22 outlook raised again'
-    tweet = '$PLUG - Plug Power plunges as full-year revenues seen missing guidance'
-
-    tweet = '$WBA Walgreens Boots Q4 22 Earnings: \
-        - Adj EPS $0.80 (est $0.77) \
-        - Revenue $32.45B (est $32.28B) \
-        - Sees 2023 Adj EPS $4.45 To $4.65 (est $4.51)'
-
     tweet = '$BLK BlackRock Q3 22 Earnings: \
             - Adj EPS $9.55 (est $7.03) \
             - Revenue $4.31B (est $4.33B) \
             - AUM $7.96T (est $8.27T)'
 
-    tweet = '''
-    $SCHW Charles Schwab Q3 22 Earnings:  
-- Revenue: $5.5B (exp $5.41B)  
-- Adj EPS: $1.10 (exp $1.05)
-'''
+    event = '$FUBO - FuboTV jumps 14% on upbeat early Q3 results, closing Fubo Gaming'  # No earnings accompanying
+    event = '$XPO - XPO Logistics comes in lighter than expected on preliminary results'  # No earnings accompanying
+    event = '$MATX - Matson dips 2% on prelim Q3 figures'
+    event = '$BCBP - BCB Bancorp increases stock buyback program'
+    event = '$GNUS - Genius Brands announces buyback of common shares'
+    event = '$TOTZF $TOT:CA - Total Energy Services plans buyback'
+    event = '$SYY - Trucker strike disrupts Sysco facility in Massachusetts'
+    event = '$MGM $PENN $CZR - DraftKings and Penn Entertainment rally after sports betting data comes in strong'  # consider 'sports betting'
+    event = '$CCJ $UUUU $DNN - Uranium shares surge as Germany extends life of three nuclear plants' # Consider 'uranium'
 
-    twwet = '''
-    $BAC Bank Of America Q3 22 Earnings:  
-- EPS: $0.81 (exp $0.77)  
-- Investment Banking Rev: $1.17B (est $1.17B) 
-- Trading Revenue Ex DVA: $4.1B (est $3.81B) 
-- Revenue Net Of Interest Expense: $24.50B'''
+# Pharma
+    event = '$RYAAY $DLAKY $EJTTF - Strong forecasts from IAG, easyJet send European airline stocks soaring'
+    event = "$GILD - Gilead's CAR-T therapy Yescarta gets European approval for second-line treatment of lymphoma"
+    event = '$INO - Inovio reports positive phase 1/2 results for recurrent respiratory papillomatosis drug'
+    event = '$DARE - Daré rises on positive data from early-to-mid-stage trial of intravaginal ring to treat menopause symptoms'
+    event = "$ATHA - Athira Alzheimer's drug trial gets monitoring panel nod to continue after efficacy analysis"
+    event = '$REGN $DBTX - Decibel stock surges 18% as FDA clears hearing loss gene therapy to enter trial'
+    event = '$ENOB - Enochian stock climbs on US patent for oncology platform'
+    event = '$MREO - Mereo stock rises 12% on FDA fast-track status for lung disease drug alvelestat'
+    event = "$GSK - GSK's single-vial presentation of meningococcal vaccine Menveo gets FDA approval"
+    event = '$CLVS - Clovis radiotherapy for tumors shows promise in early-stage study'
 
-    tweet = '''
-    $BNY Bank of NY Mellon Q3 22 Earnings:  
-- Revenue: $4.28B (exp $4.21B)  
-- Adj EPS: $1.21 (exp $1.01)'''
+    event = '$Y $AR - Antero Resources jumps 5% on addition to MidCap 400'
+    event = '$AGFY - Agrify dips on plan to execute 1-for-10 reverse stock split'
+    event = '$RLMD - Relmada spikes as Steve Cohen’s Point72 discloses 7% stake'
+    event = '$UP - Wheels up Experience stock soars on new financing agreement'
+    event = '$CI - Cigna faces government lawsuit over fraudulent Medicare Advantage payments'
+    event = '$CZR - Caesars Entertainment pops with casino traffic said to be still strong' # industry = casino. study: entities
+    event = "$BHP $VALE $RIO - Iron ore drops near lowest in a year as China's Xi reiterates COVID restrictions" # industry = iron ore
+    event = '$PTRA - Proterra rallies after BTIG calls out 50% upside off commercial EV upside' # industry = commercial EV?
+    event = '$GOEV - Canoo stock surges on order for 9,300 EVs'
 
-    # DAL missing!!
+# Earnings summary
+    event = '$BAC - Bank of America Q3 earnings top consensus on higher interest, strong consumer'
+    event = '$UNH - UnitedHealth stock trades higher as revenue soars 12%, FY22 outlook raised again'
+
+# Mergers, acquisitions
+    event = '$BP $LFG - BP to buy Archaea Energy for $26/share'
+    event = '$CVS $CANO - Cano Health plunges 21% on report CVS has walked away from pursuit' # challenge - 2 tickers, one walks away
+    event = '$SPLK - Splunk jumps 10% on reports activist Starboard has taken stake'
+
+# Guidance-driven
+    event = 'NEWS: $INMD InMode Expects Record Third Quarter 2022 Revenue of $120.5M-$120.9M, Raising Full-Year 2022 Revenue Guidance to $445M-450M'
+    event = '$SM - SM Energy sinks after lower than expected Q3 production'
+    event = '$INMD - InMode gains after setting strong-than-anticipated Q3 pre-results, guidance'
+    event = '$TPB - Turning Point Brands guides Q3 sales above consensus, revises full-year outlook'
+    event = 'Will Intuitive Surgical Q3 earnings bring positive surprise amid COVID woes, pressure on stock?' # ignore question mark at the end
+    event = '$RWT - Redwood Trust stock gains 5% after hours on preliminary Q3 results'
+    event = '$QDEL - QuidelOrtho forecasts strong Q3 revenue above estimates, shares rise ~6% after hours'
+    event = '$PLUG - Plug Power plunges as full-year revenues seen missing guidance'
+    event = '$THTX $TH:CA - Theratechnologies reports Q3 results, FY22 guidance is on track'
+    event = '$PCRX - Pacira BioSciences guides Q3 revenue below consensus'

@@ -2,4 +2,7 @@ class Currency:
     currencies = {
         '$': 'USD',
         'C$': 'CAD',
-        '€': 'EUR'}
+        '€': 'EUR',
+        '₹': 'INR',  # Indian rupee
+        'SEK': 'SEK'
+                }
