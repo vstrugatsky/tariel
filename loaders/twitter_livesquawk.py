@@ -32,7 +32,7 @@ class Livesquawk(TwitterAccount):
 
     def parse_guidance(self, tweet_text: str) -> Optional[re.Match]:
         p = re.compile(r'''
-           (?P<guidance_1>raises|lowers)
+           (?P<guidance_1>raises|lowers|cuts)[ ]
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
 

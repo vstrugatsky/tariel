@@ -31,7 +31,7 @@ class Marketcurrents(TwitterAccount):
 
     def parse_guidance(self, tweet_text: str):
         p = re.compile(r'''
-           (?P<guidance_1>raises|lowers|reaffirms)
+           (?P<guidance_1>raises|lowers|reaffirms|cuts)[ ]
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
 

@@ -1,0 +1,11 @@
+Complete nightmare using Google OAuth, tried with:
+- desktop credentials - failed, required redirect
+- web credentials - failed, required redirect
+- limited-input credentials - also failed
+- service account - failed as it only works with the Google Workspace and a superadmin account.
+
+Workaround:
+- if a 2FA is on the Google account, there is a feature to add an additional "trusted password"
+
+Decision:
+Give it a try as other methods are too painful

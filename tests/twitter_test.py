@@ -297,15 +297,22 @@ def test_parse_tweet_livesquawk_revenue_first():
             - Revenue $4.31B (est $4.33B) \
             - AUM $7.96T (est $8.27T)'
 
+ # Corp actions
     event = '$FUBO - FuboTV jumps 14% on upbeat early Q3 results, closing Fubo Gaming'  # No earnings accompanying
     event = '$XPO - XPO Logistics comes in lighter than expected on preliminary results'  # No earnings accompanying
     event = '$MATX - Matson dips 2% on prelim Q3 figures'
+    event = '$SYY - Trucker strike disrupts Sysco facility in Massachusetts'
+    event = '$RARE $MREO - Mereo BioPharma to shed 40% of workforce as part of cost-cutting plan'
+    event = '$NFLX $MSFT $TWTR - Microsoft laid off around 1,000 employees across various division citing global slowdown'
+    event = '$MGM $PENN $CZR - DraftKings and Penn Entertainment rally after sports betting data comes in strong'  # consider 'sports betting'
+    event = '$CCJ $UUUU $DNN - Uranium shares surge as Germany extends life of three nuclear plants' # Consider 'uranium'
+
+# Buybacks, repurchases
     event = '$BCBP - BCB Bancorp increases stock buyback program'
     event = '$GNUS - Genius Brands announces buyback of common shares'
     event = '$TOTZF $TOT:CA - Total Energy Services plans buyback'
-    event = '$SYY - Trucker strike disrupts Sysco facility in Massachusetts'
-    event = '$MGM $PENN $CZR - DraftKings and Penn Entertainment rally after sports betting data comes in strong'  # consider 'sports betting'
-    event = '$CCJ $UUUU $DNN - Uranium shares surge as Germany extends life of three nuclear plants' # Consider 'uranium'
+    event = '$NVGS - Navigator launches $50M stock repurchase plan'
+
 
 # Pharma
     event = '$RYAAY $DLAKY $EJTTF - Strong forecasts from IAG, easyJet send European airline stocks soaring'
@@ -318,6 +325,15 @@ def test_parse_tweet_livesquawk_revenue_first():
     event = '$MREO - Mereo stock rises 12% on FDA fast-track status for lung disease drug alvelestat'
     event = "$GSK - GSK's single-vial presentation of meningococcal vaccine Menveo gets FDA approval"
     event = '$CLVS - Clovis radiotherapy for tumors shows promise in early-stage study'
+    event = '$SLRX - Salarius drops 27% after patient death in cancer trial for lead asset'
+    event = '$TOMZ - TOMI Environmental rises as SteraMist to be used in influenza vaccine facility in Australia'
+    event = '$CRL - Charles River rises on collaboration to make gene therapies for vision disorders'
+    event = '$CMRA - Comera Life Sciences rises on positive preclinical data from Sequrus study'
+    event = '$AVRO - Avrobio rises as gene therapy for Gaucher disease gets ILAP designation in UK'
+
+# link parsing?
+    earn = '$PVSP - Pervasip reports Q3 results https://t.co/C8qj3mitG9'  # several more
+    earn = '$SBNY - Signature Bank bottom line tops consensus on higher rates, loan growth'
 
     event = '$Y $AR - Antero Resources jumps 5% on addition to MidCap 400'
     event = '$AGFY - Agrify dips on plan to execute 1-for-10 reverse stock split'
@@ -327,20 +343,28 @@ def test_parse_tweet_livesquawk_revenue_first():
     event = '$CZR - Caesars Entertainment pops with casino traffic said to be still strong' # industry = casino. study: entities
     event = "$BHP $VALE $RIO - Iron ore drops near lowest in a year as China's Xi reiterates COVID restrictions" # industry = iron ore
     event = '$PTRA - Proterra rallies after BTIG calls out 50% upside off commercial EV upside' # industry = commercial EV?
+    event = '$AMSC $FAN $TPIC - TPI Composites jumps as U.S. plans sale of wind rights off California coast' # industry - wind energy
     event = '$GOEV - Canoo stock surges on order for 9,300 EVs'
+
 
 # Earnings summary
     event = '$BAC - Bank of America Q3 earnings top consensus on higher interest, strong consumer'
     event = '$UNH - UnitedHealth stock trades higher as revenue soars 12%, FY22 outlook raised again'
+    event = '$SI - Silvergate Capital stock slides after Q3 earnings hurt buy lower network usage'
+    event = '$STT - State Street stock climbs after Q3 earnings bolstered by NII growth, $1B buyback plan'
 
 # Mergers, acquisitions
     event = '$BP $LFG - BP to buy Archaea Energy for $26/share'
     event = '$CVS $CANO - Cano Health plunges 21% on report CVS has walked away from pursuit' # challenge - 2 tickers, one walks away
     event = '$SPLK - Splunk jumps 10% on reports activist Starboard has taken stake'
+    event = '$CRM - Salesforce jumps on report activist Starboard has taken stake'
+    event = '$LLY $REGN $AKUS - Decibel Therapeutics hears it may be an takeout target after Lilly acquisition of Akouos'
+    event = '$AVEO $LGCLF - AVEO Oncology shares jumped on acqusition by LG Chem for $15.00 per share in cash'
 
 # Guidance-driven
     event = 'NEWS: $INMD InMode Expects Record Third Quarter 2022 Revenue of $120.5M-$120.9M, Raising Full-Year 2022 Revenue Guidance to $445M-450M'
     event = '$SM - SM Energy sinks after lower than expected Q3 production'
+    event = '$MAIN - Main Street Capital sees quarterly record for NII in Q3, higher NAV'
     event = '$INMD - InMode gains after setting strong-than-anticipated Q3 pre-results, guidance'
     event = '$TPB - Turning Point Brands guides Q3 sales above consensus, revises full-year outlook'
     event = 'Will Intuitive Surgical Q3 earnings bring positive surprise amid COVID woes, pressure on stock?' # ignore question mark at the end
@@ -349,3 +373,6 @@ def test_parse_tweet_livesquawk_revenue_first():
     event = '$PLUG - Plug Power plunges as full-year revenues seen missing guidance'
     event = '$THTX $TH:CA - Theratechnologies reports Q3 results, FY22 guidance is on track'
     event = '$PCRX - Pacira BioSciences guides Q3 revenue below consensus'
+    event = '$VSH - Vishay Intertechnology climbs higher on raising Q3 revenue guidance'
+    event = '$RHHBY $RHHBF - Roche Q3 sales falls as COVID products slump; confirms FY22 outlook'
+    event = '$SILK - Silk Road Medical sees Q3 revenue $37.4M, consensus $33.5M'

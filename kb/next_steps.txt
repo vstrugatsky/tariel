@@ -114,8 +114,13 @@ Added logging of additions, updates, errors and warnings
 - initial rudimentary parsing of guidance
 - collected examples of sentiment analysis
 
+2022-Oct-18:
+- prototyped sending emails through gmail
+- launchd working but mysteries remaining
+
 Next steps:
-- automate daily jobs via launchd
+- check launchd at 3am
+- integrate email reporting
 - parse sentiment analysis
 - research and load historical prices
 
