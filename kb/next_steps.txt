@@ -118,9 +118,11 @@ Added logging of additions, updates, errors and warnings
 - prototyped sending emails through gmail
 - launchd working but mysteries remaining
 
+2022-Oct-19:
+- integrated email reporting
+- stabilized launchd and the zsh script
+
 Next steps:
-- check launchd at 3am
-- integrate email reporting
 - parse sentiment analysis
 - research and load historical prices
 

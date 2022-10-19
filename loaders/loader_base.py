@@ -23,9 +23,9 @@ class LoaderBase(ABC):
             job = Job(provider=provider, job_type=job_type, parameters=params, started=started)
             session.add(job)
             session.commit()
-        return session.query(Job.id). \
-            filter(Job.provider == provider, Job.job_type == job_type, Job.started == started). \
-            scalar()
+            return session.query(Job.id). \
+                filter(Job.provider == provider, Job.job_type == job_type, Job.started == started). \
+                scalar()
 
     @staticmethod
     def finish_job(loader: LoaderBase):
@@ -49,6 +49,14 @@ class LoaderBase(ABC):
             job_log: JobLog = JobLog(id_job=loader.job_id, severity=severity, msg=msg)
             session.add(job_log)
             session.commit()
+
+    @staticmethod
+    def get_jobs_since(since: datetime, until: datetime = datetime.utcnow()) -> [Job]:
+        with model.Session() as session:
+            return session.query(Job). \
+                filter(Job.started >= since, Job.started <= until). \
+                order_by(Job.started.asc()). \
+                all()
 
     @staticmethod
     # tested by loader_base_test.py
