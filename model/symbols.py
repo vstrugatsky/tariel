@@ -1,10 +1,11 @@
 from __future__ import annotations
-from typing import Optional, Any, Set
+from typing import Optional
 from sqlalchemy.orm import relationship, validates
 import model as model
 from sqlalchemy import Column, String, Boolean, Enum, ForeignKey, DateTime, FetchedValue, \
     Identity, Integer, UniqueConstraint
 from datetime import datetime
+from model.earnings_report_symbol import earnings_report_symbol_association
 from model.exchanges import Exchange
 from model.jobs import Provider
 
@@ -33,6 +34,7 @@ class Symbol(model.Base):
 
     UniqueConstraint(symbol, exchange, active, delisted)
     exchange_object = relationship("Exchange")
+    earnings_reports = relationship("EarningsReport", secondary=earnings_report_symbol_association, back_populates='symbols')
 
     @validates('currency')
     def convert_upper(self, key, value):

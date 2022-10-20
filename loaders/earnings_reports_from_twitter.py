@@ -2,7 +2,7 @@ from __future__ import annotations
 import sys
 from typing import Optional, Type
 import model
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 from loaders.loader_base import LoaderBase
 from loaders.twitter_account import TwitterAccount
 from loaders.twitter_livesquawk import Livesquawk  # noqa
@@ -13,7 +13,6 @@ from model.symbols import Symbol
 from model.currency import Currency
 from model.earnings_reports import EarningsReport
 from utils.utils import Utils
-import re
 from providers.twitter import Twitter
 
 
@@ -67,6 +66,7 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
 
     @staticmethod
     def update_twitter_fields(er: EarningsReport, i: dict, account: TwitterAccount):
+        er.provider_unique_id = i['id']
         er.provider_info = {
             'tweet_id': i['id'],
             'tweet_date': i['created_at'],
@@ -80,20 +80,16 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
         }
 
     @staticmethod
-    def associate_tweet_with_symbol(session: model.Session, cashtags: [dict], tweet_text: str) -> Optional[Symbol]:
-        symbol: Optional[Symbol] = None
+    def associate_tweet_with_symbols(session: model.Session, cashtags: [dict]) -> dict:
+        symbols: dict = {}
         if not cashtags:
-            return None
+            return symbols
         for d in cashtags:
-            cashtag: str = d.get('tag')
-            if cashtag and (cashtag + ' ') in tweet_text:
-                # A hack to account for Canadian symbols in cashtags - they would appear as symbol:CA in text - ignore them
-                candidate_symbol: Symbol = Symbol.get_unique_by_ticker_and_country(session, cashtag, 'US')
-                if candidate_symbol and symbol is None:
-                    symbol = candidate_symbol
-                if candidate_symbol and symbol is not None and symbol.id != candidate_symbol.id:
-                    return None  # two valid and different symbols -> can't associate
-        return symbol
+            if d.get('tag'):
+                candidate_symbol: Symbol = Symbol.get_unique_by_ticker_and_country(session, d.get('tag'), 'US')
+                if candidate_symbol:
+                    symbols[candidate_symbol.symbol] = candidate_symbol
+        return symbols
 
     @staticmethod
     def load(i: dict, session: model.Session, method_params: dict):
@@ -114,18 +110,21 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
                 LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
             return
 
-        symbol = LoadEarningsReportsFromTwitter.associate_tweet_with_symbol(session, cashtags, i['text'])
-        if not symbol:
+        symbols: dict = LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags)
+        if not symbols:
             msg = 'Parsed an earnings tweet, but cannot associate symbol with cashtags ' + str(cashtags)
             LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
             return
 
-        print(f'INFO associated {Symbol.symbol} and matched {match_dict}')
-        report_date: date = datetime.strptime(i['created_at'], '%Y-%m-%dT%H:%M:%S.%fZ').date()
-        er = EarningsReport.get_unique(session, symbol, report_date)
+        print(f'INFO associated {symbols.keys()} and matched {match_dict}')
+        report_date = datetime.strptime(i['created_at'], '%Y-%m-%dT%H:%M:%S.%fZ').date()
+        er = EarningsReport.get_unique(session, symbol=symbols[list(symbols)[0]], report_date=report_date)
         if not er:
-            er = EarningsReport(symbol=symbol, report_date=report_date, creator=Provider[provider])
-            session.add(er)
+            er = EarningsReport(creator=Provider[provider], report_date=report_date)
+            for key in symbols:
+                er.symbols.append(symbols[key])
+                session.add(er)
+
             LoadEarningsReportsFromTwitter.update_earnings_fields(er, match_dict, loader.account)
             LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, loader.account)
             loader.records_added += 1

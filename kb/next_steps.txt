@@ -122,7 +122,14 @@ Added logging of additions, updates, errors and warnings
 - integrated email reporting
 - stabilized launchd and the zsh script
 
+2022-Oct-19#2:
+- Major remapping of M:1 on Earnings:Symbols to M:M
+- Supported multiple symbols per earnings tweet - this is sometimes the case with the ADR and Ordinary Share for the
+   same company with multiple symbols
+- Improved parsing of Livesquawk tweets
+
 Next steps:
+- check launchd job
 - parse sentiment analysis
 - research and load historical prices
 
