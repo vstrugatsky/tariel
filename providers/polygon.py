@@ -1,9 +1,10 @@
 from __future__ import annotations
-from providers import sleep_if_needed, parse_query_param_value
-import model
 import requests
 from datetime import datetime
 from typing import Callable, Optional
+
+from providers import sleep_if_needed, parse_query_param_value
+import model
 from config import config
 
 

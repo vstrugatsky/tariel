@@ -1,10 +1,12 @@
 from __future__ import annotations
 from typing import Optional
+from datetime import date
+
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String, Numeric, Date, Integer, DateTime, Enum, \
     Identity, ForeignKey, UniqueConstraint, FetchedValue
-from datetime import date
-import model as model
+
+import model
 from model.jobs import Provider
 from model.symbols import Symbol
 

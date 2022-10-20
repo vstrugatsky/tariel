@@ -1,12 +1,14 @@
 # NOT TESTED - DEPRECATION CANDIDATE
 import requests
-from model.symbols import Symbol
-import model
 from datetime import datetime
+
+import model
+
+from model.symbols import Symbol
 from model.exchanges import Exchange
 from loaders.loader_base import LoaderBase
 from model.jobs import Provider, JobType
-import config
+from config import config
 
 
 class LoadSymbolsFromEOD(LoaderBase):

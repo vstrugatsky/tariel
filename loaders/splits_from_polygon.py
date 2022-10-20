@@ -1,12 +1,13 @@
 from __future__ import annotations
+from datetime import date, datetime, timedelta
+
 from loaders.loader_base import LoaderBase
 from model.job_log import MsgSeverity
 from model.jobs import Provider, JobType
 from model.symbols import Symbol
 from model.splits import Split
 from providers.polygon import Polygon
-import model as model
-from datetime import date, datetime, timedelta
+import model
 
 
 class LoadSplitsFromPolygon(LoaderBase):
@@ -29,7 +30,7 @@ class LoadSplitsFromPolygon(LoaderBase):
             return
 
         symbols = Symbol.get_symbols_by_ticker_and_exchange(session, ticker, exchange)
-        candidate_symbol: Symbol = LoaderBase.find_candidate_symbol(symbols, execution_date)
+        candidate_symbol: Symbol = Symbol.find_candidate_symbol(symbols, execution_date)
 
         if candidate_symbol:
             split: Split = Split.get_unique(session, candidate_symbol, execution_date)

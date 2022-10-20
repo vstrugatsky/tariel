@@ -1,20 +1,24 @@
 from __future__ import annotations
 from typing import Optional
 from datetime import date
-import model as model
-from model.jobs import Provider
-from model.symbols import Symbol
+
 from sqlalchemy.orm import relationship
 from sqlalchemy import func, Enum, Column, String, Numeric, BigInteger, DateTime, Date, Integer, \
     Identity, UniqueConstraint, FetchedValue
 from sqlalchemy.dialects.postgresql import JSONB
+
+import model
+import model.symbols as s  # can't import Symbol directly due to circular import error
+from model.jobs import Provider
 from model.earnings_report_symbol import earnings_report_symbol_association
 
 
 class EarningsReport(model.Base):
     __tablename__ = 'earnings_reports'
     id = Column('id', Integer, Identity(always=True), primary_key=True)
-    symbols = relationship("Symbol", secondary=earnings_report_symbol_association, back_populates='earnings_reports')
+    symbols = relationship("Symbol",
+                           secondary=earnings_report_symbol_association,
+                           back_populates='earnings_reports')
 
     report_date = Column(Date, nullable=False)
     currency = Column(String(3))
@@ -34,9 +38,9 @@ class EarningsReport(model.Base):
     UniqueConstraint(provider_unique_id)
 
     @staticmethod
-    def get_unique(session: model.Session, symbol: Symbol, report_date: date) -> Optional[EarningsReport]:
+    def get_unique(session: model.Session, symbol: s.Symbol, report_date: date) -> Optional[EarningsReport]:
         return session.query(EarningsReport).join(EarningsReport.symbols). \
-            filter(Symbol.id == symbol.id,
+            filter(s.Symbol.id == symbol.id,
                    EarningsReport.report_date == report_date).scalar()
 
     @staticmethod

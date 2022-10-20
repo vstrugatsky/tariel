@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import Optional
-from loaders.twitter_account import TwitterAccount
 import re
+from typing import Optional
+
+from loaders.twitter_account import TwitterAccount
 from utils.utils import Utils
 
 

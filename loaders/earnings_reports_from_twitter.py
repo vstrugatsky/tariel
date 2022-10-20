@@ -1,8 +1,9 @@
 from __future__ import annotations
 import sys
 from typing import Optional, Type
-import model
 from datetime import datetime, timedelta
+
+import model
 from loaders.loader_base import LoaderBase
 from loaders.twitter_account import TwitterAccount
 from loaders.twitter_livesquawk import Livesquawk  # noqa

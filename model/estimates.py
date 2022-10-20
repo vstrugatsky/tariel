@@ -1,12 +1,14 @@
-import model as model
-from model.symbols import Symbol
+import requests
+from deprecated import deprecated
+from datetime import datetime
+
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String, Numeric, BigInteger, Date, ForeignKey, PrimaryKeyConstraint
-from datetime import datetime
+
+import model
+from model.symbols import Symbol
 from providers.fmp import Fmp
-import requests
 from config import config
-from deprecated import deprecated
 
 
 @deprecated("numbers not accurate")

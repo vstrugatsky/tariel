@@ -1,7 +1,8 @@
 import sys
+from datetime import datetime, timezone
+
 from loaders.loader_base import LoaderBase
 from model.jobs import Job
-from datetime import datetime, timezone
 from providers.gmail import Gmail
 
 if __name__ == '__main__':

@@ -1,11 +1,13 @@
 from __future__ import annotations
-from sqlalchemy.orm import relationship
-import model as model
-from model.symbols import Symbol
-from model.jobs import Provider
-from sqlalchemy import Column, BigInteger, Date, DateTime, Enum, Integer, Identity, ForeignKey, UniqueConstraint, FetchedValue
 from datetime import date
 from typing import Optional
+
+from sqlalchemy.orm import relationship
+from sqlalchemy import Column, BigInteger, Date, DateTime, Enum, Integer, Identity, ForeignKey, UniqueConstraint, FetchedValue
+
+import model
+from model.symbols import Symbol
+from model.jobs import Provider
 
 
 class Split(model.Base):

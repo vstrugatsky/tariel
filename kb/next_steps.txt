@@ -128,6 +128,9 @@ Added logging of additions, updates, errors and warnings
    same company with multiple symbols
 - Improved parsing of Livesquawk tweets
 
+2022-Oct-20:
+- refactoring to deal with circular import errors, the key is to import modules but to hold off with objects
+
 Next steps:
 - check launchd job
 - parse sentiment analysis

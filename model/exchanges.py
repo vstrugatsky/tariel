@@ -1,5 +1,6 @@
-import model as model
 from sqlalchemy import Column, String, Text, ForeignKey, PrimaryKeyConstraint
+
+import model
 
 
 class Exchange(model.Base):
@@ -8,7 +9,6 @@ class Exchange(model.Base):
     name = Column(Text)
     acronym = Column(String(30))
     iso_country_code = Column(String(2), ForeignKey("countries.iso_code_2"))
-    # country = relationship("Country")
 
     @staticmethod
     def lookup_by_code(exchange: str, session: model.Session):

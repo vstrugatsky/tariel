@@ -1,7 +1,9 @@
 import enum
+
 from sqlalchemy import Column, DateTime, Enum, Text, Identity, UniqueConstraint, BigInteger
 from sqlalchemy.dialects.postgresql import JSONB
-from model import Base
+
+import model
 
 
 class Provider(enum.Enum):
@@ -18,7 +20,7 @@ class JobType(enum.Enum):
     EarningsReports = 4
 
 
-class Job(Base):
+class Job(model.Base):
     __tablename__ = 'jobs'
     id = Column('id', BigInteger, Identity(always=True), primary_key=True)
     provider = Column(Enum(Provider))

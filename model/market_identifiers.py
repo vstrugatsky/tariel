@@ -1,5 +1,6 @@
-import model as model
-from sqlalchemy import Column, String, Text, ForeignKey, PrimaryKeyConstraint
+from sqlalchemy import Column, String
+
+import model
 
 
 class MarketIdentifier(model.Base):
@@ -10,4 +11,3 @@ class MarketIdentifier(model.Base):
     @staticmethod
     def lookup_operating_mic_by_mic(mic: str, session: model.Session):
         return session.query(MarketIdentifier.operating_mic).filter(MarketIdentifier.mic == mic).scalar()
-

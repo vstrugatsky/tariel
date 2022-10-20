@@ -1,10 +1,13 @@
 from __future__ import annotations
 from typing import Optional
+from datetime import datetime, date
+
 from sqlalchemy.orm import relationship, validates
-import model as model
 from sqlalchemy import Column, String, Boolean, Enum, ForeignKey, DateTime, FetchedValue, \
     Identity, Integer, UniqueConstraint
-from datetime import datetime
+
+import model as model
+import model.earnings_reports as e  # noqa can't import EarningsReport directly due to circular import error
 from model.earnings_report_symbol import earnings_report_symbol_association
 from model.exchanges import Exchange
 from model.jobs import Provider
@@ -34,7 +37,9 @@ class Symbol(model.Base):
 
     UniqueConstraint(symbol, exchange, active, delisted)
     exchange_object = relationship("Exchange")
-    earnings_reports = relationship("EarningsReport", secondary=earnings_report_symbol_association, back_populates='symbols')
+    earnings_reports = relationship("EarningsReport",
+                                    secondary=earnings_report_symbol_association,
+                                    back_populates='symbols')
 
     @validates('currency')
     def convert_upper(self, key, value):
@@ -60,7 +65,7 @@ class Symbol(model.Base):
             return None
 
     @staticmethod
-    def get_unique(session: model.Session, ticker: str, exchange: str, active: bool, delisted: datetime) \
+    def get_unique(session: model.Session, ticker: str, exchange: str, active: bool, delisted: Optional[datetime]) \
             -> Optional[Symbol]:
         return session.query(Symbol). \
             filter(Symbol.symbol == ticker,
@@ -76,3 +81,13 @@ class Symbol(model.Base):
                    Symbol.exchange == exchange). \
             order_by(Symbol.active.asc(), Symbol.delisted.asc()). \
             all()
+
+    @staticmethod
+    # tested by loader_base_test.py
+    def find_candidate_symbol(symbols: [Symbol], event_date: date) -> Symbol | None:
+        # active sorts false first, delisted - older date first
+        symbols.sort(key=lambda x: (x.active, x.delisted))
+        for symbol in symbols:
+            if symbol.active or (not symbol.active and symbol.delisted.date() >= event_date):
+                return symbol
+        return None

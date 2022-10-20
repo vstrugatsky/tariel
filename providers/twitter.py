@@ -1,9 +1,10 @@
 from __future__ import annotations
 import requests
 from typing import Callable
-import model
 from datetime import datetime
+
 from config import config
+import model
 
 
 class Twitter:

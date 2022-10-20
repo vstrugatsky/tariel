@@ -1,4 +1,3 @@
-import re
 import model
 from loaders.earnings_reports_from_twitter import LoadEarningsReportsFromTwitter
 from loaders.twitter_livesquawk import Livesquawk

@@ -1,12 +1,13 @@
 from __future__ import annotations
+from datetime import date, datetime, timedelta
+
+import model
 from loaders.loader_base import LoaderBase
 from model.job_log import MsgSeverity
 from model.jobs import Provider, JobType
 from model.symbols import Symbol
 from model.dividends import Dividend
 from providers.polygon import Polygon
-import model as model
-from datetime import date, datetime, timedelta
 
 
 class LoadDividendsFromPolygon(LoaderBase):
@@ -34,7 +35,7 @@ class LoadDividendsFromPolygon(LoaderBase):
             return
 
         symbols = Symbol.get_symbols_by_ticker_and_exchange(session, ticker, exchange)
-        candidate_symbol: Symbol = LoaderBase.find_candidate_symbol(symbols, ex_dividend_date)
+        candidate_symbol: Symbol = Symbol.find_candidate_symbol(symbols, ex_dividend_date)
 
         if candidate_symbol:
             dividend: Dividend = Dividend.get_unique(session, candidate_symbol, ex_dividend_date)

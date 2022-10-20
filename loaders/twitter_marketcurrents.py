@@ -1,6 +1,7 @@
 from __future__ import annotations
-from loaders.twitter_account import TwitterAccount
 import re
+
+from loaders.twitter_account import TwitterAccount
 from utils.utils import Utils
 
 

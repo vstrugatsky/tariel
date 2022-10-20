@@ -1,9 +1,11 @@
-from sqlalchemy import Column, PrimaryKeyConstraint, String
-from model import Base, Session
 import json
 
+from sqlalchemy import Column, String
 
-class Country(Base):
+import model
+
+
+class Country(model.Base):
     __tablename__ = 'countries'
     iso_code_2 = Column(String(2), primary_key=True)
     iso_code_3 = Column(String(3), unique=True)
@@ -20,7 +22,7 @@ countriesJson = '''
 
 
 def load_countries():
-    session = Session()
+    session = model.Session()
     for i in json.loads(countriesJson):
         country = Country(
             iso_code_2=i['alpha-2'],

@@ -1,13 +1,14 @@
 from __future__ import annotations
+from datetime import datetime
+import time
+
+import model
 from loaders.loader_base import LoaderBase
 from model.job_log import MsgSeverity
 from model.jobs import Provider, JobType
 from model.symbols import Symbol
 from model.market_identifiers import MarketIdentifier
 from providers.polygon import Polygon
-import model as model
-from datetime import datetime
-import time
 
 
 class LoadSymbolsFromPolygon(LoaderBase):

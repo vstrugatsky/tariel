@@ -1,8 +1,10 @@
 from __future__ import annotations
 import enum
+
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Enum, Text, Integer, DateTime, Identity, ForeignKey, FetchedValue
-import model as model
+
+import model
 
 
 class MsgSeverity(enum.Enum):

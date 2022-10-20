@@ -4,8 +4,7 @@ from sqlalchemy import BigInteger
 import model
 from model.job_log import MsgSeverity, JobLog
 from model.jobs import Provider, JobType, Job
-from model.symbols import Symbol
-from datetime import datetime, date
+from datetime import datetime
 
 
 class LoaderBase(ABC):
@@ -57,13 +56,3 @@ class LoaderBase(ABC):
                 filter(Job.started >= since, Job.started <= until). \
                 order_by(Job.started.asc()). \
                 all()
-
-    @staticmethod
-    # tested by loader_base_test.py
-    def find_candidate_symbol(symbols: [Symbol], event_date: date) -> Symbol | None:
-        # active sorts false first, delisted - older date first
-        symbols.sort(key=lambda x: (x.active, x.delisted))
-        for symbol in symbols:
-            if symbol.active or (not symbol.active and symbol.delisted.date() >= event_date):
-                return symbol
-        return None
