@@ -1,6 +1,6 @@
 from __future__ import annotations
 import sys
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 
 import model
 from loaders.loader_base import LoaderBase
@@ -12,6 +12,9 @@ from providers.polygon import Polygon
 
 
 class LoadMarketDailyFromPolygon(LoaderBase):
+    tickers_to_ignore = ['NTEST.I', 'PTEST',
+                         'ZBZX', 'ZEXIT', 'ZIEXT', 'ZJZZT', 'ZTEST', 'ZTST', 'ZVZZT', 'ZWZZT', 'ZXIET']
+
     @staticmethod
     def update_market_daily_from_polygon(market_daily: MarketDaily, i: dict):
         market_daily.price_close = i.get('c')
@@ -26,6 +29,8 @@ class LoadMarketDailyFromPolygon(LoaderBase):
     def load(i: dict, session: model.Session, method_params: dict):
         loader: LoadMarketDailyFromPolygon = method_params.get('loader')
         ticker: str = i.get('T')
+        if ticker in LoadMarketDailyFromPolygon.tickers_to_ignore:
+            return
         market_day: date = datetime.strptime(method_params.get("market_day"),'%Y-%m-%d').date()
         country_code: str = method_params.get("country_code")
 
@@ -62,20 +67,30 @@ class LoadMarketDailyFromPolygon(LoaderBase):
 
 
 if __name__ == '__main__':
-    market_day = sys.argv[1] if len(sys.argv) > 1 else datetime.today().strftime('%Y-%m-%d')
-    # market_day = '2022-10-19'
-    loader = LoadMarketDailyFromPolygon()
-    commit = True
+    date_format = '%Y-%m-%d'
+    start_str: str = sys.argv[1] if len(sys.argv) > 1 else datetime.strftime(datetime.now(), date_format)
+    end_str: str = sys.argv[1] if len(sys.argv) > 1 else datetime.strftime(datetime.now(), date_format)
+    start_str = '2022-10-14'
+    end_str = '2022-10-15'
 
-    loader.job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.MarketDaily,
-                                         params=str({'market_day': market_day}))
+    start_date: date = datetime.strptime(start_str, date_format).date()
+    end_date: date = datetime.strptime(end_str, date_format).date()
+    current_date: date = end_date
+    while current_date >= start_date:
+        market_day = datetime.strftime(current_date, date_format)
+        current_date -= timedelta(days=1)
+        loader = LoadMarketDailyFromPolygon()
+        commit = True
 
-    Polygon.call_api(url=Polygon.url_prefix + 'v2/aggs/grouped/locale/us/market/stocks/' + market_day,
-                     payload={'adjusted': 'true', 'include_otc': 'true'},
-                     method=LoadMarketDailyFromPolygon.load,
-                     method_params={'country_code': 'US', 'market_day': market_day, 'loader': loader},
-                     commit=commit,
-                     paginate=False, cursor=None  # this API is not paginated
-                     )
+        LoaderBase.start_job(provider=Provider.Polygon,
+                             job_type=JobType.MarketDaily,
+                             params=str({'market_day': market_day}))
 
-    LoaderBase.finish_job(loader)
+        Polygon.call_api(url=Polygon.url_prefix + 'v2/aggs/grouped/locale/us/market/stocks/' + market_day,
+                         payload={'adjusted': 'true', 'include_otc': 'true'},
+                         method=LoadMarketDailyFromPolygon.load,
+                         method_params={'country_code': 'US', 'market_day': market_day, 'loader': loader},
+                         commit=commit,
+                         paginate=False, cursor=None)  # this API is not paginated
+
+        LoaderBase.finish_job(loader)

@@ -134,7 +134,14 @@ Added logging of additions, updates, errors and warnings
 2022-Oct-20#2:
 - modeled Market Daily and developed/tested a Polygon loader
 
-Next steps:
+2022-Oct-21:
+- still struggling with launchd job
+- implemented loading of Market Daily for multiple days at a time
+- fixed a problem where a tweet with one symbol in cashtag is followed by another for the same day and two cashtags
+- improved Livesquawk parsing
+- changed priority to Marketcurrents over Livesquawk
+- improved resiliency of Polygon jobs
+
 - check launchd job
 - parse sentiment analysis
 - research and load historical prices

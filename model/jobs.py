@@ -9,8 +9,8 @@ import model
 class Provider(enum.Enum):
     EOD = 1
     Polygon = 2
-    Twitter_Marketcurrents = 10  # lower-priority
-    Twitter_Livesquawk = 11      # higher-priority
+    Twitter_Livesquawk = 10         # lower-priority
+    Twitter_Marketcurrents = 11      # higher-priority
 
 
 class JobType(enum.Enum):

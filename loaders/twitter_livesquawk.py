@@ -14,18 +14,18 @@ class Livesquawk(TwitterAccount):
            EPS(:?)[ ](?P<eps_sign>[-])?(?P<eps_currency>C[$]|[$]|€|₹|SEK)
            (?P<eps>\d+\.\d+)
            .+?
-           (est|exp|estimate(:?))[ ](?P<eps_estimate_currency>C[$]|[$]|€|₹|SEK)?
+           (est|exp|estimate)[:.]?[ ](?P<eps_estimate_currency>C[$]|[$]|€|₹|SEK)?
            (?P<eps_estimate_amount>\d+\.\d+)?
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
 
     def parse_revenue(self, tweet_text: str) -> Optional[re.Match]:
         p = re.compile(r'''
-           Revenue(:?)[ ](?P<revenue_currency>C[$]|[$]|€|₹|SEK)
+           (Revenue|Rev.):?[ ](?P<revenue_currency>C[$]|[$]|€|₹|SEK)
            (?P<revenue>\d+\.?\d*)
            (?P<revenue_uom>[MBK])?
            .+?
-           (est|exp|estimate(:?))[ ](?P<revenue_estimate_currency>C[$]|[$]|€|₹|SEK)?
+           (est|exp|estimate)[:.]?[ ](?P<revenue_estimate_currency>C[$]|[$]|€|₹|SEK)?
            (?P<revenue_estimate_amount>\d+\.\d+)?
            (?P<revenue_estimate_uom>[MBK])?
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)

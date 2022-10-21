@@ -43,7 +43,10 @@ class Polygon:
         r = requests.get(url, params=payload, timeout=10)
         if r.status_code != 200:
             print(f'ERROR status code {r.status_code} and response {r.json()}')
-            exit(1)
+            return
+        if not r.json().get('results'):
+            print(f'WARN no results from Polygon')
+            return
 
         cursor = parse_query_param_value(r.json().get('next_url'), 'cursor')
 

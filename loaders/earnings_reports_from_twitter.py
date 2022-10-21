@@ -119,7 +119,12 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
 
         print(f'INFO associated {symbols.keys()} and matched {match_dict}')
         report_date = datetime.strptime(i['created_at'], '%Y-%m-%dT%H:%M:%S.%fZ').date()
-        er = EarningsReport.get_unique(session, symbol=symbols[list(symbols)[0]], report_date=report_date)
+        er: Optional[EarningsReport] = None
+        for key in symbols:
+            er = EarningsReport.get_unique(session, symbol=symbols[key], report_date=report_date)
+            if er:
+                break
+
         if not er:
             er = EarningsReport(creator=Provider[provider], report_date=report_date)
             for key in symbols:
@@ -157,7 +162,7 @@ if __name__ == '__main__':
     account_class: Type[TwitterAccount] = getattr(sys.modules['loaders.twitter_' + account_name.lower()], account_name)
     loader = LoadEarningsReportsFromTwitter(account_class(account_name))
     provider = 'Twitter_' + account_name
-    backfill = False
+    backfill = True
     commit = True
     paginate = True
     max_results = 100

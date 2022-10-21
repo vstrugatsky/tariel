@@ -12,21 +12,21 @@ def test_should_update():
     provider = 'Twitter_Livesquawk'
     assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is True)
 
-    er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=None)
-    provider = 'Twitter_Livesquawk'
+    er = EarningsReport(creator=Provider['Twitter_Marketcurrents'], updater=None)
+    provider = 'Twitter_Marketcurrents'
     assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is True)
 
     er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=None)
     provider = 'Twitter_Marketcurrents'
-    assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is False)
+    assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is True)
 
     er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=Provider['Twitter_Livesquawk'])
     provider = 'Twitter_Marketcurrents'
-    assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is False)
+    assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is True)
 
     er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=Provider['Twitter_Marketcurrents'])
     provider = 'Twitter_Livesquawk'
-    assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is True)
+    assert(LoadEarningsReportsFromTwitter.should_update(er, provider) is False)
 
 
 def test_determine_currency():
@@ -308,6 +308,29 @@ $UAL United Airlines Q3 22 Earnings:
     assert (dict.get('revenue_estimate_currency') == '$')
     assert (dict.get('revenue_estimate_amount') == '11.39')
     assert (dict.get('revenue_estimate_uom') == 'B')
+
+
+def test_parse_tweet_livesquawk_worded_rev():
+    tweet = '''
+    $BX Blackstone Inc Q3 22 Earnings:  
+- Total Segment Rev. $2.59B, Est. $2.51B 
+- Aum $950.9B (est $966.82B) 
+- Inflows $44.8B (est $60.49B) 
+- Distributable Income/SHR $1.06 (est 99c)'''
+    account = Livesquawk(Livesquawk.account_name)
+    dict = LoadEarningsReportsFromTwitter.parse_tweet(account, tweet)
+    assert (dict.get('eps_sign') is None)
+    assert (dict.get('eps_currency') is None)
+    assert (dict.get('eps') is None)
+    assert (dict.get('eps_estimate_currency') is None)
+    assert (dict.get('eps_estimate_amount') is None)
+    assert (dict.get('revenue_currency') == '$')
+    assert (dict.get('revenue') == '2.59')
+    assert (dict.get('revenue_uom') == 'B')
+    assert (dict.get('revenue_estimate_currency') == '$')
+    assert (dict.get('revenue_estimate_amount') == '2.51')
+    assert (dict.get('revenue_estimate_uom') == 'B')
+
 
 
 tweet = '$BLK BlackRock Q3 22 Earnings: \
