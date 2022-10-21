@@ -62,7 +62,7 @@ if __name__ == '__main__':
         provider=Provider.Polygon, job_type=JobType.Splits,
         params=str(params) + ' commit: ' + str(commit) + ' paginate: ' + str(paginate))
 
-    Polygon.call_paginated_api(
+    Polygon.call_api(
         url=Polygon.url_prefix + 'v3/reference/splits',
         payload=params | {'order': 'asc', 'sort': 'ticker'},
         method=LoadSplitsFromPolygon.load,

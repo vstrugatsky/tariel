@@ -11,7 +11,7 @@ if __name__ == '__main__':
     jobs: [Job] = LoaderBase.get_jobs_since(datetime.fromtimestamp(start_time, timezone.utc))
     for job in jobs:
         job_desc = job.started.strftime('%Y-%m-%d %H:%M:%S') + ' ' \
-                   + job.completed.strftime('%Y-%m-%d %H:%M:%S') + ' ' \
+                   + (job.completed.strftime('%Y-%m-%d %H:%M:%S') if job.completed else 'failed') + ' ' \
                    + str(job.job_info) + ' ' \
                    + job.provider.name + ':' + job.job_type.name + '\n'
         email_body += job_desc

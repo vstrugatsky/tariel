@@ -18,6 +18,7 @@ class JobType(enum.Enum):
     Dividends = 2
     Splits = 3
     EarningsReports = 4
+    MarketDaily = 5
 
 
 class Job(model.Base):

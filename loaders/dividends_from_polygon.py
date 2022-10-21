@@ -66,10 +66,10 @@ if __name__ == '__main__':
     loader.job_id = LoaderBase.start_job(provider=Provider.Polygon, job_type=JobType.Dividends,
                                   params=str(params) + ' paginate: ' + str(paginate))
 
-    Polygon.call_paginated_api(url=Polygon.url_prefix + 'v3/reference/dividends',
-                               payload=params | {'order': 'asc', 'sort': 'ticker'},
-                               method=LoadDividendsFromPolygon.load,
-                               method_params={'country_code': 'US', 'loader': loader},
-                               commit=commit, paginate=paginate, cursor=None)
+    Polygon.call_api(url=Polygon.url_prefix + 'v3/reference/dividends',
+                     payload=params | {'order': 'asc', 'sort': 'ticker'},
+                     method=LoadDividendsFromPolygon.load,
+                     method_params={'country_code': 'US', 'loader': loader},
+                     commit=commit, paginate=paginate, cursor=None)
 
     LoaderBase.finish_job(loader)
