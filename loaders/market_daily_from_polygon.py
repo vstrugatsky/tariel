@@ -12,8 +12,8 @@ from providers.polygon import Polygon
 
 
 class LoadMarketDailyFromPolygon(LoaderBase):
-    tickers_to_ignore = ['NTEST.I', 'PTEST',
-                         'ZBZX', 'ZEXIT', 'ZIEXT', 'ZJZZT', 'ZTEST', 'ZTST', 'ZVZZT', 'ZWZZT', 'ZXIET']
+    tickers_to_ignore = ['NTEST', 'NTEST.I', 'NTEST.H', 'PTEST',
+                         'ZBZX', 'ZEXIT', 'ZIEXT', 'ZJZZT', 'ZTEST', 'ZTST', 'ZVZZT', 'ZWZZT', 'ZXIET', 'ZXZZT']
 
     @staticmethod
     def update_market_daily_from_polygon(market_daily: MarketDaily, i: dict):
@@ -70,8 +70,8 @@ if __name__ == '__main__':
     date_format = '%Y-%m-%d'
     start_str: str = sys.argv[1] if len(sys.argv) > 1 else datetime.strftime(datetime.now(), date_format)
     end_str: str = sys.argv[1] if len(sys.argv) > 1 else datetime.strftime(datetime.now(), date_format)
-    start_str = '2022-10-14'
-    end_str = '2022-10-15'
+    start_str = '2021-01-10'
+    end_str = '2021-03-31'
 
     start_date: date = datetime.strptime(start_str, date_format).date()
     end_date: date = datetime.strptime(end_str, date_format).date()
@@ -82,7 +82,7 @@ if __name__ == '__main__':
         loader = LoadMarketDailyFromPolygon()
         commit = True
 
-        LoaderBase.start_job(provider=Provider.Polygon,
+        loader.job_id = LoaderBase.start_job(provider=Provider.Polygon,
                              job_type=JobType.MarketDaily,
                              params=str({'market_day': market_day}))
 

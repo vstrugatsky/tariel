@@ -90,4 +90,7 @@ class Symbol(model.Base):
         for symbol in symbols:
             if symbol.active or (not symbol.active and symbol.delisted.date() >= event_date):
                 return symbol
-        return None
+        if len(symbols) > 0:
+            return symbols[len(symbols) - 1]
+        else:
+            return None

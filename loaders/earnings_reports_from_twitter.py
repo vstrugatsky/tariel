@@ -1,7 +1,9 @@
 from __future__ import annotations
 import sys
 from typing import Optional, Type
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+
+from fuzzywuzzy import fuzz
 
 import model
 from loaders.loader_base import LoaderBase
@@ -53,6 +55,11 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
             return float(eps) if eps else 0
 
     @staticmethod
+    def update_er(er: EarningsReport, i: dict, match_dict: dict, account: TwitterAccount):
+        LoadEarningsReportsFromTwitter.update_earnings_fields(er, match_dict, account)
+        LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, account)
+
+    @staticmethod
     def update_earnings_fields(er: EarningsReport, match_dict: dict, account: TwitterAccount):
         er.currency = LoadEarningsReportsFromTwitter.determine_currency(
             match_dict.get('eps_currency'), match_dict.get('revenue_currency'))
@@ -81,65 +88,66 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
         }
 
     @staticmethod
-    def associate_tweet_with_symbols(session: model.Session, cashtags: [dict]) -> dict:
+    def associate_tweet_with_symbols(session: model.Session, cashtags: [dict], tweet_text: str = 'test') -> dict:
         symbols: dict = {}
         if not cashtags:
             return symbols
         for d in cashtags:
-            if d.get('tag'):
-                candidate_symbol: Symbol = Symbol.get_unique_by_ticker_and_country(session, d.get('tag'), 'US')
+            tag = d.get('tag')
+            if tag and (tag + ' ' in tweet_text or tag + ':CA' not in tweet_text):  # exclude Canadian tickers
+                candidate_symbol: Symbol = Symbol.get_unique_by_ticker_and_country(session, tag, 'US')
                 if candidate_symbol:
                     symbols[candidate_symbol.symbol] = candidate_symbol
         return symbols
 
     @staticmethod
-    def load(i: dict, session: model.Session, method_params: dict):
-        loader: LoadEarningsReportsFromTwitter = method_params.get('loader')
-        account: TwitterAccount = loader.account
-        provider = 'Twitter_' + account.account_name
-        entities = i.get('entities', None)
-        cashtags = entities.get('cashtags', None) if entities else None
-        print(f'TWEET {i["created_at"]} {i["text"]} {str(cashtags)}')
-        if not cashtags:
-            return
-
-        match_dict = LoadEarningsReportsFromTwitter.parse_tweet(account, i['text'])
-        if not match_dict:
-            print(f'INFO cannot parse earnings from {i["text"]}')
-            if account.should_raise_parse_warning(i['text']):
-                msg = 'Failed to parse likely earnings from ' + i['text']
-                LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
-            return
-
-        symbols: dict = LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags)
-        if not symbols:
-            msg = 'Parsed an earnings tweet, but cannot associate symbol with cashtags ' + str(cashtags)
-            LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
-            return
-
-        print(f'INFO associated {symbols.keys()} and matched {match_dict}')
-        report_date = datetime.strptime(i['created_at'], '%Y-%m-%dT%H:%M:%S.%fZ').date()
+    def find_er_by_symbols_and_date(session: model.Session, symbols: dict, report_date: date) -> Optional[EarningsReport]:
         er: Optional[EarningsReport] = None
         for key in symbols:
             er = EarningsReport.get_unique(session, symbol=symbols[key], report_date=report_date)
             if er:
                 break
+        return er
 
+    @staticmethod
+    def load(i: dict, session: model.Session, method_params: dict):
+        loader: LoadEarningsReportsFromTwitter = method_params.get('loader')
+        provider = 'Twitter_' + loader.account.account_name
+        cashtags = Twitter.get_cashtags(i)
+        print(f'TWEET {i["created_at"]} {i["text"]} {str(cashtags)}')
+        if not cashtags:
+            return
+
+        match_dict = LoadEarningsReportsFromTwitter.parse_tweet(loader.account, i['text'])
+        if not match_dict:
+            print(f'INFO cannot parse earnings from {i["text"]}')
+            if loader.account.should_raise_parse_warning(i['text']):
+                msg = 'Failed to parse likely earnings from ' + i['text']
+                LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
+            return
+
+        symbols: dict = LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags, i['text'])
+        if not symbols:
+            msg = 'Parsed an earnings tweet, but cannot associate symbol with cashtags ' + str(cashtags)
+            LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
+            return
+        print(f'INFO associated {symbols.keys()} and matched {match_dict}')
+
+        report_date = datetime.strptime(i['created_at'], '%Y-%m-%dT%H:%M:%S.%fZ').date()
+        er = LoadEarningsReportsFromTwitter.find_er_by_symbols_and_date(session, symbols, report_date)
         if not er:
             er = EarningsReport(creator=Provider[provider], report_date=report_date)
+            session.add(er)
             for key in symbols:
                 er.symbols.append(symbols[key])
-                session.add(er)
 
-            LoadEarningsReportsFromTwitter.update_earnings_fields(er, match_dict, loader.account)
-            LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, loader.account)
+            LoadEarningsReportsFromTwitter.update_er(er, i, match_dict, loader.account)
             loader.records_added += 1
         else:
             if LoadEarningsReportsFromTwitter.should_update(er, provider):
                 er.updated = datetime.now()
                 er.updater = Provider[provider]
-                LoadEarningsReportsFromTwitter.update_earnings_fields(er, match_dict, loader.account)
-                LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, loader.account)
+                LoadEarningsReportsFromTwitter.update_er(er, i, match_dict, loader.account)
                 loader.records_updated += 1
 
     @staticmethod

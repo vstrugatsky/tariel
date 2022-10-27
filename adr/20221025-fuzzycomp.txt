@@ -1,0 +1,8 @@
+Experimented to do a fuzzy compare between the Symbols.name and the company name in the tweet.
+- Install python-levenshtein and fuzzywuzzy
+- Got decent results with the fuzz.WRatio method, but it fell short when the tweet
+referenced a short company name such as UPS or IBM but Symbols.name has the full name only
+
+Decision: set aside for now
+
+

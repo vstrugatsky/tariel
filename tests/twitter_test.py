@@ -120,6 +120,13 @@ def test_associate_tweet_with_symbol():
         assert(not LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags))
 
 
+def test_associate_tweet_with_symbols_duplicate():
+    tweet = '$CPG $CPG:CA - Crescent Point Energy GAAP EPS of C$0.82, revenue of C$1.1B'
+    cashtags = [{'start': 0, 'end': 4, 'tag': 'CPG'}, {'start': 5, 'end': 9, 'tag': 'CPG'}]
+    with model.Session() as session:
+        assert(len(LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags, tweet).keys()) == 1)
+
+
 def test_parse_tweet_nii():
     tweet = '$SAR - Saratoga Investment Non-GAAP NII of $0.58 beats by $0.07, total Investment Income of $21.85M beats by $1.95M'
     account = Marketcurrents(Marketcurrents.account_name)
@@ -214,6 +221,26 @@ def test_parse_tweet_with_guidance_1():
     assert(dict.get('revenue_surprise_amount') == '1.93')
     assert(dict.get('revenue_surprise_uom') == 'M')
     assert(dict.get('guidance_1') == 'reaffirms')
+
+
+def test_parse_tweet_with_bad_currency():
+    tweet = '$SPOT - Spotify GAAP EPS of -€0.99 misses by v0.15, revenue of €3.04B beats by €20M'
+    account = Marketcurrents(Marketcurrents.account_name)
+    dict = LoadEarningsReportsFromTwitter.parse_tweet(account, tweet)
+    assert (dict.get('eps_sign') == '-')
+    assert (dict.get('eps_currency') == '€')
+    assert (dict.get('eps') == '0.99')
+    assert (dict.get('eps_surprise_direction') == 'misses')
+    assert (dict.get('eps_surprise_currency') is None)
+    assert (dict.get('eps_surprise_amount') is None)
+    assert (dict.get('revenue_currency') == '€')
+    assert (dict.get('revenue') == '3.04')
+    assert (dict.get('revenue_uom') == 'B')
+    assert (dict.get('revenue_surprise_direction') == 'beats')
+    assert (dict.get('revenue_surprise_currency') == '€')
+    assert (dict.get('revenue_surprise_amount') == '20')
+    assert (dict.get('revenue_surprise_uom') == 'M')
+    assert (dict.get('guidance_1') is None)
 
 
 def test_parse_tweet_not_earnings():

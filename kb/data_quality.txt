@@ -1,0 +1,4 @@
+2022-10-26: many NOK and SEK reports overstate revenue surprise @ marketcurrents.
+Startegies:
+1) when calculating, keep the "beats" indicator but don't rely on the amount when surprise is close to the revenue
+2) possibly the "surprise" is in fact estimated revenue

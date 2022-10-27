@@ -1,6 +1,6 @@
 from __future__ import annotations
 import requests
-from typing import Callable
+from typing import Callable, Optional
 from datetime import datetime
 
 from config import config
@@ -9,6 +9,11 @@ import model
 
 class Twitter:
     url_prefix = 'https://api.twitter.com/2'
+
+    @staticmethod
+    def get_cashtags(response: dict) -> Optional[dict]:
+        entities = response.get('entities', None)
+        return entities.get('cashtags', None) if entities else None
 
     @staticmethod
     def call_paginated_api(url: str,

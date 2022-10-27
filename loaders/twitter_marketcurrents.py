@@ -10,21 +10,21 @@ class Marketcurrents(TwitterAccount):
 
     def parse_eps(self, tweet_text: str):
         p = re.compile(r'''
-           (EPS|NII|EPADR|FFO)[ ]of[ ](?P<eps_sign>[-])?(?P<eps_currency>C[$]|[$]|€|₹|SEK)      
+           (EPS|NII|EPADR|FFO)[ ]of[ ](?P<eps_sign>[-])?(?P<eps_currency>C[$]|[$]|€|£||₹|¥|SEK|DKK|NOK|NOK[ ]|EUR)      
            (?P<eps>\d+\.\d+)
            [ ]?(?P<eps_surprise_direction>misses|beats)?
-           ([ ]by[ ])?(?P<eps_surprise_currency>C[$]|[$]|€|₹|SEK)?
+           ([ ]by[ ])?(?P<eps_surprise_currency>C[$]|[$]|€|£||₹|¥|SEK|DKK|NOK|NOK[ ]|EUR)?
            (?P<eps_surprise_amount>\d+\.\d+)?
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
 
     def parse_revenue(self, tweet_text: str):
         p = re.compile(r'''
-           (revenue|investment[ ]income)[ ]of[ ](?P<revenue_currency>C[$]|[$]|€|₹|SEK)
+           (revenue|investment[ ]income)[ ]of[ ](?P<revenue_currency>C[$]|[$]|€|£||₹|¥|SEK|DKK|NOK|NOK[ ]|EUR)
            (?P<revenue>\d+\.?\d*)
            (?P<revenue_uom>[MBK])
            [ ]?(?P<revenue_surprise_direction>misses|beats)?
-           ([ ]by[ ])?(?P<revenue_surprise_currency>C[$]|[$]|€|₹|SEK)?
+           ([ ]by[ ])?(?P<revenue_surprise_currency>C[$]|[$]|€|£|₹|¥|SEK|DKK|NOK|NOK[ ]|EUR)?
            (?P<revenue_surprise_amount>\d+\.?\d*)?
            (?P<revenue_surprise_uom>[MBK])?
         ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
@@ -32,7 +32,7 @@ class Marketcurrents(TwitterAccount):
 
     def parse_guidance(self, tweet_text: str):
         p = re.compile(r'''
-           (?P<guidance_1>raises|lowers|reaffirms|cuts)[ ]
+           (?P<guidance_1>raises|lowers|reaffirms|cuts|below)[ ]
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
 
@@ -49,7 +49,7 @@ class Marketcurrents(TwitterAccount):
             surprise_amount = match_dict.get('revenue_surprise_amount')
             surprise_uom = match_dict.get('revenue_surprise_uom')
 
-        if not surprise_direction:
+        if not surprise_direction or not surprise_amount:
             return None
         if surprise_direction.lower() == 'misses':
             return Utils.apply_uom(0.0 - float(surprise_amount), surprise_uom)
