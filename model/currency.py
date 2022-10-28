@@ -1,3 +1,6 @@
+import re
+
+
 class Currency:
     currencies = {
         '$': 'USD',
@@ -14,3 +17,8 @@ class Currency:
         'NOK': 'NOK',   # norwegian kroner
         'CHF': 'CHF'  # swiss franc
                 }
+
+    @staticmethod
+    def format_for_regex():
+        return format('|'.join(map(re.escape, sorted(Currency.currencies, key=len, reverse=True))))
+

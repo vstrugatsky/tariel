@@ -4,7 +4,7 @@ from datetime import date
 
 from sqlalchemy.orm import relationship
 from sqlalchemy import func, Enum, Column, String, Numeric, BigInteger, DateTime, Date, Integer, \
-    Identity, UniqueConstraint, FetchedValue
+    Identity, UniqueConstraint, FetchedValue, Text
 from sqlalchemy.dialects.postgresql import JSONB
 
 import model
@@ -29,6 +29,7 @@ class EarningsReport(model.Base):
     guidance_direction = Column(String(20))
     provider_info = Column(JSONB)
     provider_unique_id = Column(String(200), nullable=False)
+    data_quality_note = Column(Text)
 
     created = Column(DateTime(timezone=True), FetchedValue())
     creator = Column(Enum(Provider))

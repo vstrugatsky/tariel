@@ -3,8 +3,6 @@ import sys
 from typing import Optional, Type
 from datetime import datetime, timedelta, date
 
-from fuzzywuzzy import fuzz
-
 import model
 from loaders.loader_base import LoaderBase
 from loaders.twitter_account import TwitterAccount
@@ -55,9 +53,17 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
             return float(eps) if eps else 0
 
     @staticmethod
+    def evaluate_data_quality(er: EarningsReport) -> Optional[str]:
+        if er.revenue_surprise and er.revenue and (abs(er.revenue_surprise) / er.revenue) >= 0.75:
+            return 'Revenue surprise ' + str(er.revenue_surprise) + ' too large for revenue=' + str(er.revenue)
+        else:
+            return None
+
+    @staticmethod
     def update_er(er: EarningsReport, i: dict, match_dict: dict, account: TwitterAccount):
         LoadEarningsReportsFromTwitter.update_earnings_fields(er, match_dict, account)
         LoadEarningsReportsFromTwitter.update_twitter_fields(er, i, account)
+        er.data_quality_note = LoadEarningsReportsFromTwitter.evaluate_data_quality(er)
 
     @staticmethod
     def update_earnings_fields(er: EarningsReport, match_dict: dict, account: TwitterAccount):

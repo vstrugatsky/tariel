@@ -70,8 +70,8 @@ if __name__ == '__main__':
     date_format = '%Y-%m-%d'
     start_str: str = sys.argv[1] if len(sys.argv) > 1 else datetime.strftime(datetime.now(), date_format)
     end_str: str = sys.argv[1] if len(sys.argv) > 1 else datetime.strftime(datetime.now(), date_format)
-    start_str = '2021-01-10'
-    end_str = '2021-03-31'
+    # start_str = '2022-05-01'
+    # end_str = '2022-10-26'
 
     start_date: date = datetime.strptime(start_str, date_format).date()
     end_date: date = datetime.strptime(end_str, date_format).date()

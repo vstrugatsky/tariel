@@ -142,15 +142,18 @@ Added logging of additions, updates, errors and warnings
 - changed priority to Marketcurrents over Livesquawk
 - improved resiliency of Polygon jobs
 
-2022-Oct-24-27:
+2022-Oct-24-26:
 - loaded historical data
 - figured launchd job
 - analyzed sentiments
 - reviewed errors, warnings and improved error detection / parsing as a result
 
+2022-Oct-27:
+- added data quality column
+- dynamic regex parsing based on list of currencies/symbols
+- improved testing!
+
 Next steps:
-- data quality column
-- regex parsing based on list of currencies/symbols
 - build fin data (industry, EPS, beta, earnings)
 - sentiment analysis
 
