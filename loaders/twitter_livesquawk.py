@@ -10,9 +10,21 @@ from utils.utils import Utils
 class Livesquawk(TwitterAccount):
     account_name = 'livesquawk'
 
+    def parse_positive_earnings(self, tweet_text: str):
+        pass
+
+    def parse_negative_earnings(self, tweet_text: str):
+        pass
+
+    def parse_positive_guidance(self, tweet_text: str):
+        pass
+
+    def parse_negative_guidance(self, tweet_text: str):
+        pass
+
     def parse_eps(self, tweet_text: str) -> Optional[re.Match]:
         p = re.compile(r'''
-           EPS(:?)[ ](?P<eps_sign>[-])?(?P<eps_currency>''' + Currency.format_for_regex() + r''')
+           (EPS|EPADS|NII|EPADR|FFO)(:?)[ ](?P<eps_sign>[-])?(?P<eps_currency>''' + Currency.format_for_regex() + r''')
            [ ]?(?P<eps>\d+\.\d+)
            .+?
            (est|exp|estimate)[:.]?[ ](?P<eps_estimate_currency>''' + Currency.format_for_regex() + r''')?

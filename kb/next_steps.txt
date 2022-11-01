@@ -153,7 +153,12 @@ Added logging of additions, updates, errors and warnings
 - dynamic regex parsing based on list of currencies/symbols
 - improved testing!
 
+2022-Oct-28-31:
+- sentiment analysis design, tests construction, strategy determination
+
 Next steps:
+- complete sentiment_tests
+- implement sentiment calculation
+- test Marketcurrents and Livesquawk
 - build fin data (industry, EPS, beta, earnings)
-- sentiment analysis
 

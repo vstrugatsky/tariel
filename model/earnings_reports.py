@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Optional
 from datetime import date
 
@@ -26,7 +27,8 @@ class EarningsReport(model.Base):
     eps_surprise = Column(Numeric)
     revenue = Column(BigInteger)
     revenue_surprise = Column(BigInteger)
-    guidance_direction = Column(String(20))
+    earnings_sentiment = Column(Numeric)
+    guidance_sentiment = Column(Numeric)
     provider_info = Column(JSONB)
     provider_unique_id = Column(String(200), nullable=False)
     data_quality_note = Column(Text)
