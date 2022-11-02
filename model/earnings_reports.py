@@ -30,15 +30,12 @@ class EarningsReport(model.Base):
     earnings_sentiment = Column(Numeric)
     guidance_sentiment = Column(Numeric)
     provider_info = Column(JSONB)
-    provider_unique_id = Column(String(200), nullable=False)
     data_quality_note = Column(Text)
 
     created = Column(DateTime(timezone=True), FetchedValue())
     creator = Column(Enum(Provider))
     updated = Column(DateTime(timezone=True))
     updater = Column(Enum(Provider))
-
-    UniqueConstraint(provider_unique_id)
 
     @staticmethod
     def get_unique(session: model.Session, symbol: s.Symbol, report_date: date) -> Optional[EarningsReport]:
@@ -47,8 +44,35 @@ class EarningsReport(model.Base):
                    EarningsReport.report_date == report_date).scalar()
 
     @staticmethod
+    def get_unique_by_symbol_and_date_range(session: model.Session, symbol: s.Symbol, start_date: date, end_date: date) \
+            -> Optional[EarningsReport]:
+        return session.query(EarningsReport).join(EarningsReport.symbols). \
+            filter(s.Symbol.id == symbol.id,
+                   EarningsReport.report_date >= start_date,
+                   EarningsReport.report_date <= end_date).scalar()
+
+    @staticmethod
     def get_max_date(provider: str) -> Optional[DateTime]:
         session = model.Session()
         return session.query(func.max(EarningsReport.created)). \
             filter(EarningsReport.creator == provider). \
             scalar()
+
+    @staticmethod
+    def get_unique_by_symbols_and_date(session: model.Session, symbols: dict, report_date: date) \
+            -> Optional[EarningsReport]:
+        er: Optional[EarningsReport] = None
+        for key in symbols:
+            er = EarningsReport.get_unique(session, symbol=symbols[key], report_date=report_date)
+            if er: break
+        return er
+
+    @staticmethod
+    def get_unique_by_symbols_and_date_range(session: model.Session, symbols: dict, start_date: date, end_date: date) \
+            -> Optional[EarningsReport]:
+        er: Optional[EarningsReport] = None
+        for key in symbols:
+            er = EarningsReport.get_unique_by_symbol_and_date_range(session, symbol=symbols[key],
+                                                                    start_date=start_date, end_date=end_date)
+            if er: break
+        return er

@@ -203,8 +203,8 @@ def test_parse_tweet_canadian():
     assert(dict.get('revenue_surprise_uom') is None)
 
 
-def test_parse_tweet_with_guidance_1():
-    tweet = 'AngioDynamics Non-GAAP EPS of -$0.06 misses by $0.04, revenue of $81.5M misses by $1.93M, reaffirms FY guidance'
+def test_parse_tweet_with_guidance():
+    tweet = 'AngioDynamics Non-GAAP EPS of -$0.06 misses by $0.04, revenue of $81.5M misses by $1.93M, raises FY guidance'
     account = Marketcurrents(Marketcurrents.account_name)
     dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
     assert (dict.get('eps_sign') == '-')
@@ -220,7 +220,7 @@ def test_parse_tweet_with_guidance_1():
     assert(dict.get('revenue_surprise_currency') == '$')
     assert(dict.get('revenue_surprise_amount') == '1.93')
     assert(dict.get('revenue_surprise_uom') == 'M')
-    assert(dict.get('guidance_1') == 'reaffirms')
+    assert(dict.get('positive_guidance')[0].strip() == 'raises FY guidance')
 
 
 def test_parse_tweet_with_space_after_currency():
@@ -252,14 +252,14 @@ def test_parse_tweet_with_bad_currency():
     assert (dict.get('revenue_surprise_currency') == '€')
     assert (dict.get('revenue_surprise_amount') == '20')
     assert (dict.get('revenue_surprise_uom') == 'M')
-    assert (dict.get('guidance_1') is None)
+    assert (dict.get('positive_guidance') is None)
 
 
 def test_parse_tweet_not_earnings():
     tweet = '$AZZ declares $0.17 dividend'
     account = Marketcurrents(Marketcurrents.account_name)
     dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
-    assert(dict is None)
+    assert(not dict)
 
 
 def test_parse_tweet_pesos():
@@ -331,7 +331,6 @@ def test_parse_tweet_livesquawk():
     assert(dict.get('revenue_estimate_currency') == '$')
     assert(dict.get('revenue_estimate_amount') == '12.83')
     assert(dict.get('revenue_estimate_uom') == 'B')
-    assert(dict.get('guidance_1').lower() == 'raises')
 
 
 def test_parse_tweet_livesquawk_without_uom():

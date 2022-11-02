@@ -44,6 +44,8 @@ class Twitter:
                 count += 1
             if commit:
                 session.commit()
+            else:
+                session.rollback()
 
         if paginate and next_token:
             Twitter.call_paginated_api(

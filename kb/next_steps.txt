@@ -156,9 +156,14 @@ Added logging of additions, updates, errors and warnings
 2022-Oct-28-31:
 - sentiment analysis design, tests construction, strategy determination
 
+2022-Nov-1:
+- completed sentiment tests
+- implemented sentiment calculation
+- converted database
+
 Next steps:
-- complete sentiment_tests
-- implement sentiment calculation
+- test for a real earnings tweet
+- write dictionaries to provider_info
 - test Marketcurrents and Livesquawk
 - build fin data (industry, EPS, beta, earnings)
 
