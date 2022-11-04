@@ -75,6 +75,12 @@ class Symbol(model.Base):
             scalar()
 
     @staticmethod
+    def get_name_by_id(session: model.Session, symbol_id: int) -> str | None:
+        return session.query(Symbol.name). \
+            filter(Symbol.id == symbol_id). \
+            scalar()
+
+    @staticmethod
     def get_symbols_by_ticker_and_exchange(session: model.Session, ticker: str, exchange: str) -> [Symbol]:
         return session.query(Symbol). \
             filter(Symbol.symbol == ticker,

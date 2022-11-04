@@ -162,7 +162,13 @@ Added logging of additions, updates, errors and warnings
 - basic Marektcurrents and Livesquawk tests
 - made use of Postgres and SQLAlchemy regular and JSON arrays
 
+2022-Nov-3:
+- major logic improvements to avoid wipe-outs and duplications
+- major test suite buildout
+- introduced fuzzywuzzy to deal with speculative multiple tickets such as ALK DAL SKYW
+
 Next steps:
-- complete testing and tweet analysis
+- improve parsing
+$GCI - Gannett rallies as record digital marketing revenue overshadows earnings miss
 - build fin data (industry, EPS, beta, earnings)
 

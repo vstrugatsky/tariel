@@ -12,6 +12,13 @@ def test_parse_false_positive():
     assert (account.parse_earnings_false_positive(tweet).groupdict())
     tweet = '$DDOG Can Datadog show good Q3 results?'
     assert (account.parse_earnings_false_positive(tweet).groupdict())
+    tweet = '$SPG - Simon Property likely to beat Q3 consensus amid winning streak for retail REITs'
+    assert (account.parse_earnings_false_positive(tweet).groupdict())
+    tweet = '$MAIN - Main Street Capital likely to go up after Q3 results on revenue beat, stronger capital position https://t.co/Cw7DgOo1Yv'
+    assert (not account.parse_earnings_false_positive(tweet))
+
+    tweet = '$MF - Missfresh regains compliance with Nasdaq minimum bid price requirement'
+    assert (not account.parse_negative_earnings(tweet))
 
 
 def test_parse_combos():
@@ -20,6 +27,33 @@ def test_parse_combos():
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_positive_guidance(tweet)[0] == 'higher year guidance')
     assert(account.parse_positive_earnings(tweet)[0] == 'Q3 beat')
+
+    tweet = '$CVS - CVS Health gains after guidance raise even as opioid charges trigger Q3 loss'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_positive_guidance(tweet)[0] == 'guidance raise')
+    assert(account.parse_negative_earnings(tweet)[0] == 'Q3 loss')
+
+    tweet = '$MYGN - Myriad Genetics falls 19% after lowering full-year guidance, Q3 misses'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_negative_guidance(tweet)[0] == 'lowering full-year guidance')
+    assert(account.parse_negative_earnings(tweet)[0] == 'Q3 miss')
+
+    tweet = '$LAZ - Lazard Q3 earnings beat as Financial Advisory strengthens, while AUM slump'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert(account.parse_positive_earnings(tweet)[1] == 'strength')
+    assert(account.parse_negative_earnings(tweet)[0] == 'AUM slump')
+    assert(not account.parse_positive_guidance(tweet))
+
+    tweet = '$GBX - Greenbrier stock soars on big earnings beat, bullish forecast'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert(account.parse_positive_guidance(tweet)[0] == 'bullish forecast')
+
+    tweet = '$BUD - Anheuser-Busch InBev shares gain sharply on Q3 profit beat, outlook boost https://t.co/gQm5oJEp1U'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_positive_earnings(tweet)[0] == 'profit beat')
+    assert(account.parse_positive_guidance(tweet)[0] == 'outlook boost')
 
     tweet = '$HUM - Humana trades higher on Q3 earnings beat, affirms FY22 outlook'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
@@ -57,11 +91,15 @@ def test_parse_combos():
     assert(len(LoadEarningsReportsFromTwitter.parse_earnings_sentiments(account, tweet)) == 2)
 
 
-def test_parse_guidance():
+def test_parse_positive_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
     tweet = '$DTM - DT Midstream reports Q3 earnings; raises FY22 and FY23 Adjusted EBITDA guidance'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_positive_guidance(tweet)[0] == 'raises FY22 and FY23 Adjusted EBITDA guidance')
+
+    tweet = '$TGLS - Tecnoglass beats top and bottom line, increases FY outlook'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_positive_guidance(tweet)[0] == 'increases FY outlook')
 
     tweet = '$CVEO - CVEO GAAP EPS of $0.32 misses by $0.02, revenue of $184.2M beats by $10.39M, raises FY guidance'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
@@ -86,26 +124,6 @@ def test_parse_guidance():
     tweet = '$HRI - Herc GAAP EPS of $3.36 misses by $0.28, revenue of $745.1M beats by $20.99M; raises FY adj. EBITDA guidance'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_positive_guidance(tweet)[0] == 'raises FY adj. EBITDA guidance')
-
-    tweet = '$MTUAF - MTU Aero Engines AG GAAP EPS of €1.74, revenue of €1.35B, FY22 guidance lowered'
-    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_negative_guidance(tweet)[0] == 'guidance lowered')
-
-    tweet = '$LHX - L3Harris plunges after Q3 miss, full-year guidance cut'
-    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_negative_guidance(tweet)[0] == 'guidance cut')
-
-    tweet = '$TNC - Tennant Non-GAAP EPS of $0.99 misses by $0.11, revenue of $262.9M misses by $24.27M, lowers FY earning guidance'
-    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_negative_guidance(tweet)[0] == 'lowers FY earning guidance')
-
-    tweet = '$STX - Seagate Technology Non-GAAP EPS of $0.48 misses by $0.23, revenue of $2.04B misses by $70M, issues Q2 guidance below the consensus'
-    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_negative_guidance(tweet)[0] == 'guidance below')
-
-    tweet = '$TXN - Texas Instruments GAAP EPS of $2.47 beats by $0.08, revenue of $5.24B beats by $100M, guides below Q4 consensus'
-    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_negative_guidance(tweet)[0] == 'guides below')
 
     tweet = '$INFY - Infosys GAAP EPS of $0.18 in-line, revenue of $4.55B beats by $110M, revises FY guidance'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
@@ -135,12 +153,55 @@ def test_parse_guidance():
     assert(not account.parse_negative_guidance(tweet))
 
 
+def test_parse_negative_guidance():
+    account = Marketcurrents(Marketcurrents.account_name)
+    tweet = '$STM - STMicroelectronics drops 7% on guiding Q4 revenue below consensus https://t.co/XAQZTeeNY5'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(not account.parse_negative_earnings(tweet))
+    assert(account.parse_negative_guidance(tweet)[0] == 'guiding Q4 revenue below')
+
+    tweet = '$MTUAF - MTU Aero Engines AG GAAP EPS of €1.74, revenue of €1.35B, FY22 guidance lowered'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_negative_guidance(tweet)[0] == 'guidance lowered')
+
+    tweet = '$LHX - L3Harris plunges after Q3 miss, full-year guidance cut'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_negative_guidance(tweet)[0] == 'guidance cut')
+
+    tweet = '$TNC - Tennant Non-GAAP EPS of $0.99 misses by $0.11, revenue of $262.9M misses by $24.27M, lowers FY earning guidance'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_negative_guidance(tweet)[0] == 'lowers FY earning guidance')
+
+    tweet = '$STX - Seagate Technology Non-GAAP EPS of $0.48 misses by $0.23, revenue of $2.04B misses by $70M, issues Q2 guidance below the consensus'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_negative_guidance(tweet)[0] == 'guidance below')
+
+    tweet = '$TXN - Texas Instruments GAAP EPS of $2.47 beats by $0.08, revenue of $5.24B beats by $100M, guides below Q4 consensus'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_negative_guidance(tweet)[0] == 'guides below')
+
+
 def test_parse_positive_sentiment():
     account = Marketcurrents(Marketcurrents.account_name)
     tweet = '$NOV - Oilwell equipment and tech provider NOV posts mixed Q3'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(not account.parse_positive_earnings(tweet))
     assert(not account.parse_negative_earnings(tweet))
+
+    tweet = '$APO - Apollo Global Q3 earnings gain as inflows hold up, AUM rises'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_positive_earnings(tweet)[0] == 'earnings gain')
+    assert(account.parse_positive_earnings(tweet)[1] == 'AUM rise')
+
+    tweet = '$ARCB - ArcBest reports Q3 earnings beat; on track to deliver record annual revenues in 2022 https://t.co/8OXQGp9zil'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert(account.parse_positive_earnings(tweet)[1] == 'record annual revenue')
+
+    tweet = '$ANET - Arista Networks posts record revenue, Q3 beat https://t.co/eTWui9mTEB'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_positive_earnings(tweet)[0] == 'record revenue')
+    assert(account.parse_positive_earnings(tweet)[1] == 'Q3 beat')
 
     tweet = '$IIPR - Innovative Industrial Properties Q3 revenue gains helped by acquisitions'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
@@ -238,7 +299,7 @@ def test_parse_positive_sentiment():
     tweet = '$ABBV - AbbVie Non-GAAP EPS of $3.66 beats by $0.10, revenue of $14.81B misses by $130M, raises dividend by 5%'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert (account.parse_positive_earnings(tweet)[0] == 'beat')
-    assert (account.parse_negative_earnings(tweet)[0] == 'miss')
+    assert (not account.parse_negative_earnings(tweet))
     assert (not account.parse_positive_guidance(tweet))
     assert (not account.parse_negative_guidance(tweet))
 

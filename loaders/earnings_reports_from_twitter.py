@@ -4,6 +4,7 @@ from typing import Optional, Type
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm.attributes import flag_modified
+from fuzzywuzzy import fuzz
 
 import model
 from loaders.loader_base import LoaderBase
@@ -20,12 +21,17 @@ from providers.twitter import Twitter
 
 
 class LoadEarningsReportsFromTwitter(LoaderBase):
+    POSITIVE_EARNINGS = 'positive_earnings'
+    NEGATIVE_EARNINGS = 'negative_earnings'
+    POSITIVE_GUIDANCE = 'positive_guidance'
+    NEGATIVE_GUIDANCE = 'negative_guidance'
+
     def __init__(self, account):
         self.account: TwitterAccount = account
         super(LoadEarningsReportsFromTwitter, self).__init__()
 
-    @staticmethod
-    def parse_earnings_numbers(account: TwitterAccount, tweet_text: str) -> dict:
+    @classmethod
+    def parse_earnings_numbers(cls, account: TwitterAccount, tweet_text: str) -> dict:
         parsed_earnings = {}
 
         eps_match = account.parse_eps(tweet_text)
@@ -36,130 +42,137 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
         if revenue_match:
             parsed_earnings |= revenue_match.groupdict()
 
-        if parsed_earnings:  # Do not parse guidance if earning numbers have not been parsed
+        if parsed_earnings:  # Do not parse guidance if earnings numbers have not been parsed
             positive_guidance = account.parse_positive_guidance(tweet_text)
             if positive_guidance:
-                parsed_earnings |= {'positive_guidance': positive_guidance}
+                parsed_earnings |= {cls.POSITIVE_GUIDANCE: positive_guidance}
 
             negative_guidance = account.parse_negative_guidance(tweet_text)
             if negative_guidance:
-                parsed_earnings |= {'negative_guidance': negative_guidance}
+                parsed_earnings |= {cls.NEGATIVE_GUIDANCE: negative_guidance}
 
         return parsed_earnings
 
-    @staticmethod
-    def parse_earnings_sentiments(account: TwitterAccount, tweet_text: str) -> dict:
+    @classmethod
+    def parse_earnings_sentiments(cls, account: TwitterAccount, tweet_text: str) -> dict:
         parsed_sentiments = {}
 
         positive_earnings = account.parse_positive_earnings(tweet_text)
         if positive_earnings:
-            parsed_sentiments |= {'positive_earnings': positive_earnings}
+            parsed_sentiments |= {cls.POSITIVE_EARNINGS: positive_earnings}
 
         negative_earnings = account.parse_negative_earnings(tweet_text)
         if negative_earnings:
-            parsed_sentiments |= {'negative_earnings': negative_earnings}
+            parsed_sentiments |= {cls.NEGATIVE_EARNINGS: negative_earnings}
 
         positive_guidance = account.parse_positive_guidance(tweet_text)
         if positive_guidance:
-            parsed_sentiments |= {'positive_guidance': positive_guidance}
+            parsed_sentiments |= {cls.POSITIVE_GUIDANCE: positive_guidance}
 
         negative_guidance = account.parse_negative_guidance(tweet_text)
         if negative_guidance:
-            parsed_sentiments |= {'negative_guidance': negative_guidance}
+            parsed_sentiments |= {cls.NEGATIVE_GUIDANCE: negative_guidance}
 
-        print(parsed_sentiments)
         return parsed_sentiments
 
-    @staticmethod
-    def determine_currency(eps_currency, revenue_currency) -> str | None:
+    @classmethod
+    def determine_currency(cls, eps_currency, revenue_currency) -> str | None:
         currency = eps_currency if eps_currency else revenue_currency
         return Currency.currencies.get(currency, None)
 
-    @staticmethod
-    def determine_eps(eps_sign: str | None, eps: str | None) -> float | None:
+    @classmethod
+    def determine_eps(cls, eps_sign: str | None, eps: str | None) -> float | None:
         if eps_sign == '-':
             return 0.0 - float(eps)
         else:
             return float(eps) if eps else None
 
-    @staticmethod
-    def evaluate_data_quality(er: EarningsReport) -> Optional[str]:
+    @classmethod
+    def evaluate_data_quality(cls, er: EarningsReport) -> Optional[str]:
         if er.revenue_surprise and er.revenue and (abs(er.revenue_surprise) / er.revenue) >= 0.75:
             return 'Revenue surprise ' + str(er.revenue_surprise) + ' too large for revenue=' + str(er.revenue)
         else:
             return None
 
-    @staticmethod
-    def update_er(er: EarningsReport, tweet_response: dict, match_dict: dict, account: TwitterAccount):
-        LoadEarningsReportsFromTwitter.update_earnings_fields(er, match_dict, account)
-        LoadEarningsReportsFromTwitter.update_sentiment_fields(er)
-        LoadEarningsReportsFromTwitter.update_reference_fields(er, tweet_response, match_dict, account)
-        er.data_quality_note = LoadEarningsReportsFromTwitter.evaluate_data_quality(er)
+    @classmethod
+    def update_er(cls, er: EarningsReport, tweet_response: dict, match_dict: dict, account: TwitterAccount):
+        cls.update_earnings_fields(er, match_dict, account)
+        cls.update_sentiment_fields(er, match_dict)
+        cls.update_reference_fields(er, tweet_response, match_dict, account)
+        er.data_quality_note = cls.evaluate_data_quality(er)
 
-    @staticmethod
-    def update_earnings_fields(er: EarningsReport, match_dict: dict, account: TwitterAccount):
-        er.currency = LoadEarningsReportsFromTwitter.determine_currency\
-            (match_dict.get('eps_currency'), match_dict.get('revenue_currency'))
+    @classmethod
+    def update_earnings_fields(cls, er: EarningsReport, match_dict: dict, account: TwitterAccount):
+        if not er.currency:
+            er.currency = cls.determine_currency(match_dict.get('eps_currency'), match_dict.get('revenue_currency'))
 
-        er.eps = LoadEarningsReportsFromTwitter.determine_eps(match_dict.get('eps_sign'), match_dict.get('eps'))
-        er.revenue = account.determine_revenue(match_dict)
+        if not er.eps:
+            er.eps = cls.determine_eps(match_dict.get('eps_sign'), match_dict.get('eps'))
+        if not er.revenue:
+            er.revenue = account.determine_revenue(match_dict)
 
-        er.eps_surprise = account.determine_surprise(match_dict, 'eps')
-        er.revenue_surprise = account.determine_surprise(match_dict, 'revenue')
+        if not er.eps_surprise:
+            er.eps_surprise = account.determine_surprise(match_dict, 'eps')
+        if not er.revenue_surprise:
+            er.revenue_surprise = account.determine_surprise(match_dict, 'revenue')
 
-        er.positive_earnings = match_dict.get('positive_earnings')
-        er.negative_earnings = match_dict.get('negative_earnings')
-        er.positive_guidance = match_dict.get('positive_guidance')
-        er.negative_guidance = match_dict.get('negative_guidance')
+        er.positive_earnings = cls.update_list_losslessly(er.positive_earnings, match_dict.get(cls.POSITIVE_EARNINGS))
+        er.negative_earnings = cls.update_list_losslessly(er.negative_earnings, match_dict.get(cls.NEGATIVE_EARNINGS))
+        er.positive_guidance = cls.update_list_losslessly(er.positive_guidance, match_dict.get(cls.POSITIVE_GUIDANCE))
+        er.negative_guidance = cls.update_list_losslessly(er.negative_guidance, match_dict.get(cls.NEGATIVE_GUIDANCE))
 
-    @staticmethod
-    def update_sentiment_fields(er: EarningsReport):
-        er.earnings_sentiment = 0  # Complete recalc
+    @classmethod
+    def update_list_losslessly(cls, existing_list: [], new_list: []) -> []:
+        if not existing_list:
+            return new_list
+        elif new_list:
+            return list(set(existing_list + new_list))
+        else:
+            return existing_list
+
+    @classmethod
+    def update_sentiment_fields(cls, er: EarningsReport, match_dict: dict):
+        er.earnings_sentiment = 0  # Recalc from the beginning
         er.guidance_sentiment = 0
-        er.earnings_sentiment = LoadEarningsReportsFromTwitter.update_earnings_sentiment\
-            (er.eps_surprise, er.earnings_sentiment)
-
-        er.earnings_sentiment = LoadEarningsReportsFromTwitter.update_earnings_sentiment\
-            (er.revenue_surprise, er.earnings_sentiment)
+        er.earnings_sentiment = cls.update_earnings_sentiment(er.eps_surprise, er.earnings_sentiment)
+        er.earnings_sentiment = cls.update_earnings_sentiment(er.revenue_surprise, er.earnings_sentiment)
 
         if er.positive_earnings:
-            er.earnings_sentiment = LoadEarningsReportsFromTwitter.update_positive_sentiment\
+            er.earnings_sentiment = cls.update_positive_sentiment\
                 (er.earnings_sentiment, len(er.positive_earnings), EarningsReport.max_earnings_sentiment)
 
         if er.negative_earnings:
-            er.earnings_sentiment = LoadEarningsReportsFromTwitter.update_negative_sentiment\
+            er.earnings_sentiment = cls.update_negative_sentiment\
                 (er.earnings_sentiment, len(er.negative_earnings), EarningsReport.max_earnings_sentiment)
 
         if er.positive_guidance:
-            er.guidance_sentiment = LoadEarningsReportsFromTwitter.update_positive_sentiment\
+            er.guidance_sentiment = cls.update_positive_sentiment\
                 (er.guidance_sentiment, len(er.positive_guidance), EarningsReport.max_guidance_sentiment)
 
         if er.negative_guidance:
-            er.guidance_sentiment = LoadEarningsReportsFromTwitter.update_negative_sentiment\
+            er.guidance_sentiment = cls.update_negative_sentiment\
                 (er.guidance_sentiment, len(er.negative_guidance), EarningsReport.max_guidance_sentiment)
 
-    @staticmethod
-    def update_earnings_sentiment(surprise_amount: float | None, current_sentiment: int) -> int | None:
+    @classmethod
+    def update_earnings_sentiment(cls, surprise_amount: float | None, current_sentiment: int) -> int | None:
         if surprise_amount:
             if surprise_amount > 0:
-                return LoadEarningsReportsFromTwitter.update_positive_sentiment\
-                    (current_sentiment, 1, EarningsReport.max_earnings_sentiment)
+                return cls.update_positive_sentiment(current_sentiment, 1, EarningsReport.max_earnings_sentiment)
             elif surprise_amount < 0:
-                return LoadEarningsReportsFromTwitter.update_negative_sentiment\
-                    (current_sentiment, 1, EarningsReport.max_earnings_sentiment)
+                return cls.update_negative_sentiment(current_sentiment, 1, EarningsReport.max_earnings_sentiment)
         else:
             return current_sentiment
 
-    @staticmethod
-    def update_positive_sentiment(current_sentiment: [int | None], update: int, max_sentiment: int):
+    @classmethod
+    def update_positive_sentiment(cls, current_sentiment: [int | None], update: int, max_sentiment: int):
         return min((current_sentiment or 0) + update, max_sentiment)
 
-    @staticmethod
-    def update_negative_sentiment(current_sentiment: [int | None], update: int, max_sentiment: int):
+    @classmethod
+    def update_negative_sentiment(cls, current_sentiment: [int | None], update: int, max_sentiment: int):
         return max((current_sentiment or 0) - update, 0 - max_sentiment)
 
-    @staticmethod
-    def update_reference_fields(er: EarningsReport, tweet_response: dict, match_dict: dict, account: TwitterAccount):
+    @classmethod
+    def update_reference_fields(cls, er: EarningsReport, tweet_response: dict, match_dict: dict, account: TwitterAccount):
         tweet_info = {
             'tweet_id': tweet_response['id'],
             'tweet_date': tweet_response['created_at'],
@@ -171,14 +184,14 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
             'tweet_url_title': Utils.find_first_match("entities.urls[0].title", tweet_response),
             'tweet_url_description': Utils.find_first_match("entities.urls[0].description", tweet_response),
         }
-        if 'positive_earnings' in match_dict:
-            tweet_info['positive_earnings'] = match_dict['positive_earnings']
-        if 'negative_earnings' in match_dict:
-            tweet_info['negative_earnings'] = match_dict['negative_earnings']
-        if 'positive_guidance' in match_dict:
-            tweet_info['positive_guidance'] = match_dict['positive_guidance']
-        if 'negative_guidance' in match_dict:
-            tweet_info['negative_guidance'] = match_dict['negative_guidance']
+        if cls.POSITIVE_EARNINGS in match_dict:
+            tweet_info[cls.POSITIVE_EARNINGS] = match_dict[cls.POSITIVE_EARNINGS]
+        if cls.NEGATIVE_EARNINGS in match_dict:
+            tweet_info[cls.NEGATIVE_EARNINGS] = match_dict[cls.NEGATIVE_EARNINGS]
+        if cls.POSITIVE_GUIDANCE in match_dict:
+            tweet_info[cls.POSITIVE_GUIDANCE] = match_dict[cls.POSITIVE_GUIDANCE]
+        if cls.NEGATIVE_GUIDANCE in match_dict:
+            tweet_info[cls.NEGATIVE_GUIDANCE] = match_dict[cls.NEGATIVE_GUIDANCE]
 
         if er.provider_info:
             index = next((j for j, item in enumerate(er.provider_info) if item["tweet_id"] == tweet_response['id']), None)
@@ -186,13 +199,12 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
                 er.provider_info.append(tweet_info)
             else:
                 er.provider_info[index] = tweet_info
-            print('er.provider_info=' + str(er.provider_info))
             flag_modified(er, "provider_info")
         else:
             er.provider_info = [tweet_info]
 
-    @staticmethod
-    def associate_tweet_with_symbols(session: model.Session, cashtags: [dict], tweet_text: str = 'test') -> dict:
+    @classmethod
+    def associate_tweet_with_symbols(cls, session: model.Session, cashtags: [dict], tweet_text: str = 'test') -> dict:
         symbols: dict = {}
         if not cashtags:
             return symbols
@@ -202,16 +214,37 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
                 candidate_symbol: Symbol = Symbol.get_unique_by_ticker_and_country(session, tag, 'US')
                 if candidate_symbol:
                     symbols[candidate_symbol.symbol] = candidate_symbol
-        return symbols
 
-    @staticmethod
-    def warn_if_needed(tweet_text: str, loader: LoadEarningsReportsFromTwitter, session: model.Session):
+        if len(symbols) > 1:
+            return cls.eliminate_spurious_symbols(session, tweet_text, symbols)
+        else:
+            return symbols
+
+    @classmethod
+    def eliminate_spurious_symbols(cls, session: model.Session, tweet_text: str, symbols: dict) -> dict:
+        retained_symbols = {}
+        fuzz_ratios = {}
+        max_ratio = 0
+        for symbol in symbols:
+            symbol_name = Symbol.get_name_by_id(session, symbols[symbol].id)
+            fuzz_ratios[symbol] = fuzz.WRatio(tweet_text, symbol_name)
+            if fuzz_ratios[symbol] > max_ratio:
+                max_ratio = fuzz_ratios[symbol]
+
+        for symbol in fuzz_ratios:
+            if fuzz_ratios[symbol] >= max_ratio * .75:
+                retained_symbols[symbol] = symbols[symbol]
+
+        return retained_symbols
+
+    @classmethod
+    def warn_if_needed(cls, tweet_text: str, loader: LoadEarningsReportsFromTwitter, session: model.Session):
         if loader.account.should_raise_parse_warning(tweet_text):
             msg = 'Failed to parse likely earnings numbers or sentiments from ' + tweet_text
             LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
 
     @staticmethod
-    def load(tweet_response: dict, session: model.Session, method_params: dict):
+    def load(tweet_response: dict, session: model.Session, method_params: dict) -> EarningsReport | None:
         loader: LoadEarningsReportsFromTwitter = method_params.get('loader')
         account: TwitterAccount = loader.account
         provider = 'Twitter_' + loader.account.account_name
@@ -224,21 +257,21 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
         if account.parse_earnings_false_positive(tweet_text):
             print(f'INFO false positive detected')
             return
-        parsed_earnings = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet_text)
+        parsed_earnings = loader.parse_earnings_numbers(account, tweet_text)
         if not parsed_earnings:
             earnings_indicator = account.parse_earnings_indicator(tweet_text)
             if not earnings_indicator:
                 print(f'INFO cannot parse earnings numbers or indicator from {tweet_text}')
                 return
             else:
-                parsed_earnings = LoadEarningsReportsFromTwitter.parse_earnings_sentiments(account, tweet_text)
+                parsed_earnings = loader.parse_earnings_sentiments(account, tweet_text)
                 if not parsed_earnings:
                     indicator_text = earnings_indicator.groupdict()['earnings_indicator'].strip()
                     print(f'INFO cannot parse earnings sentiments from {tweet_text} despite indicator {indicator_text}')
-                    LoadEarningsReportsFromTwitter.warn_if_needed(tweet_text, loader, session)
+                    loader.warn_if_needed(tweet_text, loader, session)
                     return
 
-        symbols: dict = LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags, tweet_text)
+        symbols: dict = loader.associate_tweet_with_symbols(session, cashtags, tweet_text)
         if not symbols:
             msg = 'Parsed an earnings tweet, but cannot associate symbol with cashtags ' + str(cashtags)
             LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
@@ -254,17 +287,18 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
             for key in symbols:
                 er.symbols.append(symbols[key])
 
-            LoadEarningsReportsFromTwitter.update_er(er, tweet_response, parsed_earnings, loader.account)
+            loader.update_er(er, tweet_response, parsed_earnings, loader.account)
             loader.records_added += 1
         else:
-            if LoadEarningsReportsFromTwitter.should_update(er, provider):
+            if loader.should_update(er, provider):
                 er.updated = datetime.now()
                 er.updater = Provider[provider]
-                LoadEarningsReportsFromTwitter.update_er(er, tweet_response, parsed_earnings, loader.account)
+                loader.update_er(er, tweet_response, parsed_earnings, loader.account)
                 loader.records_updated += 1
+        return er  # for testing
 
-    @staticmethod
-    def should_update(er: EarningsReport, provider: str) -> bool:
+    @classmethod
+    def should_update(cls, er: EarningsReport, provider: str) -> bool:
         # Allow update if updater is the same as creator or if updater's priority is higher than creator's
         new_updater = Provider[provider]
         new_updater_priority = new_updater.value
@@ -279,7 +313,7 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
 
 
 if __name__ == '__main__':
-    account_name = sys.argv[1] if len(sys.argv) > 1 else 'Livesquawk'
+    account_name = sys.argv[1] if len(sys.argv) > 1 else 'Marketcurrents'
     account_class: Type[TwitterAccount] = getattr(sys.modules['loaders.twitter_' + account_name.lower()], account_name)
     loader = LoadEarningsReportsFromTwitter(account_class(account_name))
     provider = 'Twitter_' + account_name

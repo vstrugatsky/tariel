@@ -4,6 +4,7 @@ from loaders.twitter_livesquawk import Livesquawk
 from loaders.twitter_marketcurrents import Marketcurrents
 from model.earnings_reports import EarningsReport
 from model.jobs import Provider
+from model.symbols import Symbol
 from utils.utils import Utils
 
 
@@ -107,42 +108,93 @@ def test_apply_uom():
 
 
 def test_associate_tweet_with_symbol():
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
     with model.Session() as session:
+        tweet = 'something irrelevant'
         cashtags = [{'start': 0, 'end': 4, 'tag': 'PPG'}]
-        assert('PPG' in LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags).keys())
+        assert('PPG' in loader.associate_tweet_with_symbols(session, cashtags, tweet).keys())
 
         cashtags = [{'start': 0, 'end': 4, 'tag': 'SPY'},
-                    {'start': 5, 'end': 9, 'tag': 'WMT'},
-                    {'start': 10, 'end': 15, 'tag': 'AAPL'}]
-        assert('SPY' in LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags).keys())
-        assert('WMT' in LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags).keys())
-        assert('AAPL' in LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags).keys())
-        assert(len(LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags).keys()) == 3)
+                    {'start': 5, 'end': 9, 'tag': 'WMTZZ'},
+                    {'start': 10, 'end': 15, 'tag': 'AAPLZZ'}]
+        assert('SPY' in loader.associate_tweet_with_symbols(session, cashtags, tweet).keys())
+        assert(len(loader.associate_tweet_with_symbols(session, cashtags, tweet).keys()) == 1)
 
         cashtags = [{'start': 0, 'end': 4, 'tag': 'SPY'},
                     {'start': 5, 'end': 9, 'tag': 'SPY'}]
-        assert('SPY' in LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags).keys())
-        assert(len(LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags).keys()) == 1)
+        assert('SPY' in loader.associate_tweet_with_symbols(session, cashtags, tweet).keys())
+        assert(len(loader.associate_tweet_with_symbols(session, cashtags, tweet).keys()) == 1)
 
         cashtags = [{'start': 0, 'end': 4, 'tag': 'SPY'},
                     {'start': 5, 'end': 9, 'tag': 'SPYZZZ'}]
-        assert('SPY' in LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags).keys())
-        assert(len(LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags).keys()) == 1)
+        assert('SPY' in loader.associate_tweet_with_symbols(session, cashtags, tweet).keys())
+        assert(len(loader.associate_tweet_with_symbols(session, cashtags, tweet).keys()) == 1)
 
         cashtags = [{'start': 0, 'end': 4, 'tag': 'GFELF'},
-                    {'start': 5, 'end': 9, 'tag': 'GLD'}]
-        assert('GFELF' in LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags).keys())
-        assert('GLD' in LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags).keys())
-        assert(len(LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags).keys()) == 2)
+                    {'start': 5, 'end': 9, 'tag': 'ZZ'}]
+        assert('GFELF' in loader.associate_tweet_with_symbols(session, cashtags, tweet).keys())
+        assert(len(LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags, tweet).keys()) == 1)
 
         cashtags = [{'start': 0, 'end': 4, 'tag': 'SPYZZZ'}]
-        assert(not LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags))
+        assert(not loader.associate_tweet_with_symbols(session, cashtags, tweet))
 
         cashtags = None
-        assert(not LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags))
+        assert(not loader.associate_tweet_with_symbols(session, cashtags, tweet))
 
 
-def test_associate_tweet_with_symbols_duplicate():
+def test_eliminate_spurious_symbols_ALK_SKYW_DAL():
+    with model.Session() as session:
+        symbols = {}
+        tweet = '$ALK $SKYW $DAL - SkyWest stock flies higher as quarterly profits surpass expectations'
+        symbols['ALK'] = Symbol.get_unique_by_ticker_and_country(session, 'ALK', 'US')
+        symbols['SKYW'] = Symbol.get_unique_by_ticker_and_country(session, 'SKYW', 'US')
+        symbols['DAL'] = Symbol.get_unique_by_ticker_and_country(session, 'DAL', 'US')
+
+        retained_symbols = LoadEarningsReportsFromTwitter.eliminate_spurious_symbols(session, tweet, symbols)
+        assert('SKYW' in retained_symbols)
+        assert('ALK' not in retained_symbols)
+        assert('DAL' not in retained_symbols)
+
+
+def test_eliminate_spurious_symbols_NVZMF_NVZMY():
+    with model.Session() as session:
+        symbols = {}
+        tweet = '$NVZMF $NVZMY - Novozymes A/S reports Q3 results; raises its full-year organic sales growth outlook'
+        symbols['NVZMF'] = Symbol.get_unique_by_ticker_and_country(session, 'NVZMF', 'US')
+        symbols['NVZMY'] = Symbol.get_unique_by_ticker_and_country(session, 'NVZMY', 'US')
+
+        retained_symbols = LoadEarningsReportsFromTwitter.eliminate_spurious_symbols(session, tweet, symbols)
+        assert('NVZMF' in retained_symbols)
+        assert('NVZMY' in retained_symbols)
+
+
+def test_eliminate_spurious_symbols_ASM_TMXFF_INCAF():
+    with model.Session() as session:
+        symbols = {}
+        tweet = '$ASM $TMXXF $INCAF - Inca One Gold Q3 sales fall 1%'
+        symbols['ASM'] = Symbol.get_unique_by_ticker_and_country(session, 'ASM', 'US')
+        symbols['TMXXF'] = Symbol.get_unique_by_ticker_and_country(session, 'TMXXF', 'US')
+        symbols['INCAF'] = Symbol.get_unique_by_ticker_and_country(session, 'INCAF', 'US')
+
+        retained_symbols = LoadEarningsReportsFromTwitter.eliminate_spurious_symbols(session, tweet, symbols)
+        assert('INCAF' in retained_symbols)
+        assert('ASM' not in retained_symbols)
+        assert('TMXXF' not in retained_symbols)
+
+
+def test_eliminate_spurious_symbols_VEON_VNLTF():
+    with model.Session() as session:
+        symbols = {}
+        tweet = '$VEON $VNLTF - VEON reports strong Q3 revenue performance gaining market share as countries execute digital operator strategy'
+        symbols['VEON'] = Symbol.get_unique_by_ticker_and_country(session, 'VEON', 'US')
+        symbols['VNLTF'] = Symbol.get_unique_by_ticker_and_country(session, 'VNLTF', 'US')
+
+        retained_symbols = LoadEarningsReportsFromTwitter.eliminate_spurious_symbols(session, tweet, symbols)
+        assert('VEON' in retained_symbols)
+        assert('VNLTF' in retained_symbols)
+
+
+def test_associate_tweet_with_symbols_canadian():
     tweet = '$CPG $CPG:CA - Crescent Point Energy GAAP EPS of C$0.82, revenue of C$1.1B'
     cashtags = [{'start': 0, 'end': 4, 'tag': 'CPG'}, {'start': 5, 'end': 9, 'tag': 'CPG'}]
     with model.Session() as session:
