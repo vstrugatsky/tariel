@@ -50,6 +50,9 @@ class Livesquawk(TwitterAccount):
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
 
+    def parse_symbol_from_url_desc(self, tweet_text: str):
+        pass
+
     def should_raise_parse_warning(self, tweet_text: str) -> bool:
         if 'Earnings:' in tweet_text:
             return True

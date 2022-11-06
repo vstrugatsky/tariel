@@ -5,8 +5,8 @@ from loaders.twitter_marketcurrents import Marketcurrents
 
 def test_parse_tweet_nii():
     tweet = '$SAR - Saratoga Investment Non-GAAP NII of $0.58 beats by $0.07, total Investment Income of $21.85M beats by $1.95M'
-    account = Marketcurrents(Marketcurrents.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert(dict.get('eps_sign') is None)
     assert(dict.get('eps_currency') == '$')
     assert(dict.get('eps') == '0.58')
@@ -24,8 +24,8 @@ def test_parse_tweet_nii():
 
 def test_parse_tweet_basic():
     tweet = '$BABB GAAP EPS of $0.02, revenue of $0.88M'
-    account = Marketcurrents(Marketcurrents.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert(dict.get('eps_sign') is None)
     assert(dict.get('eps_currency') == '$')
     assert(dict.get('eps') == '0.02')
@@ -43,8 +43,8 @@ def test_parse_tweet_basic():
 
 def test_parse_tweet_with_surprises():
     tweet = '$TLRY $TLRY:CA - Tilray Non - GAAP EPS of -$0.08 misses by $0.01, revenue of $153M misses by $3.6M'
-    account = Marketcurrents(Marketcurrents.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert(dict.get('eps_sign') == '-')
     assert(dict.get('eps_currency') == '$')
     assert(dict.get('eps') == '0.08')
@@ -62,8 +62,8 @@ def test_parse_tweet_with_surprises():
 
 def test_parse_tweet_canadian():
     tweet = '$ATZAF $ATZ:CA - Aritzia&amp;nbsp; GAAP EPS of C$0.44, revenue of C$525.5M'
-    account = Marketcurrents(Marketcurrents.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert(dict.get('eps_sign') is None)
     assert(dict.get('eps_currency') == 'C$')
     assert(dict.get('eps') == '0.44')
@@ -81,8 +81,8 @@ def test_parse_tweet_canadian():
 
 def test_parse_tweet_with_guidance():
     tweet = 'AngioDynamics Non-GAAP EPS of -$0.06 misses by $0.04, revenue of $81.5M misses by $1.93M, raises FY guidance'
-    account = Marketcurrents(Marketcurrents.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert (dict.get('eps_sign') == '-')
     assert(dict.get('eps_currency') == '$')
     assert(dict.get('eps') == '0.06')
@@ -101,8 +101,8 @@ def test_parse_tweet_with_guidance():
 
 def test_parse_tweet_with_space_after_currency():
     tweet = '$BLAH - Blah GAAP EPS of NOK 0.99, revenue of NOK 3.04B beats by NOK 20M'
-    account = Marketcurrents(Marketcurrents.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert (dict.get('eps_sign') is None)
     assert (dict.get('eps_currency') == 'NOK')
     assert (dict.get('eps') == '0.99')
@@ -113,8 +113,8 @@ def test_parse_tweet_with_space_after_currency():
 
 def test_parse_tweet_with_bad_currency():
     tweet = '$SPOT - Spotify GAAP EPS of -€0.99 misses by v0.15, revenue of €3.04B beats by €20M'
-    account = Marketcurrents(Marketcurrents.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert (dict.get('eps_sign') == '-')
     assert (dict.get('eps_currency') == '€')
     assert (dict.get('eps') == '0.99')
@@ -133,15 +133,15 @@ def test_parse_tweet_with_bad_currency():
 
 def test_parse_tweet_not_earnings():
     tweet = '$AZZ declares $0.17 dividend'
-    account = Marketcurrents(Marketcurrents.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert(not dict)
 
 
 def test_parse_tweet_pesos():
     tweet = '$BSMX - Banco Santander México GAAP EPS of Ps.1.21, revenue of Ps.23.64B'
-    account = Marketcurrents(Marketcurrents.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert (dict.get('eps_sign') is None)
     assert (dict.get('eps_currency') == 'Ps.')
     assert (dict.get('eps') == '1.21')
@@ -152,8 +152,8 @@ def test_parse_tweet_pesos():
 
 def test_parse_tweet_remnibi():
     tweet = '$RCON - Recon Technology GAAP EPS of RMB3.20, revenue of RMB83.8M'
-    account = Marketcurrents(Marketcurrents.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert (dict.get('eps_sign') is None)
     assert (dict.get('eps_currency') == 'RMB')
     assert (dict.get('eps') == '3.20')
@@ -164,8 +164,8 @@ def test_parse_tweet_remnibi():
 
 def test_parse_tweet_singaporean():
     tweet = '$MAPIF - Mapletree Industrial Trust Net income of S$130.32, revenue of S$175.51M beats by $61.37M'
-    account = Marketcurrents(Marketcurrents.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert (dict.get('eps_sign') is None)
     assert (dict.get('eps_currency') is None)
     assert (dict.get('eps') is None)
@@ -176,8 +176,8 @@ def test_parse_tweet_singaporean():
 
 def test_parse_tweet_weird_euros():
     tweet = '$TRATF - Traton SE GAAP EPS of Є1.32, revenue of Є28.45B'
-    account = Marketcurrents(Marketcurrents.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert (dict.get('eps_sign') is None)
     assert (dict.get('eps_currency') == 'Є')
     assert (dict.get('eps') == '1.32')
@@ -194,8 +194,8 @@ def test_parse_tweet_livesquawk():
       - Sees Q4 Adj EPS $1 To $1.25 (est $0.80) \
       - Raises Q4 EPS to $1.00
       '''
-    account = Livesquawk(Livesquawk.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert(dict.get('eps_sign') is None)
     assert(dict.get('eps_currency') == '$')
     assert(dict.get('eps') == '1.51')
@@ -216,8 +216,8 @@ def test_parse_tweet_livesquawk_without_uom():
 - Revenue $46.56 (exp $45.54) 
 - Sees FY EPS $ 20.85 To $21.05 (prev $20.45 To $20.95
 '''
-    account = Livesquawk(Livesquawk.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert(dict.get('eps_sign') is None)
     assert(dict.get('eps_currency') == '$')
     assert(dict.get('eps') == '5.55')
@@ -236,8 +236,8 @@ def test_parse_tweet_livesquawk_revenue_first():
     $SCHW Charles Schwab Q3 22 Earnings:  
     - Revenue: $5.5B (exp $5.41B)  
     - Adj EPS: $1.10 (exp $1.05)'''
-    account = Livesquawk(Livesquawk.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert (dict.get('eps_sign') is None)
     assert (dict.get('eps_currency') == '$')
     assert (dict.get('eps') == '1.10')
@@ -257,8 +257,8 @@ $UAL United Airlines Q3 22 Earnings:
 - Adj EPS: $2.81 (Estimate: $2.29) 
 - Passenger Revenue: $11.65B (Estimate: $11.39B) 
 - Sees Q4 Adj. Op Margin To Exceed 2019'''
-    account = Livesquawk(Livesquawk.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert (dict.get('eps_sign') is None)
     assert (dict.get('eps_currency') == '$')
     assert (dict.get('eps') == '2.81')
@@ -279,8 +279,8 @@ def test_parse_tweet_livesquawk_worded_rev():
 - Aum $950.9B (est $966.82B) 
 - Inflows $44.8B (est $60.49B) 
 - Distributable Income/SHR $1.06 (est 99c)'''
-    account = Livesquawk(Livesquawk.account_name)
-    dict = LoadEarningsReportsFromTwitter.parse_earnings_numbers(account, tweet)
+    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
     assert (dict.get('eps_sign') is None)
     assert (dict.get('eps_currency') is None)
     assert (dict.get('eps') is None)

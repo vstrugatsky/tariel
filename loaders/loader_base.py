@@ -14,6 +14,7 @@ class LoaderBase(ABC):
         self.errors = 0
         self.warnings = 0
         self.job_id = 0
+        self.messages: [dict] = []
 
     @staticmethod
     def start_job(provider: Provider, job_type: JobType, params: str) -> BigInteger:
@@ -30,6 +31,10 @@ class LoaderBase(ABC):
     def finish_job(loader: LoaderBase):
         with model.Session() as session:
             job: Job = session.query(Job).filter(Job.id == loader.job_id).scalar()
+            for m in loader.messages:
+                job_log: JobLog = JobLog(id_job=loader.job_id, severity=m['severity'], msg=m['msg'])
+                session.add(job_log)
+
             job.completed = datetime.now()
             job.job_info = {'added': loader.records_added,
                             'updated': loader.records_updated,
@@ -44,10 +49,7 @@ class LoaderBase(ABC):
             loader.warnings += 1
         elif severity == MsgSeverity.ERROR:
             loader.errors += 1
-        with session:
-            job_log: JobLog = JobLog(id_job=loader.job_id, severity=severity, msg=msg)
-            session.add(job_log)
-            session.commit()
+        loader.messages.append({'severity': severity, 'msg': msg})
 
     @staticmethod
     def get_jobs_since(since: datetime, until: datetime = datetime.utcnow()) -> [Job]:

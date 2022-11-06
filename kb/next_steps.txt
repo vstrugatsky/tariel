@@ -167,8 +167,18 @@ Added logging of additions, updates, errors and warnings
 - major test suite buildout
 - introduced fuzzywuzzy to deal with speculative multiple tickets such as ALK DAL SKYW
 
+2022-Nov4-5:
+Parsing improvements:
+- $MCHP - Microchip stock gain on FQ2 earnings beat and guiding outlook above consensus (guiding outlook above)
+- $DBRG - DigitalBridge stock dips as Q3 property, interest expenses climb
+- $PRLB - Proto Labs stock sinks 24% to decade-low as guidance widely misses estimates
+- $FRG - Franchise Group plummets 14% after missing Q3 bottom line
+Added tests and fixed nasty bug with mins and maximums
+
 Next steps:
 - improve parsing
 $GCI - Gannett rallies as record digital marketing revenue overshadows earnings miss
+$NEWP $NUAG:CA - New Pacific Metals GAAP EPS of -$0.01 in-line: record in-line as 0 surprise
 - build fin data (industry, EPS, beta, earnings)
+
 

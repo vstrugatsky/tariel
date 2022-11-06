@@ -36,6 +36,7 @@ class Marketcurrents(TwitterAccount):
            (?P<earnings_indicator>
            \W(Q[1-4]|quarterly)\ (earnings|result|beat|miss|loss|revenue|profit|sales|sees)|
            \W(EPS|revenue)\ of|
+           \W(expenses|costs|outflows)\ (plummet|improve|jump|rise|rose|increase|climb)|
            \W(posts|after|reports)\ .*Q[1-4]|
            \Wbeat|\Wmiss|\Wresults|(\Wsurpasses|\Wtop).+estimates)
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
@@ -44,7 +45,7 @@ class Marketcurrents(TwitterAccount):
     def parse_earnings_false_positive(self, tweet_text: str):
         p = re.compile(r'''
            (?P<earnings_false_positive>
-           \Wearnings\ preview|\?|\Whot\ stocks|\Wlikely\ to\ [beat|miss]|
+           \Wearnings\ preview|\?|\Whot\ stocks|\Wweek\ ahead|\Wday\ movers|\Wlikely\ to\ [beat|miss]|
            \W(ahead\ of)\ .*Q[1-4])
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
@@ -53,8 +54,8 @@ class Marketcurrents(TwitterAccount):
         sentiments: [str or None] = []
         p = re.compile(r'''
            (?P<positive_sentiment>
-           \W(earnings|result(s)?|estimates|sales|income|volume|profit|AUM)\ (surpass|exceed|gain|beat|top|increase|boost|grow|rise)|
-           \W(revenue(s?)|profit(s?)|booking(s?)|cash\ flow)\ (soar|surpass|jump|surge|gain)|
+           \W(earnings|result(s)?|estimates|sales|income|volume|profit|AUM)\ (surpass|exceed|gain|beat|top|increase|boost|grow|rise|climb)|
+           \W(revenue(s?)|profit(s?)|booking(s?)|cash\ flow)\ (soar|surpass|jump|surge|gain|climb)|
            \W(tops|topping|topped)\ .*(forecast|estimate)|
            \W(expenses|costs)\ (plummet|improve)|
            \W(high(er)?|strong|record|boosts)\ (Q[1-4]\ )?(sales|earnings|(annual\ )?revenue|margin|demand|profit|income|volume|pricing|consumption)|
@@ -71,8 +72,8 @@ class Marketcurrents(TwitterAccount):
            (?P<negative_sentiment>
            \W(earnings|revenue(s?)|profit(s?)|result(s)?|income|sales|volume|AUM|asset\ values)\ (slip|slump|fall|miss|decline|plummet|drop)|
            \Whigh(er)?\ (expenses|cost|outflows)|
-           \W(expenses|costs|outflows)\ (jump|rise|rose|increase)|
-           \W(low(er)?|weak)\ (sales|earnings|revenue|margin|demand|profit|income|volume|pricing|consumption|PE\ return)|
+           \W(expenses|costs|outflows)\ (jump|rise|rose|increase|climb)|
+           \W(low(er)?|weak|missing)\ (Q[1-4]\ )?(sales|earnings|revenue|margin|demand|profit|income|volume|pricing|consumption|PE\ return|bottom\ line)|
            \W(Q[1-4]|credit)\ (loss|miss)|
            \Wweak|\Wheadwind|\Wdecline|\Wdelay|\Wcost\ overrun)
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
@@ -85,8 +86,8 @@ class Marketcurrents(TwitterAccount):
         p = re.compile(r'''
            (?P<positive_guidance>
            \W(forecast|guidance|outlook)\ (raise|boost)|
-           \W(guides|guiding)\ .*(EPS|revenue|sales|income)\. .*(higher|above)|
-           \W(raise[sd]|increase(s)?|hike(s)?|bullish|boost(s)?)\ .*(guidance|outlook|forecast)|
+           \W(guides|guiding)\ .*(EPS|revenue|sales|income|outlook)\ .*(higher|above)|
+           \W(raise[sd]|sweeten(s)?|increase(s)?|upward\ revision|hike(s)?|bullish|boost(s)?)\ .*(guidance|outlook|forecast|guide)|
            \Whigher\ (Q[1-4]|yearly|annual|quarterly|year)\ (guidance|outlook|forecast))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):
@@ -97,9 +98,9 @@ class Marketcurrents(TwitterAccount):
         sentiments: [str] = []
         p = re.compile(r'''
            (?P<negative_guidance>
-           \W(guidance|outlook|forecast)\ (cut|slashed|lower(ed)?|below)|
+           \W(guidance|outlook|forecast)\ (widely\ )?(cut|slashed|misses|lower(ed)?|below)|
            \W(guides|guiding)\ .*((EPS|revenue)\. .*)?(below|lower)|
-           \W(cut(s|ting)?|lower(s|ed|ing)?|slash(es|ed|ing)?)[- ].*(guidance|outlook|forecast))
+           \W(cut(s|ting)?|dim|lower(s|ed|ing)?|downward\ revision|slash(es|ed|ing)?)[- ].*(guidance|outlook|forecast|guide))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):
             sentiments.append(i.groupdict()["negative_guidance"].strip())
@@ -107,6 +108,12 @@ class Marketcurrents(TwitterAccount):
 
     def should_raise_parse_warning(self, tweet_text: str) -> bool:
         return False
+
+    def parse_symbol_from_url_desc(self, url_desc) -> str | None:
+        p = re.compile(r'''(\((?P<symbol>[A-Za-z\.\:]+)\))
+            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
+        match = p.search(url_desc)
+        return match.groupdict()['symbol'] if match else None
 
     def determine_surprise(self, match_dict: dict, metrics: str) -> float | None:
         if metrics == 'eps':

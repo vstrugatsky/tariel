@@ -38,6 +38,10 @@ class TwitterAccount(ABC):
         pass
 
     @abstractmethod
+    def parse_symbol_from_url_desc(self, tweet_text: str):
+        pass
+
+    @abstractmethod
     def should_raise_parse_warning(self, tweet_text: str) -> bool:
         pass
 

@@ -19,6 +19,7 @@ class Currency:
         'DKK': 'DKK',
         'NOK': 'NOK',   # norwegian kroner
         'CHF': 'CHF', # swiss franc
+        'Rp': 'IDR',  # Indonesian Rupee
         'RMB': 'CNY', # Chinese remnibi -> yuan
         'CNY': 'CNY',  # Yuan
         'Ps.': 'MXN', # mexican Peso

@@ -8,28 +8,6 @@ from model.symbols import Symbol
 from utils.utils import Utils
 
 
-def test_update_earnings_sentiment():
-    assert(LoadEarningsReportsFromTwitter.update_earnings_sentiment(surprise_amount=20, current_sentiment=0) == 1)
-    assert(LoadEarningsReportsFromTwitter.update_earnings_sentiment(surprise_amount=20, current_sentiment=2) == 2)
-    assert(LoadEarningsReportsFromTwitter.update_earnings_sentiment(surprise_amount=0, current_sentiment=2) == 2)
-    assert(LoadEarningsReportsFromTwitter.update_earnings_sentiment(surprise_amount=-5, current_sentiment=2) == 1)
-    assert(LoadEarningsReportsFromTwitter.update_earnings_sentiment(surprise_amount=-5, current_sentiment=-2) == -2)
-
-
-def test_update_positive_sentiment():
-    assert (LoadEarningsReportsFromTwitter.update_positive_sentiment(current_sentiment=0, update=1, max_sentiment=2) == 1)
-    assert (LoadEarningsReportsFromTwitter.update_positive_sentiment(current_sentiment=0, update=2, max_sentiment=2) == 2)
-    assert (LoadEarningsReportsFromTwitter.update_positive_sentiment(current_sentiment=0, update=3, max_sentiment=2) == 2)
-    assert (LoadEarningsReportsFromTwitter.update_positive_sentiment(current_sentiment=-2, update=4, max_sentiment=2) == 2)
-
-
-def test_update_negative_sentiment():
-    assert (LoadEarningsReportsFromTwitter.update_negative_sentiment(current_sentiment=0, update=1, max_sentiment=2) == -1)
-    assert (LoadEarningsReportsFromTwitter.update_negative_sentiment(current_sentiment=0, update=2, max_sentiment=2) == -2)
-    assert (LoadEarningsReportsFromTwitter.update_negative_sentiment(current_sentiment=0, update=3, max_sentiment=2) == -2)
-    assert (LoadEarningsReportsFromTwitter.update_negative_sentiment(current_sentiment=2, update=4, max_sentiment=2) == -2)
-
-
 def test_should_update():
     er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=None)
     provider = 'Twitter_Livesquawk'
@@ -112,93 +90,110 @@ def test_associate_tweet_with_symbol():
     with model.Session() as session:
         tweet = 'something irrelevant'
         cashtags = [{'start': 0, 'end': 4, 'tag': 'PPG'}]
-        assert('PPG' in loader.associate_tweet_with_symbols(session, cashtags, tweet).keys())
+        returned_symbols, eliminated_symbols = loader.associate_tweet_with_symbols(session, cashtags, tweet, 'url desc')
+        assert('PPG' in returned_symbols.keys())
 
         cashtags = [{'start': 0, 'end': 4, 'tag': 'SPY'},
                     {'start': 5, 'end': 9, 'tag': 'WMTZZ'},
                     {'start': 10, 'end': 15, 'tag': 'AAPLZZ'}]
-        assert('SPY' in loader.associate_tweet_with_symbols(session, cashtags, tweet).keys())
-        assert(len(loader.associate_tweet_with_symbols(session, cashtags, tweet).keys()) == 1)
+        returned_symbols, eliminated_symbols = loader.associate_tweet_with_symbols(session, cashtags, tweet, 'url desc')
+        assert('SPY' in returned_symbols.keys())
+        assert(len(returned_symbols.keys()) == 1)
 
         cashtags = [{'start': 0, 'end': 4, 'tag': 'SPY'},
                     {'start': 5, 'end': 9, 'tag': 'SPY'}]
-        assert('SPY' in loader.associate_tweet_with_symbols(session, cashtags, tweet).keys())
-        assert(len(loader.associate_tweet_with_symbols(session, cashtags, tweet).keys()) == 1)
+        returned_symbols, eliminated_symbols = loader.associate_tweet_with_symbols(session, cashtags, tweet, 'url desc')
+        assert('SPY' in returned_symbols.keys())
+        assert(len(returned_symbols.keys()) == 1)
 
         cashtags = [{'start': 0, 'end': 4, 'tag': 'SPY'},
                     {'start': 5, 'end': 9, 'tag': 'SPYZZZ'}]
-        assert('SPY' in loader.associate_tweet_with_symbols(session, cashtags, tweet).keys())
-        assert(len(loader.associate_tweet_with_symbols(session, cashtags, tweet).keys()) == 1)
+        returned_symbols, eliminated_symbols = loader.associate_tweet_with_symbols(session, cashtags, tweet, 'url desc')
+        assert('SPY' in returned_symbols.keys())
+        assert(len(returned_symbols.keys()) == 1)
 
         cashtags = [{'start': 0, 'end': 4, 'tag': 'GFELF'},
                     {'start': 5, 'end': 9, 'tag': 'ZZ'}]
-        assert('GFELF' in loader.associate_tweet_with_symbols(session, cashtags, tweet).keys())
-        assert(len(LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags, tweet).keys()) == 1)
+        returned_symbols, eliminated_symbols = loader.associate_tweet_with_symbols(session, cashtags, tweet, 'url desc')
+        assert('GFELF' in returned_symbols.keys())
+        assert(len(returned_symbols.keys()) == 1)
 
         cashtags = [{'start': 0, 'end': 4, 'tag': 'SPYZZZ'}]
-        assert(not loader.associate_tweet_with_symbols(session, cashtags, tweet))
+        returned_symbols, eliminated_symbols = loader.associate_tweet_with_symbols(session, cashtags, tweet, 'url desc')
+        assert(not returned_symbols)
 
         cashtags = None
-        assert(not loader.associate_tweet_with_symbols(session, cashtags, tweet))
+        returned_symbols, eliminated_symbols = loader.associate_tweet_with_symbols(session, cashtags, tweet, 'url desc')
+        assert(not returned_symbols)
 
 
 def test_eliminate_spurious_symbols_ALK_SKYW_DAL():
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
     with model.Session() as session:
         symbols = {}
-        tweet = '$ALK $SKYW $DAL - SkyWest stock flies higher as quarterly profits surpass expectations'
+        tweet = '$ALK $SKYW $DAL - SkyWest stock flies higher as quarterly profits surpass expectations https://t.co/vvv1gDxLk7'
+        tweet_desc = 'SkyWest (SKYW) shares rose sharply in Thursday’s extended session after posting stronger than expected profits for Q3.'
         symbols['ALK'] = Symbol.get_unique_by_ticker_and_country(session, 'ALK', 'US')
         symbols['SKYW'] = Symbol.get_unique_by_ticker_and_country(session, 'SKYW', 'US')
         symbols['DAL'] = Symbol.get_unique_by_ticker_and_country(session, 'DAL', 'US')
 
-        retained_symbols = LoadEarningsReportsFromTwitter.eliminate_spurious_symbols(session, tweet, symbols)
+        retained_symbols, eliminated_symbols = loader.eliminate_spurious_symbols(session, tweet, tweet_desc, symbols)
         assert('SKYW' in retained_symbols)
-        assert('ALK' not in retained_symbols)
-        assert('DAL' not in retained_symbols)
+        assert('ALK' in eliminated_symbols)
+        assert('DAL' in eliminated_symbols)
 
 
 def test_eliminate_spurious_symbols_NVZMF_NVZMY():
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
     with model.Session() as session:
         symbols = {}
-        tweet = '$NVZMF $NVZMY - Novozymes A/S reports Q3 results; raises its full-year organic sales growth outlook'
+        tweet = '$NVZMF $NVZMY - Novozymes A/S reports Q3 results; raises its full-year organic sales growth outlook https://t.co/vvv1gDxLk7'
+        tweet_url_desc = "Novozymes A/S press release (NVZMF): Q3 Revenue of DKK4.37B (+16.2% Y/Y), (6% organic, 9% currency, 1% M&A).Novozymes increases its full-year organic sales growth outlook from..."
         symbols['NVZMF'] = Symbol.get_unique_by_ticker_and_country(session, 'NVZMF', 'US')
         symbols['NVZMY'] = Symbol.get_unique_by_ticker_and_country(session, 'NVZMY', 'US')
 
-        retained_symbols = LoadEarningsReportsFromTwitter.eliminate_spurious_symbols(session, tweet, symbols)
+        retained_symbols, eliminated_symbols = loader.eliminate_spurious_symbols(session, tweet, tweet_url_desc, symbols)
         assert('NVZMF' in retained_symbols)
-        assert('NVZMY' in retained_symbols)
+        assert('NVZMY' in retained_symbols or 'NVZMY' in eliminated_symbols)
 
 
 def test_eliminate_spurious_symbols_ASM_TMXFF_INCAF():
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
     with model.Session() as session:
         symbols = {}
-        tweet = '$ASM $TMXXF $INCAF - Inca One Gold Q3 sales fall 1%'
+        tweet = '$ASM $TMXXF $INCAF - Inca One Gold Q3 sales fall 1% https://t.co/vvv1gDxLk7'
+        tweet_url_desc = "Inca One Gold (INCAF) reports blah-blah Q3"
         symbols['ASM'] = Symbol.get_unique_by_ticker_and_country(session, 'ASM', 'US')
         symbols['TMXXF'] = Symbol.get_unique_by_ticker_and_country(session, 'TMXXF', 'US')
         symbols['INCAF'] = Symbol.get_unique_by_ticker_and_country(session, 'INCAF', 'US')
 
-        retained_symbols = LoadEarningsReportsFromTwitter.eliminate_spurious_symbols(session, tweet, symbols)
+        retained_symbols, eliminated_symbols = loader.eliminate_spurious_symbols(session, tweet, tweet_url_desc, symbols)
         assert('INCAF' in retained_symbols)
-        assert('ASM' not in retained_symbols)
-        assert('TMXXF' not in retained_symbols)
+        assert('ASM' in eliminated_symbols)
+        assert('TMXXF' in eliminated_symbols)
 
 
 def test_eliminate_spurious_symbols_VEON_VNLTF():
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
     with model.Session() as session:
         symbols = {}
-        tweet = '$VEON $VNLTF - VEON reports strong Q3 revenue performance gaining market share as countries execute digital operator strategy'
+        tweet = '$VEON $VNLTF - VEON reports strong Q3 revenue performance gaining market share as countries execute digital operator strategy https://t.co/vvv1gDxLk7'
+        tweet_url_desc = "Amsterdam-listed mobile operator VEON (VEON) reported third-quarter revenues rising 3.4% in local currency terms and up 3.6% in dollars, the currency it reports in, to $2.08..."
         symbols['VEON'] = Symbol.get_unique_by_ticker_and_country(session, 'VEON', 'US')
         symbols['VNLTF'] = Symbol.get_unique_by_ticker_and_country(session, 'VNLTF', 'US')
 
-        retained_symbols = LoadEarningsReportsFromTwitter.eliminate_spurious_symbols(session, tweet, symbols)
+        retained_symbols, eliminated_symbols = loader.eliminate_spurious_symbols(session, tweet, tweet_url_desc, symbols)
         assert('VEON' in retained_symbols)
         assert('VNLTF' in retained_symbols)
 
 
 def test_associate_tweet_with_symbols_canadian():
-    tweet = '$CPG $CPG:CA - Crescent Point Energy GAAP EPS of C$0.82, revenue of C$1.1B'
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    tweet = '$CPG $CPG:CA - Crescent Point Energy GAAP EPS of C$0.82, revenue of C$1.1B https://t.co/vvv1gDxLk7'
     cashtags = [{'start': 0, 'end': 4, 'tag': 'CPG'}, {'start': 5, 'end': 9, 'tag': 'CPG'}]
     with model.Session() as session:
-        assert(len(LoadEarningsReportsFromTwitter.associate_tweet_with_symbols(session, cashtags, tweet).keys()) == 1)
+        retained_symbols, eliminated_symbols = loader.associate_tweet_with_symbols(session, cashtags, tweet, 'url desc')
+        assert(len(retained_symbols.keys()) == 1)
 
 
 def test_evaluate_data_quality():
@@ -213,3 +208,88 @@ def test_evaluate_data_quality():
 
     er = EarningsReport(revenue_surprise=75, revenue=100)
     assert('75 too large' in LoadEarningsReportsFromTwitter.evaluate_data_quality(er))
+
+
+def test_parse_symbol_from_url_desc():
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    tweet_url_desc = "Toyota Motor press release (TM): Q2 net income ¥434.2B, -18.2% Y/YBasic EPS of ¥31.73Revenue of ¥9218.2B (+22.2% Y/Y).Operating income ¥562.79B.FY 2023 Forecast: Sales revenues ¥36T..."
+    assert(loader.account.parse_symbol_from_url_desc(tweet_url_desc) == 'TM')
+
+
+def test_update_sentiment_fields_noop():
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    er = EarningsReport()
+    loader.update_sentiment_fields(er)
+    assert(er.earnings_sentiment == 0)
+
+
+def test_update_sentiment_fields_based_on_earnings():
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    er = EarningsReport(eps_surprise=20, revenue_surprise=200)
+    loader.update_sentiment_fields(er)
+    assert(er.earnings_sentiment == 2)
+
+    er = EarningsReport(eps_surprise=0, revenue_surprise=200)
+    loader.update_sentiment_fields(er)
+    assert(er.earnings_sentiment == 1)
+
+    er = EarningsReport(eps_surprise=20, revenue_surprise=0)
+    loader.update_sentiment_fields(er)
+    assert(er.earnings_sentiment == 1)
+
+    er = EarningsReport(eps_surprise=20, revenue_surprise=-200)
+    loader.update_sentiment_fields(er)
+    assert(er.earnings_sentiment == 0)
+
+    er = EarningsReport(eps_surprise=-20, revenue_surprise=200)
+    loader.update_sentiment_fields(er)
+    assert(er.earnings_sentiment == 0)
+
+    er = EarningsReport(eps_surprise=-20, revenue_surprise=0)
+    loader.update_sentiment_fields(er)
+    assert(er.earnings_sentiment == -1)
+
+    er = EarningsReport(eps_surprise=0, revenue_surprise=-200)
+    loader.update_sentiment_fields(er)
+    assert(er.earnings_sentiment == -1)
+
+
+def test_update_sentiment_fields_pos_neg():
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    er = EarningsReport(positive_earnings=['earnings beat'], negative_earnings=['weak'])
+    loader.update_sentiment_fields(er)
+    assert(er.earnings_sentiment == 0)
+
+
+def test_update_sentiment_fields_triple_pos_neg():
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    er = EarningsReport(eps_surprise=0.14, revenue_surprise=200000, positive_earnings=['earnings beat'], negative_earnings=['weak'])
+    loader.update_sentiment_fields(er)
+    assert(er.earnings_sentiment == 2)
+
+
+
+    def test_update_earnings_sentiment():
+        loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+        assert (loader.update_earnings_sentiment(surprise_amount=20, current_sentiment=0) == 1)
+        assert (loader.update_earnings_sentiment(surprise_amount=20, current_sentiment=2) == 2)
+        assert (loader.update_earnings_sentiment(surprise_amount=0, current_sentiment=2) == 2)
+        assert (loader.update_earnings_sentiment(surprise_amount=-5, current_sentiment=2) == 1)
+        assert (loader.update_earnings_sentiment(surprise_amount=-5, current_sentiment=-2) == -2)
+
+    def test_update_positive_sentiment():
+        loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+        assert (loader.update_positive_sentiment(current_sentiment=0, update=1, max_sentiment=2) == 1)
+        assert (loader.update_positive_sentiment(current_sentiment=0, update=2, max_sentiment=2) == 2)
+        assert (loader.update_positive_sentiment(current_sentiment=0, update=3, max_sentiment=2) == 2)
+        assert (loader.update_positive_sentiment(current_sentiment=-2, update=4, max_sentiment=2) == 2)
+
+    def test_update_negative_sentiment():
+        loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+        assert (loader.update_negative_sentiment(current_sentiment=0, update=1, max_sentiment=2) == -1)
+        assert (loader.update_negative_sentiment(current_sentiment=0, update=2, max_sentiment=2) == -2)
+        assert (loader.update_negative_sentiment(current_sentiment=0, update=3, max_sentiment=2) == -2)
+        assert (loader.update_negative_sentiment(current_sentiment=2, update=4, max_sentiment=2) == -2)
+
+
+
