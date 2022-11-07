@@ -28,6 +28,10 @@ def test_parse_combos():
     assert(account.parse_positive_guidance(tweet)[0] == 'higher year guidance')
     assert(account.parse_positive_earnings(tweet)[0] == 'Q3 beat')
 
+    tweet = '$SXC - SunCoke Energy surges on strong Q3 results, EBITDA guidance'
+    assert(account.parse_positive_guidance(tweet)[0] == 'strong Q3 results, EBITDA guidance')
+    assert(account.parse_positive_earnings(tweet)[0] == 'strong Q3 results')
+
     tweet = '$OLED - Universal Display stock soars 15% on earnings beat despite weak near-term OLED demand'
     assert(account.parse_negative_earnings(tweet)[0] == 'weak')
     assert(account.parse_positive_earnings(tweet)[0] == 'earnings beat')
@@ -101,6 +105,9 @@ def test_parse_positive_guidance():
     tweet = '$DTM - DT Midstream reports Q3 earnings; raises FY22 and FY23 Adjusted EBITDA guidance'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_positive_guidance(tweet)[0] == 'raises FY22 and FY23 Adjusted EBITDA guidance')
+
+    tweet = '$WMB - Williams sees full-year EBITDA near high end of guidance after strong Q3 https://t.co/1K0FkavqfR'
+    assert(account.parse_positive_guidance(tweet)[0] == 'high end of guidance')
 
     tweet = '$TGLS - Tecnoglass beats top and bottom line, increases FY outlook'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
@@ -197,6 +204,14 @@ def test_parse_positive_sentiment():
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(not account.parse_positive_earnings(tweet))
     assert(not account.parse_negative_earnings(tweet))
+
+    tweet = '$VNO - Vornado Realty Q3 revenue exceeds consensus, helped by same store NOI growth'
+    assert(account.parse_positive_earnings(tweet)[0] == 'exceeds consensus')
+
+    tweet = '$CBOE - Cboe Global sees higher organic growth, less expenses in 2022 after Q3 beat'
+    assert(account.parse_positive_earnings(tweet)[0] == 'higher organic growth')
+    assert(account.parse_positive_earnings(tweet)[1] == 'less expenses')
+    assert(account.parse_positive_earnings(tweet)[2] == 'Q3 beat')
 
     tweet = '$APO - Apollo Global Q3 earnings gain as inflows hold up, AUM rises'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
@@ -384,8 +399,36 @@ def test_parse_negative_sentiment():
 
     tweet = '$USNZY $USNZ - High costs, low volumes weigh on miner Usiminas Q3 results'  # earnings -, high cost, low volumes
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_negative_earnings(tweet)[0].lower() == 'high cost')
+    assert(account.parse_negative_earnings(tweet)[0].lower() == 'high costs')
     assert(account.parse_negative_earnings(tweet)[1] == 'low volume')
+    assert(not account.parse_positive_earnings(tweet))
+
+    tweet = '$ARLP - Alliance Resources tumbles after coal producer misses results consensus'
+    assert(account.parse_negative_earnings(tweet)[0].lower() == 'misses results')
+
+    tweet = '$BRK.A $BRK.B - Berkshire Hathaway Q3 operating earnings slip by 20% Y/Y'
+    assert(account.parse_negative_earnings(tweet)[0].lower() == 'earnings slip')
+
+    tweet = '$MITT - AG Mortgage Investment Q3 earnings reflect weaker book value, NII as macro woes bite'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_negative_earnings(tweet)[0].lower() == 'weaker book value')
+    assert(len(account.parse_negative_earnings(tweet)) == 1)
+
+    tweet = '$TRUP - Trupanion trades at about 2-and-1/2-year low as Q3 EPS misses on disappointing margins'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_negative_earnings(tweet)[0] == 'EPS miss')
+    assert(account.parse_negative_earnings(tweet)[1] == 'disappointing margin')
+    assert(not account.parse_positive_earnings(tweet))
+
+    tweet = '$SEM - Select Medical sinks ~21% after rise in costs and expenses leads to big Q3 profit miss'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert (account.parse_negative_earnings(tweet)[0] == 'rise in costs')
+    assert(account.parse_negative_earnings(tweet)[1] == 'profit miss')
+    assert(not account.parse_positive_earnings(tweet))
+
+    tweet = '$BIGC - BigCommerce stock plunges 26% after lower margins widened losses in third quarter'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
+    assert(account.parse_negative_earnings(tweet)[0] == 'lower margin')
     assert(not account.parse_positive_earnings(tweet))
 
     tweet = '$FRG - Franchise Group plummets 14% after missing Q3 bottom line'
@@ -485,6 +528,15 @@ def test_parse_earnings_indicator():
     tweet = '$LTC - LTC Properties Q3 results mixed on rental income growth, higher expenses'
     assert(account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'Q3 result')
 
+    tweet = '$CGJTF $CJT:CA - Cargojet posts stronger than expected profits, touts on-time performance'
+    assert(account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'posts stronger than expected profits')
+
+    tweet = '$BRK.A $BRK.B - Berkshire Hathaway Q3 operating earnings slip by 20% Y/Y'
+    assert(account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'Q3 operating earnings')
+
+    tweet = '$KPTI - Karyopharm surges as blood cancer drug drives sales in Q3, net loss narrows'
+    assert(account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'sales in Q3')
+
     tweet = '$FRG - Franchise Group plummets 14% after missing Q3 bottom line'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'after missing Q3')
 
@@ -499,6 +551,14 @@ tweet = '$PHGUF $PHAR - Pharming gets EMA accelerated review of leniolisib for r
 t = '$DASH - DoorDash stock pops over 10% as analysts applaud resilience to macro pressures'
 t = '$CHUY - Chuys stock charges higher on strong comparable sales, profit growth'
 t = '$COLD - Americold Realty Trust rises on upward revision to FY22 guidance'
+t = '$HZNP - Horizon Therapeutics ticks higher amid speculation of activist investor' # activist investor
+t = '$STEM - Stem stock rises on strong Q3 bookings'
+t = '$AEHR - Aehr wins $4.4M worth orders for WaferPak full wafer contactors'
+t = '$ACM - AECOMs venture wins contract for New Jersey light rail project'
+t = '$FSLR - First Solar soars to 11-year high as analyst touts extraordinary backlog'
+t = '$DEN - Denbury wins carbon transport, storage deal for planned clean hydrogen plant'
+t = '$LEG - Leggett &amp; Platt shares lifted as earnings exceed lowered expectations'
+t = '$GE - General Electric bags $1.09B Naval Supply Systems contract'
 
 # News negative
 tweet = '$AHG - Akso Health gets Nasdaq notice for not complying with minimum bid price rule'  # -, not complying
@@ -510,6 +570,13 @@ tweet = '$SBHMY $FSTX - F-star Therapeutics drops amid concern about CFIUS appro
 tweet = '$COF - Capital One credit card delinquency, net charge-off rates climb in September'  # -, industry, delinquency climbs =>IGNORE
 tweet = '$ALRM $VVNT - https://t.co/LStNLDdfU5 stock slips 3% after the bell on licensing dispute with Vivint'  # news, licensing dispute
 t = '$KTOS - Kratos trims FY forecast on labor shortages, inflation woes'
+t = '$SYNH - Syneos Health sheds 23% as outlook stands below consensus'
+t = '$AXL $MLSPF - American Axle sinks 18% after denying sales talks'
+t = '$DKNG - DraftKings stock dives nearly 20% on lackluster 2023 forecast'
+t = '$TEAM - Atlassian plunges as Piper Sandler downgrades following guidance cut, slowing user growth'
+t = '$DAL - Delta pilots vote ‘overwhelmingly in favor’ of strike authorization'
+t = '$GT - Goodyear Tire stock skids as cost inflation, currency concerns impact earnings'
+t = '$VRNS - Varonis slashes guidance on macro, forex headwinds; stock tumbles 16% after the bell'
 
 # Dividends
 tweet = '$TAIT - Taitron Components raises dividend by 11% to $0.05'  # +, raises dividend
@@ -519,8 +586,14 @@ tweet = 'Wells Fargo Multi-Sector Income Fund lowers dividend by 4.1%'  # -, low
 tweet = '$FTAI - Fortress Transportation dividend declines by 10% to $0.30'  # - dividend declines
 t = '$ETO - Eaton Vance Tax-Advantaged Global Dividend Opportunities Fund dividend declines by 23.3% to $0.1374'
 
+# Buyback
+t = '$OEC - Orion Engineered Carbons announces $50M share buyback program'
+t = '$LAD - Lithia &amp; Driveway boosts share repurchase authorization by $450M'
+
 # Guidance
-tweet = '$LYB - LyondellBasell paints a gloomy picture for current qtr, succumbing to high energy costs'  # -, gloomy
+tweet = '$LYB - LyondellBasell paints a gloomy picture for current qtr, succumbing to high energy costs'
+t = '$PBI - Pitney Bowes stock plummets after reporting e-commerce contraction'  # -, gloomy
+t = '$PFE $NVAX $MRNA - Pfizer raises outlook even as COVID vaccines sales drop 66% in Q3'
 
 # False positive
 tweet = '$SLNA - Hotel operator Selina stock plunges after rallying as high as 442% in prior session'  # mixed => plunge + rally, but not an earning
@@ -532,6 +605,9 @@ t = '$TISI - Team receives continued listing notice from NYSE'
 t = '$STAB - Statera Biopharma granted continued listing on Nasdaq'  # + -> granted continued listing
 t = '$BROG - Brooge Energy gets Nasdaq staff determination letter'
 t = '$HEPS - Hepsiburada receives non-compliance letter from the Nasdaq'
+t = '$ANPC - AnPac gets till Nov 23 to meet Nasdaq listing rule'
+t = '$ZHYBF - Neurological products marketer Zhong Yuan seeks Nasdaq uplisting, $15M offering'
+t = '$IRNT - IronNet receives NYSE notice for non-compliance'
 
 # Wins
 t = '$LMT - Lockheed Martin secures $765M Naval Air Systems contract'
@@ -540,10 +616,24 @@ t = '$LMT - Lockheed Martin secures $765M Naval Air Systems contract'
 t = '$MRNA - Moderna second bivalent COVID booster authorized in Canada'
 t = '$LLY - Eli Lilly heart disease therapy meets main goal in Phase 3 kidney disease trial'
 t = '$PFE $BNTX - Pfizer/BioNTech Omicron booster is safe despite bubble formation – Swissmedic'
+t = '$PFE $BNTX - Pfizer, BioNTech gain as updated data supports use of Omicron booster in adults'
+t = '$BMY $BCAB - BioAtla soars 47% as drug shows response in lung cancer patients in trial'
+t = '$ABMD - Abiomed Impella RP Flex gets FDA approval to treat right heart failure'
+t = '$ENSC - Ensysce says oxycodone formulation indicated potential for abuse deterrence'
+t = '$GSK - GSK barred from bulk drug purchasing program in China for 18 months'
+t = '$SBHMY $FSTX - F-star Therapeutics falls for a second day as CFIUS deadline set to expire'
+t = '$RVPH - Reviva issues enrollment update on pivotal trial for lead candidate'
+t = '$TAK $MRNA - Modernas Omicron BA.4-5 targeting booster shot gets approval in Japan'
 
 # Industry, auto peer detection
 t = '$SMH $PSI $INTC - Global semiconductors sales drop 3% in Q3 202'
 t = '$GTN $APO $GTN.A - Tegna falls as peer Gray Television plunges post results; Standard General refutes job cut claims'
+t = '$LI $NIO $XPEV - Chinese EV stocks jump on signal of Zero-COVID reconsideration'
 
 # SPAC
 t = '$PKBO - Peak Bio stock rallies 140% after two days of losses following SPAC merger'
+
+# Neutral but important
+t = '$BEP $NEP $BEP.UN:CA - Brookfield Renewable to buy U.S.-based Scout Clean Energy in $1B deal'
+t = '$AIM - AIM Immunotech says court denies activist request on board nominees'
+

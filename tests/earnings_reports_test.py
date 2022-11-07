@@ -63,6 +63,9 @@ def test_determine_surprise_marketcurrents():
     match_dict = {'revenue_surprise_direction': 'misses', 'revenue_surprise_amount': 64.24, 'revenue_surprise_uom': 'M'}
     assert (loader.account.determine_surprise(match_dict=match_dict, metrics='revenue') == -64240000)
 
+    match_dict = {'eps_surprise_direction': 'in-line', 'eps_surprise_amount': None, 'eps_surprise_uom': None}
+    assert (loader.account.determine_surprise(match_dict=match_dict, metrics='eps') == 0.00)
+
 
 def test_determine_surprise_livesquawk():
     loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))

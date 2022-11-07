@@ -175,10 +175,13 @@ Parsing improvements:
 - $FRG - Franchise Group plummets 14% after missing Q3 bottom line
 Added tests and fixed nasty bug with mins and maximums
 
+2022-Nov-6:
+- record in-line as 0 surprise
+- numerous tests and parsing improvements
+
 Next steps:
 - improve parsing
 $GCI - Gannett rallies as record digital marketing revenue overshadows earnings miss
-$NEWP $NUAG:CA - New Pacific Metals GAAP EPS of -$0.01 in-line: record in-line as 0 surprise
 - build fin data (industry, EPS, beta, earnings)
 
 

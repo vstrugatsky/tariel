@@ -174,6 +174,20 @@ def test_parse_tweet_singaporean():
     assert (dict.get('revenue_uom') == 'M')
 
 
+def test_parse_inline():
+    tweet = '$NEWP $NUAG:CA - New Pacific Metals GAAP EPS of -$0.01 in-line'
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
+    assert (dict.get('eps_sign') == '-')
+    assert (dict.get('eps_currency') == '$')
+    assert (dict.get('eps') == '0.01')
+    assert (dict.get('eps_surprise_direction') == 'in-line')
+    assert (dict.get('eps_surprise_amount') is None)
+    assert (dict.get('revenue_currency') is None)
+    assert (dict.get('revenue') is None)
+    assert (dict.get('revenue_uom') is None)
+
+
 def test_parse_tweet_weird_euros():
     tweet = '$TRATF - Traton SE GAAP EPS of Є1.32, revenue of Є28.45B'
     loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
