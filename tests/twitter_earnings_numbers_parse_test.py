@@ -99,6 +99,13 @@ def test_parse_tweet_with_guidance():
     assert(dict.get('positive_guidance')[0] == 'raises FY guidance')
 
 
+def test_parse_above_consensus():
+    tweet = '$TCMD - Tactile Systems GAAP EPS of $0.11, revenue of $65.3M, FY22 guidance above consensus'
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
+    assert(dict.get('positive_guidance')[0] == 'guidance above')
+
+
 def test_parse_tweet_with_space_after_currency():
     tweet = '$BLAH - Blah GAAP EPS of NOK 0.99, revenue of NOK 3.04B beats by NOK 20M'
     loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
@@ -108,6 +115,18 @@ def test_parse_tweet_with_space_after_currency():
     assert (dict.get('eps') == '0.99')
     assert (dict.get('revenue_currency') == 'NOK')
     assert (dict.get('revenue') == '3.04')
+    assert (dict.get('revenue_uom') == 'B')
+
+
+def test_parse_tweet_with_inconsistent_brazil_currency():
+    tweet = '$CBD - Companhia Brasileira de Distribuio GAAP EPS of -R$1.10, revenue of $R4.27B'
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
+    assert (dict.get('eps_sign') == '-')
+    assert (dict.get('eps_currency') == 'R$')
+    assert (dict.get('eps') == '1.10')
+    assert (dict.get('revenue_currency') == '$R')
+    assert (dict.get('revenue') == '4.27')
     assert (dict.get('revenue_uom') == 'B')
 
 
@@ -186,6 +205,20 @@ def test_parse_inline():
     assert (dict.get('revenue_currency') is None)
     assert (dict.get('revenue') is None)
     assert (dict.get('revenue_uom') is None)
+
+
+def test_parse_II():
+    tweet = '$NEWT - Newtek Business NII of $0.01 per share, TII of $23.6M'
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
+    assert (dict.get('eps_sign') is None)
+    assert (dict.get('eps_currency') == '$')
+    assert (dict.get('eps') == '0.01')
+    assert (dict.get('eps_surprise_direction') is None)
+    assert (dict.get('eps_surprise_amount') is None)
+    assert (dict.get('revenue_currency') == '$')
+    assert (dict.get('revenue') == '23.6')
+    assert (dict.get('revenue_uom') == 'M')
 
 
 def test_parse_tweet_weird_euros():

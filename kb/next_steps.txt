@@ -179,6 +179,9 @@ Added tests and fixed nasty bug with mins and maximums
 - record in-line as 0 surprise
 - numerous tests and parsing improvements
 
+2022-Nov-7:
+- more parsing improvements
+
 Next steps:
 - improve parsing
 $GCI - Gannett rallies as record digital marketing revenue overshadows earnings miss

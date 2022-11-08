@@ -3,9 +3,10 @@ import re
 
 class Currency:
     currencies = {
-        '$': 'USD',
         'C$': 'CAD',
         'CAD': 'CAD',
+        '$R': 'BRL',
+        'R$': 'BRL',  # Brazilian real
         '€': 'EUR',
         'Є': 'EUR',
         'EUR': 'EUR',
@@ -23,6 +24,7 @@ class Currency:
         'RMB': 'CNY', # Chinese remnibi -> yuan
         'CNY': 'CNY',  # Yuan
         'Ps.': 'MXN', # mexican Peso
+        '$': 'USD',
                 }
 
     @staticmethod
