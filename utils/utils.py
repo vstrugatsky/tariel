@@ -14,7 +14,7 @@ class Utils:
 
     @staticmethod
     def apply_uom(amount: float, uom: str | None) -> float:
-        scale = {'K': 1000, 'M': 1000000, 'B': 1000000000}
+        scale = {'K': 1000, 'M': 1000000, 'B': 1000000000, 'T': 1000000000000}
         if not uom or uom.upper() not in scale.keys():
             return float(amount)
         else:

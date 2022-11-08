@@ -79,6 +79,15 @@ def test_parse_tweet_canadian():
     assert(dict.get('revenue_surprise_uom') is None)
 
 
+def test_trillions():
+    tweet = '$SZKMF - Suzuki Motor Corporation GAAP EPS of ¥237.00, revenue of ¥2.22T'
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
+    assert(dict.get('revenue_currency') == '¥')
+    assert(dict.get('revenue') == '2.22')
+    assert(dict.get('revenue_uom') == 'T')
+
+
 def test_parse_tweet_with_guidance():
     tweet = 'AngioDynamics Non-GAAP EPS of -$0.06 misses by $0.04, revenue of $81.5M misses by $1.93M, raises FY guidance'
     loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
@@ -128,6 +137,17 @@ def test_parse_tweet_with_inconsistent_brazil_currency():
     assert (dict.get('revenue_currency') == '$R')
     assert (dict.get('revenue') == '4.27')
     assert (dict.get('revenue_uom') == 'B')
+
+
+def parse_tweet_with_jpy_and_trillions():
+    tweet = '$SZKMF - Suzuki Motor Corporation GAAP EPS of ¥237.00, revenue of ¥2.22T'
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    dict = loader.parse_earnings_numbers(tweet)
+    assert (dict.get('eps_currency') == '¥')
+    assert (dict.get('eps') == '237.00')
+    assert (dict.get('revenue_currency') == '¥')
+    assert (dict.get('revenue') == '2.22')
+    assert (dict.get('revenue_uom') == 'T')
 
 
 def test_parse_tweet_with_bad_currency():

@@ -102,9 +102,9 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
         if not er.currency:
             er.currency = self.determine_currency(match_dict.get('eps_currency'), match_dict.get('revenue_currency'))
 
-        if not er.eps:
+        if not er.eps or match_dict.get('eps'):
             er.eps = self.determine_eps(match_dict.get('eps_sign'), match_dict.get('eps'))
-        if not er.revenue:
+        if not er.revenue or match_dict.get('revenue'):
             er.revenue = self.account.determine_revenue(match_dict)
 
         if not er.eps_surprise:
@@ -305,7 +305,7 @@ if __name__ == '__main__':
     account_class: Type[TwitterAccount] = getattr(sys.modules['loaders.twitter_' + account_name.lower()], account_name)
     loader = LoadEarningsReportsFromTwitter(account_class(account_name))
     provider = 'Twitter_' + account_name
-    backfill = False
+    backfill = True
     commit = True
     paginate = True
     max_results = 100
