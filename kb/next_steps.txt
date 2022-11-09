@@ -182,6 +182,9 @@ Added tests and fixed nasty bug with mins and maximums
 2022-Nov-7/8:
 - more parsing improvements
 
+2022-Nov-9:
+- serious parsing improvements with the negative lookahead and numer of words intros
+
 Next steps:
 - improve parsing
 $GCI - Gannett rallies as record digital marketing revenue overshadows earnings miss
