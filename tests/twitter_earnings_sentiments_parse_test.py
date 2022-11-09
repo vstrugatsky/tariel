@@ -24,6 +24,12 @@ def test_parse_false_positive():
 def test_parse_earnings_indicator():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = '$REAL - The RealReal offers mixed Q3 report, below consensus sales guide'
+    assert(account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'Q3 report')
+
+    tweet = '$LMND - Lemonade Q4 guidance trails consensus; Q3 net loss ratio swells'
+    assert(account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'Q3 net loss')
+
     tweet = '$PEI - PREIT posts Q3 FFO loss, focuses on raising capital, paying down debt'
     assert(account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'posts Q3')
 
@@ -207,6 +213,9 @@ def test_parse_positive_guidance():
 
 def test_parse_negative_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = '$REAL - The RealReal offers mixed Q3 report, below consensus sales guide'
+    assert(account.parse_negative_guidance(tweet)[0] == 'below consensus sales guide')
 
     tweet = '$SOPH - SOPHiA Genetics reports Q3 earnings; FY22 revenue to be at the low-end of guidance'
     assert(account.parse_negative_guidance(tweet)[0] == 'low-end of guidance')
@@ -444,6 +453,10 @@ def test_parse_positive_sentiment():
 def test_parse_negative_sentiment():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = "$MARA - Marathon Digital Q3 net loss nearly triples Y/Y, earnings and revenue miss"
+    assert(account.parse_negative_earnings(tweet)[0] == 'Q3 net loss')
+    assert(account.parse_negative_earnings(tweet)[1] == 'revenue miss')
+
     tweet = '$FNMA - Fannie Mae Q3 earnings slide as lower home prices lead to higher credit expense'
     assert(account.parse_negative_earnings(tweet)[0] == 'earnings slide')
     assert(account.parse_negative_earnings(tweet)[1] == 'higher credit expense')
@@ -570,6 +583,10 @@ def test_mixed_or_neutral():
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert (not account.parse_positive_earnings(tweet))
 
+    tweet = "$AMC - AMC Entertainment Q3 results beat estimates, co's adj. EBITDA loss widens"
+    assert(account.parse_positive_earnings(tweet)[0] == 'results beat')
+    assert(account.parse_negative_earnings(tweet)[0] == 'EBITDA loss')
+
     tweet = '$NCLH - Norwegian Cruise Lines sails to earnings beat, offers upbeat occupancy forecast'
     assert(account.parse_positive_earnings(tweet)[0] == 'earnings beat')
     assert(account.parse_positive_guidance(tweet)[0] == 'upbeat occupancy forecast')
@@ -596,6 +613,8 @@ def test_mixed_or_neutral():
 
 
 def acq():
+    t = '$BEP $NEP $BEP.UN:CA - Brookfield Renewable to buy U.S.-based Scout Clean Energy in $1B deal'
+    t = "$ATKR - Atkore acquires Elite Polymer Solutions for $91.6M to boost HDPE conduit portfolio"
     t = '$SJI $ZEN - Zendesk drops on no apparent news amid private equity takeover'
     t = '$BZUN - Baozun acquires Gap Greater China in an all-cash transaction'
     t = '$BRKR - Bruker acquires neurotechnology company Inscopix'
@@ -608,6 +627,10 @@ def acq():
     t = '$RBA $IAA $RBA:CA - Ritchie Bros. to acquire IAA in $7.3B stock and cash deal'
     t = '$IAA - IAA Non-GAAP EPS of $0.45 misses by $0.05, revenue of $497.5M beats by $20.89M, to be acquired by Ritchie Bros. in stock and cash deal of $7.3B'
     t = '$UNH $LHCG - LHC Group gains on report sale to UnitedHealth may close next month'
+
+def mixed():
+    t = '$BLNK - Blink Charging issues confident production outlook even as losses continue'
+    t = "$DIS - Disney slips 7% as media side profits, revenue slip; subscribers top forecasts"
 
 def news_pos():
     t = '$VVPR - VivoPower subsidiary surges 16% as Tembo enters supply agreement for EV conversion kits'
@@ -656,6 +679,7 @@ def news_neg():
     t = "$WKHS - Workhorse stock sinks on wider than expected loss"
 
 def dividends():
+    t = "$AMPE - Ampio Pharmaceuticals to implement 1-for-15 reverse stock split"
     tweet = '$TMBR - Timber Pharmaceuticals announces 1-for-50 reverse stock split'
     tweet = '$TAIT - Taitron Components raises dividend by 11% to $0.05'  # +, raises dividend
     t = '$ABC - AmerisourceBergen increases dividend by ~5%'
@@ -679,8 +703,9 @@ def buyback():
 # Political
 t = '$TWTR $DWAC - Trump SPAC Digital World surges 24% as former President suggests he might run in 2024'
 
-# Guidance
 def guidance():
+    t = '$UPST - Upstart Q4 guidance disappoints as high interest rates crush loans demand'
+    t = '$NVAX - Novavax updated 2022 revenue guidance falls below consensus estimate'
     t = '$PRTY - Party City stock plummets after cutting full-year forecasts'  # although right when earnings
     t = '$QTWO - Q2 Holdings stock drops as macro headwinds dent year outlook, analysts cut'
     tweet = '$LYB - LyondellBasell paints a gloomy picture for current qtr, succumbing to high energy costs'
@@ -690,10 +715,6 @@ def guidance():
     t = '$OCUL - Ocular Therapeutix hits 52-week low after slashing revenue guidance'
     t = '$UIS - Unisys plunges 40% after guidance cut'   # earnings related but not linked
     t = '$LPSN - LivePerson stock rises 9% as more upsells, WildHealth outperformance drive upbeat outlook'
-
-# False positive
-tweet = '$SLNA - Hotel operator Selina stock plunges after rallying as high as 442% in prior session'  # mixed => plunge + rally, but not an earning
-tweet = '$FOLD - Amicus Therapeutics reports mixed Q3 earnings; updates FY22 guidance'
 
 def listing():
     t = '$NILE - BitNile receives NYSE American non-compliance notice'
@@ -729,6 +750,7 @@ def wins():
     t = '$APD - Air Products bags government funding for hydrogen energy complex in Alberta'
 
 def labor():
+    t = '$ZEN - Zendesk cuts ~300 jobs globally - SEC filing'
     t = '$X - U.S. Steel reaches tentative deal with steelworkers union, includes 5% base wage hike'
     t = '$META - Meta Platforms shares rise with big layoffs expected this week'
     t = '$RAMP - LiveRamp announces 10% workforce reduction, downsizes real estate footprint'
@@ -772,6 +794,7 @@ def bankruptcy():
     t = '$FSRD - Fast Radius announces Chapter 11 filing to complete its marketing and sale process'
 
 def offerings():
+    t = '$ZTS - Zoetis prices $1.35B senior note offering'
     t = '$HUM - Humana prices $1.23B debt offering'
     t = '$ROIV - Roivant Sciences stock dips on pricing stock offering'
     t = '$MRNS - Marinus Pharmaceuticals shares slide 18% on $60M securities offering'
@@ -787,7 +810,6 @@ def industry():
     t = '$SWBI $RGR $SPWH - Election day means traders are watching firearm-related stocks for any recoil action'
     t = '$RCL $CCL $NCLH - Cruise stocks push higher after positive report from Norwegian'
 
-# Neutral but important
-t = '$BEP $NEP $BEP.UN:CA - Brookfield Renewable to buy U.S.-based Scout Clean Energy in $1B deal'
+# Activism
 t = '$AIM - AIM Immunotech says court denies activist request on board nominees'
 
