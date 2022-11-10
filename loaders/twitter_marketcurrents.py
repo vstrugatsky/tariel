@@ -62,18 +62,17 @@ class Marketcurrents(TwitterAccount):
            \W(earnings|EPS|NII|FFO|EBITDA|result(s)?|estimates|sales|income|volume|profit(s)?|AUM|NAV|revenue(s)?|cash\ flow|booking(s)?|(top|bottom)\ ?line)
            \ (sees\ )?((\w+\W+){0,1})?
            (beat|boost|climb|exceed|gain|grow|increase|jump|rise|soar|surge|surpass|top)|
-           \W(high(er)?|strong|record|boosts|premium)\ (Q[1-4]\ )?((annual|adjusted|operating|organic)\ )?
+           \W(high(er)?|strong(er)?|record|boosts|premium)\ (Q[1-4]\ )?((annual|adjusted|operating|organic)\ )?
            (sales|earnings|EPS|NII|FFO|results|revenue|EBITDA|margin|demand|growth|profit|income|volume|pricing|consumption)|
            \W(top(s|ped|ping)|exceed(s|ed|ing))\ .*(forecast|estimate|consensus)|
-           \W(expenses|costs|loss)\ (plummet|improve|narrow)|
-           \W(low(er)?|less)\ (expenses|costs|outflows|loss)| 
+           \W(expenses|costs|outflows|loss)\ (plummet|improve|narrow)|
+           \W(low(er)?|less|small(er)?|improv(ed|ing))\ (expenses|costs|outflows|loss)| 
            \W(Q[1-4]\ )?beat(?!e)|
            \Wcrush(es)?\W|\Wstrength|\Wstrong\W|\Wimproved|\Wtailwind)
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):
             sentiments.append(i.groupdict()["positive_sentiment"].strip())
         return sentiments
-
 
     def parse_negative_earnings(self, tweet_text: str) -> [str or None]:
         sentiments: [str] = []
@@ -86,7 +85,7 @@ class Marketcurrents(TwitterAccount):
            \W(low(er)?|weak(er)?|missing|misse[sd]|disappointing|dismal)\ (Q[1-4]\ )?
            (sales|result|earnings|EPS|NII|TII|FFO|revenue|margin|demand|profit|income|volume|pricing|consumption|book\ value|PE\ return|bottom\ line)|
            \W(Q[1-4]|credit)\ (net\ )?(loss|miss)(?!\Wnarrows)|
-           \Wweak|\Wfall(s)?\ short|\Wheadwind|\Wdecline|\Wdelay|\Wcost\ overrun)
+           \Wweak\W|\Wfall(s)?\ short|\Wheadwind|\Wdecline|\Wdelay(ed)?\W|\Wcost\ overrun)
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):
             if i.groupdict()["negative_sentiment"].strip() not in sentiments:  # to eliminate 'weak' if say 'weaker demand' was already parsed
@@ -98,11 +97,11 @@ class Marketcurrents(TwitterAccount):
         p = re.compile(r'''
            (?P<positive_guidance>
            \W(forecast|guidance|outlook)\ (raise|boost|above|higher|hike|increase)|
-           \W(guide[sd]|guiding)\ .*((EPS|revenue|sales|income|outlook)\ .*)?(higher|above)|
+           \W(guide[sd]|guiding)\ .*((EPS|revenue|sales|income|outlook|growth|profit|margin)\ .*)?(higher|above)|
            \W(raise[sd]|sweeten(s)?|increase(s)?|hike(s)?|boost(s)?)[- ]((\w+\W+){0,5})?(guidance|outlook|forecast|guide)|
            \W(upbeat|upward\ revision|upper\ range|bullish|bright|strong|raising)[- ]((\w+\W+){0,3})?(guidance|outlook|forecast|guide)|
-           \W(expects|sees)\ (faster|higher|stronger|improv(ing|ed))\ ((\w+\W+){0,2})(growth|profit|sales|revenue|EPS|income|margin(s)?)|
-           \W(growth|profit|sales|revenue|EPS|income|margin(s)?)\ seen\ to\ (rise|improve)|
+           \W(expects|sees)\ (faster|higher|stronger|improv(ing|ed))\ ((\w+\W+){0,2})(EPS|revenue|sales|income|outlook|growth|profit|margin)|
+           \W(growth|profit|sales|revenue|EPS|income|margin(s)?)\ seen\ to\ (rise|improve|increase)|
            \Whigher\ (Q[1-4]|yearly|annual|quarterly|year)\ (guidance|outlook|forecast|guide)|
            \Whigh[ -]end\ of\ guidance)
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
@@ -115,11 +114,11 @@ class Marketcurrents(TwitterAccount):
         p = re.compile(r'''
            (?P<negative_guidance>
            \W(guidance|outlook|forecast)\ (widely\ )?(cut|slashed|trails|misses|lower(ed)?|below)|
-           \W(guide[sd]|guiding)\ .*((EPS|revenue|sales|income|outlook)\. .*)?(below|lower)|
+           \W(guide[sd]|guiding)\ .*((EPS|revenue|sales|income|outlook|growth|profit|margin)\. .*)?(below|lower)|
            \W(cut(s|ting)?|pull(s|ed)|lower(s|ed|ing)|slash(es|ed|ing))[- ]((\w+\W+){0,5})?(guidance|outlook|forecast|guide)|
            \W(dim|weak|soft|below|pared|lower|downward\ revision)[- ]((\w+\W+){0,3})?(guidance|outlook|forecast|guide)|
-           \W(expects|sees)\ (slower|lower|weaker)\ ((\w+\W+){0,2})(growth|profit|sales|revenue|EPS|income|margin(s)?)|
-           \W(growth|profit|sales|revenue|EPS|income|margin(s)?)\ seen to\ (fall|worsen)|
+           \W(expects|sees)\ (slower|lower|weaker)\ ((\w+\W+){0,2})(EPS|revenue|sales|income|outlook|growth|profit|margin)|
+           \W(EPS|revenue|sales|income|outlook|growth|profit|margin(s)?)\ seen to\ (fall|worsen|decrease)|
            \Wlow[ -]end\ of\ guidance)
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):

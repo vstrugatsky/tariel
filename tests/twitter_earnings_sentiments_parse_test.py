@@ -582,7 +582,7 @@ def test_parse_negative_sentiment():
     tweet = '$AWRE - Aware stock slides over 8% as macro headwinds, delayed orders weigh on results'  # results=earnings, - headwinds, weigh
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_negative_earnings(tweet)[0].lower() == 'headwind')
-    assert(account.parse_negative_earnings(tweet)[1] == 'delay')
+    assert(account.parse_negative_earnings(tweet)[1] == 'delayed')
     assert(not account.parse_positive_earnings(tweet))
 
     tweet = '$TECK $TECK.B:CA - Teck Resources tumbles as Q3 loss, cost overruns spark analyst downgrades'  # results = Q3 loss, - overrun
