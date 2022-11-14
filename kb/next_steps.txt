@@ -194,6 +194,28 @@ Parsing improvements:
 - support NT$ currency
 - support "outlook raised" as an indicator
 
+2022-Nov-14:
+Parsing improvements:
+- FYnn outlook
+- 2022 forecast
+- full-year outlook
+- record Q3 performance
+- record revenue
+- narrower loss
+- FY2022 outlook
+- Hungarian florins
+- Q3 collab/licensing revenue
+- Q4 guidance disappoints
+- sees softness in bookings
+- larger than expected loss
+- narrow-than-expected Q3 loss
+- mars Q3 results
+- tops earnings expectation
+- drives Q3 growth
+- missing Q3 expectations
+- slashing sales estimates
+
+
 Next steps:
 - cont. review before 2022-11-11 16:19
 - build fin data (industry, EPS, beta, earnings)

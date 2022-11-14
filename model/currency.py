@@ -13,6 +13,7 @@ class Currency:
         '£': 'GBP',
         'GBP': 'GBP',
         '¥': 'JPY',
+        'HUF': 'HUF',  # Hungarian florins
         'S$': 'SGD', # Singaporean dollar
         'SGD': 'SGD',
         'NT': 'TWD',
