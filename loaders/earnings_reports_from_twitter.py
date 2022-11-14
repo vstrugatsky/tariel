@@ -149,7 +149,7 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
 
         if er.positive_guidance:
             er.guidance_sentiment += len(er.positive_guidance)
-        elif er.negative_guidance:
+        if er.negative_guidance:
             er.guidance_sentiment -= len(er.negative_guidance)
 
         er.guidance_sentiment = min(er.guidance_sentiment, EarningsReport.max_guidance_sentiment)

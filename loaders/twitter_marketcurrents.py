@@ -38,7 +38,7 @@ class Marketcurrents(TwitterAccount):
            ((operating|adjusted|net)\ )?(report|earnings|EPS|NII|FFO|EBITDA|result|beat|miss|loss|revenue|profit|sales|sees)|
            \W(earnings|result|beat|miss|loss|decline|increase|revenue|profit|sales)\ (in\ )?(Q[1-4]|((first|second|third|fourth)[\ -]quarter))|
            \W(EPS|revenue)\ of|
-           \W(loss|profit)\ (widens|narrows)|\W(strong|wide|narrow)\ (profit|loss)|
+           \W(loss|profit|outlook)\ (widens|narrows|raise)|\W(strong|wide|narrow)\ (profit|loss)|
            \W(expenses|costs|outflows)\ (plummet|improve|jump|rise|rose|increase|climb)|
            \W(posts|after|reports)\ .*((un)?profit(s|able)?|earnings|margins|Q[1-4]|((first|second|third|fourth)[\ -]quarter))|
            \Wbeat|\Wmiss|\Wresults|\Wdrag\ earnings|(\Wsurpasses|\Wtop).+estimates)
@@ -49,7 +49,7 @@ class Marketcurrents(TwitterAccount):
         p = re.compile(r'''
            (?P<earnings_false_positive>
            \Wearnings\ preview|\?|\Whot\ stocks|\Wstocks\ to\ watch|\Wweek\ ahead|\Wday\ movers|\Wlikely\ to\ [beat|miss]|
-           \WQ[1-4]\ preview|
+           \WQ[1-4]\ preview|\Wgoes\ ex-dividend|
            \W(ahead\ of)\ .*(Q[1-4]|quarterly))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
@@ -66,8 +66,8 @@ class Marketcurrents(TwitterAccount):
            (sales|earnings|EPS|NII|FFO|results|revenue|EBITDA|margin|demand|growth|profit|income|volume|pricing|consumption)|
            \W(top(s|ped|ping)|exceed(s|ed|ing))\ .*(forecast|estimate|consensus)|
            \W(expenses|costs|outflows|loss)\ (plummet|improve|narrow)|
-           \W(low(er)?|less|small(er)?|improv(ed|ing))\ (expenses|costs|outflows|loss)| 
-           \W(Q[1-4]\ )?beat(?!e)|
+           \W(low(er)?|less|small(er)?|improv(ed|ing))\W(than\Wexpected\W)?(Q[1-4]\W)?(expenses|costs|outflows|loss)| 
+           \WQ[1-4]\ beat|beating\ Q[1-4]|
            \Wcrush(es)?\W|\Wstrength|\Wstrong\W|\Wimproved|\Wtailwind)
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):
@@ -78,13 +78,13 @@ class Marketcurrents(TwitterAccount):
         sentiments: [str] = []
         p = re.compile(r'''
            (?P<negative_sentiment>
-           \W(earnings|EPS|NII|TII|FFO|EBITDA|revenue(s?)|profit(s?)|result(s)?|(top|bottom)\ ?line|income|sales|volume|margins|AUM|NAV|asset\ value(s)?)
+           \W(earnings|EPS|NII|TII|FFO|EBITDA|revenue(s?)|profit(s?)|result(s)?|price(s)?|(top|bottom)\ ?line|income|sales|volume|margins|shipments|AUM|NAV|asset\ value(s)?)
            \ (slip(ped)?|slump(ed)?|slide|fall|fell|(just\ )?miss(ed)?|decline(d)?|plummet(ed)?|drop(ped)?|trail(ed)?|loss|disappoint(ed)?)|
            \W(high(er)?|widening|rising|rise\ in)\ (\w+\W)?(expense|costs|outflows|loss)|
            \W(expenses|costs|outflows|loss)\ (jump|rise|rose|increase|climb|widen)|
-           \W(low(er)?|weak(er)?|missing|misse[sd]|disappointing|dismal)\ (Q[1-4]\ )?
-           (sales|result|earnings|EPS|NII|TII|FFO|revenue|margin|demand|profit|income|volume|pricing|consumption|book\ value|PE\ return|bottom\ line)|
-           \W(Q[1-4]|credit)\ (net\ )?(loss|miss)(?!\Wnarrows)|
+           \W(low(er)?|weak(er)?|missing|misse[sd](\ on)?|disappointing|dismal)\ (Q[1-4]\ )?
+           (sales|result|earnings|EPS|NII|TII|FFO|revenue|margin|shipment|demand|profit|income|volume|pricing|consumption|book\ value|PE\ return|(top|bottom)\ ?line)|
+           (?<!smaller-than-expected)(?<!smaller)\W(Q[1-4]|credit)\ (net\ )?(loss|miss)(?!\Wnarrows)|
            \Wweak\W|\Wfall(s)?\ short|\Wheadwind|\Wdecline|\Wdelay(ed)?\W|\Wcost\ overrun)
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):

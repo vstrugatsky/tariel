@@ -185,9 +185,17 @@ Added tests and fixed nasty bug with mins and maximums
 2022-Nov-9:
 - serious parsing improvements with the negative lookahead and numer of words intros
 
+2022-Nov-13:
+Parsing improvements:
+- void false positive $BEAT
+- support 'prices drop'
+- support 'misses on top line'
+- support 'smaller-than-expected' reversing meaning
+- support NT$ currency
+- support "outlook raised" as an indicator
+
 Next steps:
-- improve parsing
-$GCI - Gannett rallies as record digital marketing revenue overshadows earnings miss
+- cont. review before 2022-11-11 16:19
 - build fin data (industry, EPS, beta, earnings)
 
 

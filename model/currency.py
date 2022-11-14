@@ -15,6 +15,8 @@ class Currency:
         '¥': 'JPY',
         'S$': 'SGD', # Singaporean dollar
         'SGD': 'SGD',
+        'NT': 'TWD',
+        'NT$': 'TWD', # New Taiwan Dollar
         '₹': 'INR',  # Indian rupee
         'SEK': 'SEK',  # swedish kroner
         'DKK': 'DKK',
