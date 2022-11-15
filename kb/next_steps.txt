@@ -215,6 +215,11 @@ Parsing improvements:
 - missing Q3 expectations
 - slashing sales estimates
 
+2022-Nov-14 #2 parsing improvements
+- quarterly loss
+- forecasts earnings below consensus
+- wider-than-expected loss
+
 
 Next steps:
 - cont. review before 2022-11-11 16:19

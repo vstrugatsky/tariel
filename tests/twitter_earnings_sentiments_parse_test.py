@@ -31,6 +31,9 @@ def test_parse_false_positive():
 def test_parse_earnings_indicator():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = "$IMNN - Imunon falls 4% on wider-than-expected loss"
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'wider-than-expected loss')
+
     tweet = "$SNDL - SNDL gains as cannabis retail drives Q3 growth"
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'Q3 growth')
 
@@ -292,6 +295,9 @@ def test_parse_positive_guidance():
 
 def test_parse_negative_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = '$PEG - PSEG forecasts 2023 earnings below Wall Street consensus'
+    assert (account.parse_negative_guidance(tweet)[0] == 'forecasts 2023 earnings below')
 
     tweet = '$OTLY - Oatly stock slides after missing Q3 expectations, slashing sales estimates'
     assert (account.parse_negative_guidance(tweet)[0] == 'slashing sales estimate')
@@ -560,6 +566,9 @@ def test_parse_positive_sentiment():
 def test_parse_negative_sentiment():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = "$FUV - Arcimoto falls after reporting another quarterly loss"
+    assert (account.parse_negative_earnings(tweet)[0] == 'quarterly loss')
+
     tweet = '$OTLY - Oatly stock slides after missing Q3 expectations, slashing sales estimates'
     assert (account.parse_negative_earnings(tweet)[0] == 'missing Q3 expectation')
 
@@ -752,6 +761,7 @@ def test_mixed_or_neutral():
 
 
 def acq():
+    t = "$WTFC - Wintrust to acquire North American asset management units from Rothschild &amp; Co"
     t = "$INVVY $OPNT $IZQVF - Opiant surges 123% as Indivior set to acquire overdose therapy maker for $145M"
     t = "$URI - United Rentals to acquire equipment rental firm Ahern Rentals in ~$2B cash deal"
     t = "$UUUU $EFR:CA - Energy Fuels to sell Alta Mesa ISR project in $120M deal"
@@ -869,6 +879,10 @@ def splits():
     t = "$AMPE - Ampio Pharmaceuticals to implement 1-for-15 reverse stock split"
     tweet = '$TMBR - Timber Pharmaceuticals announces 1-for-50 reverse stock split'
 
+def exec():
+  t = '$EVA - Enviva names Meth as next CEO; Keppler to become Executive Chairman'
+  t = "$DUOT - Duos Technologies names Andrew Murphy as CFO"
+
 def buyback():
     t = "$TRIN $TRINL - Trinity Capital announces $25M stock repurchase program"
     t = "$TMO - Thermo Fisher Scientific announces $4B stock buyback program"
@@ -937,6 +951,7 @@ def listing():
     t = "$UPC - Nasdaq notifies Universe Pharmaceuticals on regaining compliance with minimum price requirement"
 
 def wins():
+    t = "$STRL - Sterling Infrastructure unit gets $20M contract from US Customs &amp; Border Protection"
     t = "$BW - Babcock &amp; Wilcox secures over $42M upgrade and maintenance project"
     t = "$SAIC - Science Applications International wins $757M U.S. Army contract"
     t = "$NVEE - NV5 Global bags $15M cultural resources contract"
@@ -961,6 +976,7 @@ def wins():
     t = '$APD - Air Products bags government funding for hydrogen energy complex in Alberta'
 
 def labor():
+    t = "$FDX - FedEx to furlough freight workers through holiday season"
     t = '$META - Meta to cut 11,000 jobs, affirms revenue outlook'
     t = '$ZEN - Zendesk cuts ~300 jobs globally - SEC filing'
     t = '$X - U.S. Steel reaches tentative deal with steelworkers union, includes 5% base wage hike'
@@ -1038,6 +1054,8 @@ def insider():
     t = "$VTRS - DOJ, SEC charge Viatris executive with insider trading; co says he is on leave of absence"
 
 def offerings():
+    t = "$CRSR - Corsair Gaming slides ~10% after the bell on $75M stock offering"
+    t = "$DXR - Daxor tumbles 11% aftermarket on proposed stock offering"
     t = "$ESAB - ESAB launches underwritten offering of 6M shares"
     t = "$SRGA - Surgalign Holdings to raise $12M in direct stock offering"
     t = "$CDZI - Cadiz announces $10M direct placement"
@@ -1058,6 +1076,9 @@ def offerings():
 
 # Industry, auto peer detection
 def industry():
+    t = "$NAVI $SLM $NNI - Court keeps block on Biden's student loan debt forgiveness in place"
+    t = 'LII $JCI $WSO - U.S. shipments of heat pumps jumped 27% in September amid broader slump'
+    t = '$UNG $FCG $UNL - Natural gas trims gains as Freeport LNG likely to extend outage'
     t = "$BIIB $RHHBY $LLY - Cassava, Biogen lead Alzheimer's stocks higher following Roche's gantenerumab setback"
     t = "$EIX $SRE $PCG - Sunrun, others solars rip after California regulators lessen impact of solar subsidy rollback"
     t = "$KBH $TOL $PHM - Lennar, Pultegroup lead homebuilder stock surge after inflation pace slows"
@@ -1075,6 +1096,9 @@ def industry():
     t = '$ARKG $ARKQ $ARKW - SARK, the anti-Cathie Wood ETF, has returned over 100% in its first year of trading'
     t = '$SWBI $RGR $SPWH - Election day means traders are watching firearm-related stocks for any recoil action'
     t = '$RCL $CCL $NCLH - Cruise stocks push higher after positive report from Norwegian'
+
+def spac():
+    t = "$PRBM.U $PRBM $PRBMW - Energy harvesting firm EnOcean to go public via merger with SPAC Parabellum"
 
 # Activism
 t = '$AIM - AIM Immunotech says court denies activist request on board nominees'
