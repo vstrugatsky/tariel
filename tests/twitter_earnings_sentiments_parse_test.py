@@ -31,6 +31,21 @@ def test_parse_false_positive():
 def test_parse_earnings_indicator():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = "$HD - Home Depot hurdles Q3 expectations despite macro pressure, elevated inventory"
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'hurdles Q3 expectation')
+
+    tweet = "$ENR - Energizer gains after posting strong organic sales"
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'after posting strong organic sales')
+
+    tweet = '$TME - Tencent Music Entertainment jumps 30% on strong Q3 performance'
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'Q3 performance')
+
+    tweet = "$CWCO - Consolidated Water stock dips 16% as Q3 net income falls"
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'Q3 net income')
+
+    tweet = "$TTCF - Tattooed Chef shares tumbles about 15% on earnings disappointment, cash concerns"
+    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'earnings disappoint')
+
     tweet = "$IMNN - Imunon falls 4% on wider-than-expected loss"
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'].strip() == 'wider-than-expected loss')
 
@@ -122,6 +137,10 @@ def test_parse_earnings_indicator():
 
 def test_parse_combos():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = "$QUIK - QuickLogic trades down despite Q3 beat as revenue decreases Y/Y"
+    assert(account.parse_positive_earnings(tweet)[0] == 'Q3 beat')
+    assert(account.parse_negative_earnings(tweet)[0] == 'revenue decrease')
 
     tweet = '$BZH - Beazer Homes fiscal Q4 earnings top consensus even as selling prices drop'
     assert(account.parse_positive_earnings(tweet)[0] == 'earnings top')
@@ -220,6 +239,12 @@ def test_parse_combos():
 
 def test_parse_positive_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = "$BBWI - Bath &amp; Body Works soars after lifting profit guidance"
+    assert (account.parse_positive_guidance(tweet)[0] == 'lifting profit guidance')
+
+    tweet = "$AQUA - Evoqua Water rallies after solid earnings beat, guidance tops expectations"
+    assert(account.parse_positive_guidance(tweet)[0] == 'guidance tops')
 
     tweet = '$SFM - Sprouts Farmers Market stock surges on strong profit, sales forecasts'
     assert(account.parse_positive_guidance(tweet)[0] == 'strong profit, sales forecast')
@@ -355,6 +380,23 @@ def test_parse_negative_guidance():
 def test_parse_positive_sentiment():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = "$HUYA - Huya rises 32% on better-than-expected Q3 earnings"
+    assert (account.parse_positive_earnings(tweet)[0] == 'better-than-expected Q3 earnings')
+
+    tweet = '$EVTV - Envirotech Vehicles rises 9% on higher quarterly revenue'
+    assert (account.parse_positive_earnings(tweet)[0] == 'higher quarterly revenue')
+
+    tweet = "$SRAD - Sportradar soars after reporting first profit for U.S. business"
+    assert(account.parse_positive_earnings(tweet)[0] == 'first profit')
+
+    tweet = '$WKME - WalkMe rallies after 23% growth in subscription revenue leads earnings beat'
+    assert(account.parse_positive_earnings(tweet)[0] == '% growth')
+    assert(account.parse_positive_earnings(tweet)[1] == 'earnings beat')
+
+    tweet = '$NU - Nu Holdings stock jumps 13% as Q3 revenue beats consensus, earnings improve'
+    assert(account.parse_positive_earnings(tweet)[0] == 'revenue beat')
+    assert(account.parse_positive_earnings(tweet)[1] == 'earnings improve')
+
     tweet = "$MTTR - Matterport stock surges after record Q3 performance"
     assert(account.parse_positive_earnings(tweet)[0] == 'record Q3 performance')
 
@@ -441,7 +483,8 @@ def test_parse_positive_sentiment():
 
     tweet = '$TEX - Terex raised FY2022 EPS outlook range after 79% growth in Q3 and strong margins'  # Q3=earnings, raised, strong margins
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_positive_earnings(tweet)[0] == 'strong margin')
+    assert(account.parse_positive_earnings(tweet)[0] == '% growth')
+    assert(account.parse_positive_earnings(tweet)[1] == 'strong margin')
     assert(account.parse_positive_guidance(tweet)[0] == 'raised FY2022 EPS outlook')
     assert(not account.parse_negative_earnings(tweet))
 
@@ -559,12 +602,15 @@ def test_parse_positive_sentiment():
     tweet = '$AAPL - Apple results top forecasts as iPhone, services lead strong quarterly sales'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert (account.parse_positive_earnings(tweet)[0] == 'results top')
-    assert (account.parse_positive_earnings(tweet)[1] == 'strong')
+    assert (account.parse_positive_earnings(tweet)[1] == 'strong quarterly sales')
     assert (len(account.parse_positive_earnings(tweet)) == 2)
 
 
 def test_parse_negative_sentiment():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = "$KINS - Kingstone stock slips as inflationary pressure weigh on Q3 results; suspends dividend"
+    assert (account.parse_negative_earnings(tweet)[0] == 'weigh on Q3 result')
 
     tweet = "$FUV - Arcimoto falls after reporting another quarterly loss"
     assert (account.parse_negative_earnings(tweet)[0] == 'quarterly loss')
@@ -719,6 +765,10 @@ def test_parse_negative_sentiment():
 def test_mixed_or_neutral():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = '$ZIM - ZIM stock gains after earnings beat; analysts unfazed by downbeat guidance'
+    assert(account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert(account.parse_negative_guidance(tweet)[0] == 'downbeat guidance')
+
     tweet = '$NOV - Oilwell equipment and tech provider NOV posts mixed Q3'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(not account.parse_positive_earnings(tweet))
@@ -761,6 +811,19 @@ def test_mixed_or_neutral():
 
 
 def acq():
+    t = "$HQI - HireQuest to acquire franchises from executive search firm MRINetwork for $13.5M"
+    t = "$CW - Curtiss-Wright acquires UK firm Keronite for $35M"
+    t= "$ACN - Accenture to acquire data science company ALBERT"
+    t = "$BV - BrightView acquires South Carolina commercial landscaping firm"
+    t = "$AN $TRUE - AutoNation takes minority ownership stake in TrueCar"
+    t = "$EARI - EARI Beverage Group acquires Madre Agave"
+    t = "$VEGYF $CURUF $CUR:CA - Consolidated Uranium buys Virginia Energy Resources for C32.2M"
+    t = "$IOSP $EMNSF $ELMTY - Elementis may be seeing takeover interest - report"
+    t = "$SIEN - Norman Pessin reports at 5.7% stake in Sientra, stock climbs 10%"
+    t = "$EL $PPRUF $PPRUY - Estee Lauder agrees to acquire Tom Ford in $2.8B deal"
+    t = "$OSK - Oshkosh to acquire Italian manufacturing equipment firm Hinowa for €186M"
+    t = "$TINV - SPAC Tiga shareholders approve merger with dating app Grindr"
+    t = "$BG - UPL's Advanta Seeds and Bunge intends to acquire a 20% stake in SEEDCORP|HO"
     t = "$WTFC - Wintrust to acquire North American asset management units from Rothschild &amp; Co"
     t = "$INVVY $OPNT $IZQVF - Opiant surges 123% as Indivior set to acquire overdose therapy maker for $145M"
     t = "$URI - United Rentals to acquire equipment rental firm Ahern Rentals in ~$2B cash deal"
@@ -799,6 +862,8 @@ def mixed():
     t = "$DIS - Disney slips 7% as media side profits, revenue slip; subscribers top forecasts"
 
 def news_pos():
+    t = "$GRFX - Graphex Group stock jumps 24% amid filing related to graphite processing JV"
+    t = "$DIS - Disney World boosts prices as parks demand continues surge"
     t = "$PDSB - PDS Biotech surges 22% as drug shows response in cervical cancer patients in phase 2 trial"
     t = "$PANW - Palo Alto Networks pops after Loop Capital upgrade"
     t = "$AZN $VTRS - Viatris wins court decision on AstraZeneca Symbicort patent"
@@ -823,6 +888,11 @@ def news_pos():
     t = '$ORGS - Orgenesis jumps 26% on $50M investment from Metalmark Capital'
 
 def news_neg():
+    t = "$ZI - lZoomInfo plunges 25% as fears grow over cloud-software company's sales outlook"
+    t = "$JPM - JPMorgan Chase credit card net charge-offs, delinquencies tick up in October"
+    t = "$COF - Capital One stock falls as credit losses rise; BofA downgrades to Neutral"
+    t = "$THO $WGO $LCII - Winnebago drops sharply after warning on near-term softening of RV market"
+    t = "$C - Citibank credit card delinquency, charge-off rates continue rising in October"
     t = "$SNAL - Game developer Snail stock tumbles 55% following downsized $15M IPO"
     t = "$ASPI $SNAL - ASP Isotopes stock drops 32% following downsized $5M IPO"
     t = "$MMM $DD - 3M, Dupont sued by California AG over toxic 'forever chemicals'"
@@ -859,31 +929,56 @@ def news_neg():
     t = "$WKHS - Workhorse stock sinks on wider than expected loss"
 
 def dividends():
+    t = "$BRMK - Broadmark Realty stock slumps after dividend slashed to cover distributable EPS"
+    t = "$MLGF - Malaga Financial declares special 5% year-end stock dividend"
+    t = "$SYZLF $SYZ:CA - Sylogist cuts dividend by 92% to C$0.01/share"
+    t = "$OCSL - Oaktree Specialty Lending raises quarterly dividend by 5.9%"
+    t = "$KINS - Kingstone stock slips as inflationary pressure weigh on Q3 results; suspends dividend"
     t = "$MAR - Marriott raises dividend by 33.3% to $0.40/share, boosts share buyback plan"
     tweet = '$TAIT - Taitron Components raises dividend by 11% to $0.05'  # +, raises dividend
     t = '$ABC - AmerisourceBergen increases dividend by ~5%'
     tweet = '$ZION - Zions declares $0.41 dividend, approves up to $50M buyback'  # + buyback
     tweet = 'Wells Fargo Multi-Sector Income Fund lowers dividend by 4.1%'  # -, lowers dividend
     tweet = '$FTAI - Fortress Transportation dividend declines by 10% to $0.30'  # - dividend declines
+    t = "$HQH - Tekla Healthcare Investors declines quarterly dividend by -2.5% to $0.39/share"
+    t = "$OLY:CA - Olympia Financial Group raises monthly cash dividend by 29%"
     t = '$ETO - Eaton Vance Tax-Advantaged Global Dividend Opportunities Fund dividend declines by 23.3% to $0.1374'
     t = '$CRF - Cornerstone Total Return Fund reduces monthly dividend'
+    t = '$FLGMF $MHC.UN:CA - Flagship Communities Real Estate Investment Trust decreases dividend by ~92%'
     t = "National Research Corporation slashes dividend to $0.12"
     t = "$HVT - Haverty Furniture declares $0.28 quarterly, $1 special dividend"
 
 def splits():
+    t = "$SNES - SenesTech shoots 120% on reverse stock split"
     t = "$KTRA - Kintara Therapeutics to effect 1-for-50 reverse stock split"
     t = "$TRVN - Trevena slides 18% after the bell on 1-for-25 reverse stock split"
     t = '$KERN - Akerna announces 20-for-1 reverse stock split; shares down 19%'
     t = '$ONCS - OncoSec stock plummets 26% on 1-for-22 reverse stock split'
     t = '$BBLN - Babylon to execute 1-for-25 reverse share split'
     t = "$AMPE - Ampio Pharmaceuticals to implement 1-for-15 reverse stock split"
-    tweet = '$TMBR - Timber Pharmaceuticals announces 1-for-50 reverse stock split'
+    t = '$TMBR - Timber Pharmaceuticals announces 1-for-50 reverse stock split'
 
 def exec():
-  t = '$EVA - Enviva names Meth as next CEO; Keppler to become Executive Chairman'
-  t = "$DUOT - Duos Technologies names Andrew Murphy as CFO"
+    t = "$MOG.A $MOG.B - Moog CEO John Scannell to retire"
+    t = "$SGA - Saga Communications taps new CEO to lead after founder's death"
+    t = "$CURO - CURO Group names Doug Clark as new CEO"
+    t = "$SFLM - SFLMaven appoints new key person and to divest its operating subsidiary, SFLMaven of Florida"
+    t = "$ENDMF $ENDR:CA - Enduro Metals names new president"
+    t = "$GGAZF - Goldgroup Mining announces CEO departure"
+    t = "$OBGRF $OGD:CA - Eric Alexandre to step down from helm of Orbit Garant Drilling"
+    t = "$TSSI - TSS trades lower after Q3 results, CEO departure announcement"
+    t = "$TER - Teradyne appoints CEO"
+    t = "$QSR $QSR:CA - Patrick Doyle joins Restaurant Brands as executive chairman"
+    t = "$MCG - Membership Collective CEO steps down"
+    t = '$EVA - Enviva names Meth as next CEO; Keppler to become Executive Chairman'
+    t = "$DUOT - Duos Technologies names Andrew Murphy as CFO"
 
 def buyback():
+    t = "$FUSB - First US Bancshares extends stock buyback program"
+    t = "$DFS - Discover Financial stock perks up after stock buyback program resumes"
+    t = "$OSG - Overseas Shipholding Group climbs 6% on share repurchase"
+    t = "$GPI - Group 1 Automotive raises buyback authorization, dividend"
+    t = "$CUEN - Cuentas stock rallies as company proposes buyback plan"
     t = "$TRIN $TRINL - Trinity Capital announces $25M stock repurchase program"
     t = "$TMO - Thermo Fisher Scientific announces $4B stock buyback program"
     t = "$UCBI - United Community Banks declares $0.22 dividend and authorizes $50M buyback"
@@ -907,6 +1002,9 @@ def buyback():
 t = '$TWTR $DWAC - Trump SPAC Digital World surges 24% as former President suggests he might run in 2024'
 
 def guidance():
+    t = "$SHLS - Shoals sizzles after raising low end of revenue guidance; Northland upgrades"
+    t = "$POWW - Ammo stock plummets 26% as outlook cut, proxy contest linked expenses to continue"
+    t = "$ONON - On Holding stock slides despite hiking sales outlook"
     t = "$BRLT - Brilliant Earth stock slumps after sales forecast falls short of expectations"
     t = "$COOK - Traeger stock tumbles on underdone guidance"
     t = '$MQ - Marqeta expects slower Q4 revenue growth, while EBITDA margin seen to improve'
@@ -926,6 +1024,9 @@ def guidance():
     t = '$LPSN - LivePerson stock rises 9% as more upsells, WildHealth outperformance drive upbeat outlook'
 
 def listing():
+    t = "$MOXC - Moxian (BVI) gets non-compliance from Nasdaq regarding minimum bid price"
+    t = "$MF - Missfresh once again in compliance with Nasdaq filing rules"
+    t = "$ARAV - Aravive regains compliance with Nasdaq minimum bid price requirement"
     t = "$STRY - NYSE notifies Starry of non-compliance with minimum bid price requirement"
     t = "$NLSP - NLS Pharma rises 9% on approval from Nasdaq to continue listing"
     t = "$QNGY - Quanergy Systems intends to appeal NYSE's delisting decision"
@@ -951,6 +1052,18 @@ def listing():
     t = "$UPC - Nasdaq notifies Universe Pharmaceuticals on regaining compliance with minimum price requirement"
 
 def wins():
+    t = "$GD - General Dynamics awarded $181.98M contract by Navy"
+    t = "$BAESF - BAE Systems awarded $153.74M modification contract"
+    t = "HEXO $ETRGF $ENTG:CA - Hexo signs 3-year cannabis supply deal with Entourage Health"
+    t = "$SMID - Smith-Midland gets $7.7M contract from North Carolina Dept of Transportation"
+    t = "$DARE - Daré gets Gates Foundation grant to develop Hydrogel tech for use in vaginal health"
+    t = "$TYL - Tyler Technologies bags $54M agreement for US Department of State"
+    t = "$CVEO - Civeo gets five-year contract renewal for integrated services in Australia"
+    t = "$GVA - Granite JV bags more contracts for bridge rehabilitation project in Sacramento"
+    t = "$FAMI - Farmmi secures high-volume order for export to Guam"
+    t = "$TEDU - Tarena International gets added in China's list of approved education providers"
+    t = "$CYN - Cyngn shares surges on signing contract to deploy autonomous industrial vehicles for U.S. Continental"
+    t = "$BEEM - Beam Global gets a $29.4M order from TechFlow"
     t = "$STRL - Sterling Infrastructure unit gets $20M contract from US Customs &amp; Border Protection"
     t = "$BW - Babcock &amp; Wilcox secures over $42M upgrade and maintenance project"
     t = "$SAIC - Science Applications International wins $757M U.S. Army contract"
@@ -976,6 +1089,9 @@ def wins():
     t = '$APD - Air Products bags government funding for hydrogen energy complex in Alberta'
 
 def labor():
+    t = "$TCEHY - Tencent reportedly begins new round of layoffs"
+    t = "$ILMN - Illumina to shed 5% of global headcount"
+    t = "$TCDA - Tricida to lay off ~60% of employees following strategic review announcement"
     t = "$FDX - FedEx to furlough freight workers through holiday season"
     t = '$META - Meta to cut 11,000 jobs, affirms revenue outlook'
     t = '$ZEN - Zendesk cuts ~300 jobs globally - SEC filing'
@@ -983,7 +1099,16 @@ def labor():
     t = '$META - Meta Platforms shares rise with big layoffs expected this week'
     t = '$RAMP - LiveRamp announces 10% workforce reduction, downsizes real estate footprint'
 
+def patent():
+    t = "$BEAT - HeartBeam receives patent for ECG smartwatch for detection of heart attacks"
+
 def pharma_pos():
+    t = "$PFE $DSKYF $DSNKY - Daiichi Sankyo mRNA COVID vaccine meets main goal in trial as booster shot"
+    t = "$RHHBY $IMGN $RHHBF - Roche's Ventana test gets FDA approval for use with ovarian cancer drug Elahere"
+    t = "$RHHBY $RHHBF - Roche monkeypox test authorized by US FDA"
+    t = "$ANIP - ANI Pharmaceuticals launches generic antibiotic trimethoprim with FDA approval in bag"
+    t = "$ABBV - AbbVie's migraine med Ubrelvy approved in Canada"
+    t = "$INBX - Inhibrx's drug for rare bone cancer shows promise in ongoing phase 1 study"
     t = "$LUMO - Lumos growth hormone deficiency candidate meets expectations in mid-stage trials"
     t = "$PLX - Protalix stock rises on on FDA refiling for Fabry disease drug PRX–102"
     t = "$INMB - INmune receives green signal from Canada to begin trial of XPro1595 in mild Alzheimer’s Disease"
@@ -1036,6 +1161,8 @@ def pharma_pos():
     t = "$RETA - Reata rises 15% as omaveloxolone moves ahead in FDA review process; plans EU filing"
 
 def pharma_neg():
+    t = "$STSA - Satsuma cut to neutral at Mizuho following migraine drug failure"
+    t = "$MNPR - Monopar stock falls 20% amid preliminary phase 1 data for cancer drug camsirubicin"
     t = "$BIIB $RHHBY $ESALY - Roche faces another setback in Alzheimer's as gantenerumab fails 2 phase 3 trials"
     t = "$SLS - SELLAS falls 39% on delay for key milestone for cancer drug"
     t = "$BMRN $ASND - Ascendis falls after reporting Phase 2 data for achondroplasia candidate"
@@ -1048,12 +1175,30 @@ def pharma_neg():
     t = "$OMER - Omeros downgraded at Bank of America after FDA snub for narsoplimab appeal"
 
 def bankruptcy():
+    t = "$FSRD - Cloud manufacturing firm Fast Radius slides after establishing timeline for Chapter 11 sale process"
     t = '$FSRD - Fast Radius announces Chapter 11 filing to complete its marketing and sale process'
 
 def insider():
+    t = "$NN - NextNav's executive leaders sell ~796,000 shares"
     t = "$VTRS - DOJ, SEC charge Viatris executive with insider trading; co says he is on leave of absence"
 
 def offerings():
+    t = "$DZSI - DZS falls 8% after hours on proposed stock offering"
+    t = "$ECVT - Ecovyst prices upsized 17.5M secondary offering at $8.25/share"
+    t = "$CRSR - Corsair Gaming slides after pricing $75M stock offering"
+    t = "$ENV - Envestnet prices upsized $500M convertible notes offering"
+    t = "$DXR - Daxor to raise $2M in stock offering"
+    t = "$CSWC - Capital Southwest dips after pricing ~$38.2M stock offering"
+    t = "$CMNDF - Psychedelic drug developer Clearmind stock slides following uplisting, $8M offering"
+    t = "$DNA - Ginkgo Bioworks falls over 5% postmarket on $100M stock offering"
+    t = "$ASLE - AerSale dips 5% after hours on secondary stock offering"
+    t = "$CCL $CUK - Carnival stock slides 11% after the bell on $1B senior note offering"
+    t = "$CCL $CUK $CUKPF - Carnival Corporation shares slide on pricing $1B debt offering for refinancing 2024 maturities"
+    t = "$URI - United Rentals to raise $1.5B of 6.00% senior secured notes due 2029 in a private offering"
+    t = "$OKE - ONEOK prices $750M senior notes offering"
+    t = "$WOLF $BWA - Wolfspeed dips on $1.3B convertible notes offering"
+    t = "$LAUR - Laureate Education dips on stock offering by sellers"
+    t = "$BKD - Brookdale Senior Living dips on offering of tangible equity unit"
     t = "$CRSR - Corsair Gaming slides ~10% after the bell on $75M stock offering"
     t = "$DXR - Daxor tumbles 11% aftermarket on proposed stock offering"
     t = "$ESAB - ESAB launches underwritten offering of 6M shares"
@@ -1076,6 +1221,13 @@ def offerings():
 
 # Industry, auto peer detection
 def industry():
+    t = "$TGT $MAT $HAS - Toy stocks slump after Target warns holiday season demand could disappoint"
+    t = "$AMZN $TDOC $HIMS - Amazon Clinic seen putting pressure on telehealth providers Him &amp; Hers Health, Teladoc"
+    t = "$SQM $ALB $LAC - Lithium stocks slammed on talk of Chinese cutbacks, negative analyst note"
+    t = "$SPWR $FSLR $TAN - Sunrun leads solar stocks higher as Deutsche Bank lauds strong U.S. presence"
+    t = "$THO $WGO $LCII - Winnebago drops sharply after warning on near-term softening of RV market"
+    t = "$DSX $EGLE $GOGL - Golden Ocean drags down shipping stocks after soft Q3 results"
+    t = "$AMD $INTC $STX - Micron leads semiconductors lower as new capex cuts set to come next year"
     t = "$NAVI $SLM $NNI - Court keeps block on Biden's student loan debt forgiveness in place"
     t = 'LII $JCI $WSO - U.S. shipments of heat pumps jumped 27% in September amid broader slump'
     t = '$UNG $FCG $UNL - Natural gas trims gains as Freeport LNG likely to extend outage'
@@ -1098,8 +1250,17 @@ def industry():
     t = '$RCL $CCL $NCLH - Cruise stocks push higher after positive report from Norwegian'
 
 def spac():
+    t = "$NWTN - Dubai-based EV maker NWTN stock tumbles for second day following SPAC merger"
+    t = "$MJWL $OTEC $OTECU - Majic Wheels to merge with SPAC OceanTech Acquisitions in $200M deal"
     t = "$PRBM.U $PRBM $PRBMW - Energy harvesting firm EnOcean to go public via merger with SPAC Parabellum"
 
-# Activism
-t = '$AIM - AIM Immunotech says court denies activist request on board nominees'
+def activist():
+    t = "$MMM - 3M viewed as potential activist target after 13F filing"
+    t = '$AIM - AIM Immunotech says court denies activist request on board nominees'
+
+def ipo():
+    t = "$ACRV - Acrivon stock rises modestly following $94M IPO, shares price below range"
+
+def short():
+    t = "$TWST - Twist Biosciences plunges 26% after new short report from Scorpion Capital"
 

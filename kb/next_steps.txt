@@ -220,6 +220,27 @@ Parsing improvements:
 - forecasts earnings below consensus
 - wider-than-expected loss
 
+2022-Nov-16 parsing improvements
+- earnings improve
+- guidance tops
+- % growth
+- first profit
+- earnings disappoint
+- weigh on results
+- net income
+- Q3 performance
+- higher quarterly revenue
+- better-than-expected Q3 earnings
+- excess inventory
+- after posting strong sales
+- hurdles Q3 expectations
+- lifting profit guidance
+- as revenue decreases
+- downbeat guidance
+
+Mis-characterized as earnings: $SI - Silvergate Capital stock slides as Morgan Stanley slashes 2023 EPS estimate by 51%
+Mis-characterized as earnings: $PVBC $BTC-USD - Provident Bancorp stock plunges as it estimates Q3 loss sparked by crypto slump
+
 
 Next steps:
 - cont. review before 2022-11-11 16:19
