@@ -1,6 +1,6 @@
 set search_path = 'tariel';
 drop type if exists event_type;
-create type event_type as enum ('Earnings Report', 'Guidance', 'Dividend', 'Split');
+create type event_type as enum ('Earnings_Report', 'Guidance', 'Dividend', 'Split');
 
 drop table if exists events;
 create table events(
