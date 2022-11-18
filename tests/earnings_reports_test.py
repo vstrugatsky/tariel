@@ -146,6 +146,20 @@ def test_eliminate_spurious_symbols_ALK_SKYW_DAL():
         assert('DAL' in eliminated_symbols)
 
 
+def test_eliminate_spurious_symbols_H_HLUKF():
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    with model.Session() as session:
+        symbols = {}
+        tweet = "$H $HLUKF - H. Lundbeck A/S Non-GAAP EPS of DKK0.69, revenue of DKK4.72M https://t.co/bjqIObMiXU"
+        tweet_desc = "H. Lundbeck A/S : Q3 Non-GAAP EPS of DKK0.69.Revenue of DKK4.72M (+17.7% Y/Y)."
+        symbols['H'] = Symbol.get_unique_by_ticker_and_country(session, 'H', 'US')
+        symbols['HLUKF'] = Symbol.get_unique_by_ticker_and_country(session, 'HLUKF', 'US')
+
+        retained_symbols, eliminated_symbols = loader.eliminate_spurious_symbols(session, tweet, tweet_desc, symbols)
+        assert('HLUKF' in retained_symbols)
+        assert('H' in eliminated_symbols)
+
+
 def test_eliminate_spurious_symbols_NVZMF_NVZMY():
     loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
     with model.Session() as session:

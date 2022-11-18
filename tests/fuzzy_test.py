@@ -2,7 +2,7 @@ from fuzzywuzzy import fuzz
 
 
 def test_ratios():
-    function = fuzz.ratio
+    function = fuzz.token_set_ratio
     print(function.__name__)
     tweet = '$PREKF $PSK:CA - PrairieSky Royalty FFO of C$0.52, revenue of C$154.7M https://t.co/vvv1gDxLk7'
     name = 'SPDR ICE Preferred Securities ETF'
@@ -42,6 +42,12 @@ def test_ratios():
     print(f'TM rаtio= {function(name, tweet)}')
     name = 'TOYOTA MOTOR CORP ORD'
     print(f'TOYOF rаtio= {function(name, tweet)}')
+
+    tweet = "$H $HLUKF - H. Lundbeck A/S Non-GAAP EPS of DKK0.69, revenue of DKK4.72M https://t.co/bjqIObMiXU"
+    name = "Hyatt Hotels Corporation"
+    print(f'H rаtio= {function(name, tweet)}')
+    name = "H LUNDBECK A/S"
+    print(f'HLUKF rаtio= {function(name, tweet)}')
 
     tweet = '$XOM $DVN $CVX - Devon Energy Q3 preview: Another earnings beat expected https://t.co/PTHbpmxCOF'
     name = 'Chevron Corporation'

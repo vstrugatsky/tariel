@@ -238,6 +238,12 @@ Parsing improvements:
 - as revenue decreases
 - downbeat guidance
 
+2022-Nov-17:
+- upbeat Q3
+- revenue tumble
+- boost to bottom line guide
+- beating Q3 consensus
+
 Mis-characterized as earnings: $SI - Silvergate Capital stock slides as Morgan Stanley slashes 2023 EPS estimate by 51%
 Mis-characterized as earnings: $PVBC $BTC-USD - Provident Bancorp stock plunges as it estimates Q3 loss sparked by crypto slump
 
