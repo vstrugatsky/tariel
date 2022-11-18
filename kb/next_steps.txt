@@ -244,6 +244,9 @@ Parsing improvements:
 - boost to bottom line guide
 - beating Q3 consensus
 
+2022-Nov-17 #2:
+- db, model and tests for new Event, EventSymbol and ER
+
 Mis-characterized as earnings: $SI - Silvergate Capital stock slides as Morgan Stanley slashes 2023 EPS estimate by 51%
 Mis-characterized as earnings: $PVBC $BTC-USD - Provident Bancorp stock plunges as it estimates Q3 loss sparked by crypto slump
 
