@@ -247,6 +247,21 @@ Parsing improvements:
 2022-Nov-17 #2:
 - db, model and tests for new Event, EventSymbol and ER
 
+2022-Nov-18:
+- False negative: retail sales
+- cautious outlook
+- False delayed
+- non-greedy number of words matching with {0,3}?
+- prevention of low/lower as/on
+- revenues expected to grow
+- sees Q1 result above estimates
+
+2022-Nov-18 #2:
+- split LoadFromTwitter into LoadEvents, LoadGuidance, and LoadER - super major refactor
+
+Next steps:
+- parsing strategy, testing
+
 Mis-characterized as earnings: $SI - Silvergate Capital stock slides as Morgan Stanley slashes 2023 EPS estimate by 51%
 Mis-characterized as earnings: $PVBC $BTC-USD - Provident Bancorp stock plunges as it estimates Q3 loss sparked by crypto slump
 

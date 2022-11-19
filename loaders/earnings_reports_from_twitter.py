@@ -238,7 +238,7 @@ class LoadEarningsReportsFromTwitter(LoaderBase):
         if not cashtags:
             return
 
-        if account.parse_earnings_false_positive(tweet_text):
+        if account.parse_false_positive(tweet_text):
             print(f'INFO false positive detected')
             return
         parsed_earnings = loader.parse_earnings_numbers(tweet_text)

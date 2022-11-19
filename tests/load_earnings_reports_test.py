@@ -124,7 +124,7 @@ def test_two_positive_numbers_mixed_sentiment():
         er = LoadEarningsReportsFromTwitter.load(tweet_1, session, {'loader': loader})
         assert er
         assert (er.positive_earnings == ['earnings beat'])
-        assert (er.negative_earnings == ['weak'])
+        assert (er.negative_earnings == ['weak near-term OLED demand'])
         assert (er.eps_surprise is None)
         assert (er.revenue_surprise is None)
         assert (er.earnings_sentiment == 0)
@@ -135,5 +135,5 @@ def test_two_positive_numbers_mixed_sentiment():
         assert (str(round(er.eps_surprise, 2)) == '0.14')
         assert (str(er.revenue_surprise) == '13610000')
         assert (er.positive_earnings == ['earnings beat'])
-        assert (er.negative_earnings == ['weak'])
+        assert (er.negative_earnings == ['weak near-term OLED demand'])
         assert (er.earnings_sentiment == 2)

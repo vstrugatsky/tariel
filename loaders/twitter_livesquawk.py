@@ -13,7 +13,7 @@ class Livesquawk(TwitterAccount):
     def parse_earnings_indicator(self, tweet_text: str):
         pass
 
-    def parse_earnings_false_positive(self, tweet_text: str):
+    def parse_false_positive(self, tweet_text: str):
         pass
 
     def parse_positive_earnings(self, tweet_text: str):

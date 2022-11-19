@@ -19,6 +19,7 @@ class JobType(enum.Enum):
     Splits = 3
     EarningsReports = 4
     MarketDaily = 5
+    Events = 6
 
 
 class Job(model.Base):

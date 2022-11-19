@@ -76,7 +76,7 @@ class Event(model.Base):
             -> Optional[Event]:
         er: Optional[Event] = None
         for key in symbols:
-            er = Event.get_unique(session, symbol=symbols[key], event_type=event_type, report_date=report_date)
+            er = Event.get_unique(session, symbol=symbols[key], event_type=event_type, event_date=report_date)
             if er:
                 break
         return er
@@ -94,8 +94,14 @@ class Event(model.Base):
 
 
 class ER(Event):
+    max_earnings_sentiment = 2
     __mapper_args__ = {"polymorphic_identity": EventType.Earnings_Report}
     eps = Column('er_eps', Numeric)
     eps_surprise = Column('er_eps_surprise', Numeric)
     revenue = Column('er_revenue', BigInteger)
     revenue_surprise = Column('er_revenue_surprise', BigInteger)
+
+
+class Guidance(Event):
+    max_guidance_sentiment = 2
+    __mapper_args__ = {"polymorphic_identity": EventType.Guidance}

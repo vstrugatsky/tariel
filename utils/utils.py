@@ -19,3 +19,12 @@ class Utils:
             return float(amount)
         else:
             return round(float(amount) * scale.get(uom.upper()))
+
+    @staticmethod
+    def update_list_without_dups(existing_list: [], new_list: []) -> []:
+        if not existing_list:
+            return new_list
+        elif new_list:
+            return list(set(existing_list + new_list))
+        else:
+            return existing_list
