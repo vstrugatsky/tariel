@@ -259,6 +259,9 @@ Parsing improvements:
 2022-Nov-18 #2:
 - split LoadFromTwitter into LoadEvents, LoadGuidance, and LoadER - super major refactor
 
+2022-Nov-19 #1:
+- cleaned up guidance regexes
+
 Next steps:
 - parsing strategy, testing
 

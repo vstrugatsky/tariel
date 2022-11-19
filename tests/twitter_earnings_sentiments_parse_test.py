@@ -26,7 +26,7 @@ def test_parse_false_positive():
     tweet = '$MAIN - Main Street Capital likely to go up after Q3 results on revenue beat, stronger capital position'
     assert (not account.parse_false_positive(tweet))
 
-    tweet = '$MF - Missfresh regains compliance with Nasdaq minimum bid price requirement'
+    tweet = '$MF - Missfresh regains compliance with Nasdaq minimum bid price requirement'  # miss in name
     assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$SDIG - Stronghold Digital Mining reports mixed Q3 earnings; initiates FY23 guidance'  # strong in the name :)

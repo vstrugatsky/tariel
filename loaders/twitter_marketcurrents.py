@@ -101,16 +101,16 @@ class Marketcurrents(TwitterAccount):
         sentiments: [str] = []
         p = re.compile(r'''
            (?P<positive_guidance>
-           \W(forecast|guidance|outlook)\ (raise|boost|above|higher|hike|increase|top[s|ped])|
-           \W(guide[sd]|guiding|sees)\ .*((EPS|revenue|sales|income|outlook|growth|profit|result|margin|(top|bottom)[-\ ]line)\ .*)?(higher|above)|
+           \W(forecast|guidance|outlook|guide)\ (raise|boost|above|higher|hike|increase|lift|sweeten|top[s|ped])|
+           \W(guide[sd]|guiding|sees|forecasts)\ .*((EPS|revenue|sales|income|outlook|growth|profit|result|margin|(top|bottom)[-\ ]line)\ .*)?(higher|above)|
            \W(rais(es|ed|ing)|sweeten(s|ed|ing)|lift(s|ed|ing)|increas(es|ed|ing)|hik(es|ed|ing)|boost(s|ed|ing)?)[- ]
-           ((\w+\W+){0,5})?(guidance|outlook|forecast|guide)|
-           \W(upbeat|upward\ revision|upper\ range|bullish|bright|strong|raising)[- ]((\w+\W+){0,3})?(guidance|outlook|forecast|guide)|
-           \W(expects|sees)\ (faster|higher|stronger|improv(ing|ed))
-           \ ((\w+\W+){0,2})(EPS|revenue|sales|income|outlook|growth|profit|margin(top|bottom)[-\ ]line)|
-           \W(growth|profit|sales|revenue(s)?|EPS|income|(top|bottom)[-\ ]line|margin(s)?)\ (seen|expected)\ to\ (rise|grow|improve|increase)|
-           \Whigher\ (Q[1-4]|yearly|annual|quarterly|year)\ (guidance|outlook|forecast|guide)|
-           \Whigh[ -]end\ of\ guidance)
+           ((\w+\W+){0,5})?(guidance|outlook|forecast|guide|estimate)|
+           \W(upbeat|upward\ revision|upper[\ -]range|bullish|bright|strong|above[\ -]consensus|higher|high[\ -]end)[- ]
+           ((\w+\W+){0,3})?(guidance|outlook|forecast|guide)|
+           \W(expects|sees)\ (faster|higher|strong(er)?|improv(ing|ed))
+           \ ((\w+\W+){0,2})(EPS|revenue|sales|income|outlook|growth|profit|result|margin(top|bottom)[-\ ]line)|
+           \W(growth|profit|sales|result(s)?|revenue(s)?|EPS|income|(top|bottom)[-\ ]line|margin(s)?)
+           \ (seen|expected)\ to\ (rise|grow|improve|increase))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):
             sentiments.append(i.groupdict()["positive_guidance"].strip())
@@ -120,13 +120,13 @@ class Marketcurrents(TwitterAccount):
         sentiments: [str] = []
         p = re.compile(r'''
            (?P<negative_guidance>
-           \W(guidance|outlook|forecast)\ (widely\ )?(cut|slashed|trails|misses|disappoint|lower(ed)?|below)|
-           \W(guide[sd]|guiding|forecasts)\ .*((EPS|earnings|revenue|sales|income|outlook|growth|profit|margin|(top|bottom)[-\ ]line)\. .*)?(below|lower)|
-           \W(cut(s|ting)?|pull(s|ed|ing)|lower(s|ed|ing)|slash(es|ed|ing))[- ]((\w+\W+){0,5})?(guidance|outlook|forecast|guide|estimate|expectation)|
-           \W(dim|weak|soft|cautious|below|pared|lower|downbeat|disappoint(ing)?|downward\ revision)[- ]((\w+\W+){0,3})?(guidance|outlook|forecast|guide)|
-           \W(expects|sees)\ (slower|lower|weaker|soft(ness)?)\ ((\w+\W+){0,2})(EPS|revenue|sales|income|outlook|growth|profit|margin|bookings)|
-           \W(EPS|revenue|sales|income|outlook|growth|(top|bottom)[-\ ]line|profit|margin(s)?)\ seen to\ (fall|worsen|decrease)|
-           \Wlow[ -]end\ of\ guidance)
+           \W(guidance|outlook|forecast|guide)\ (widely\ )?(cut|slashed|trails|misses|disappoint|lower(ed)?|below)|
+           \W(guide[sd]|guiding|sees|forecasts)\ .*((EPS|earnings|revenue|sales|income|outlook|growth|profit|margin|(top|bottom)[-\ ]line)\. .*)?(below|lower)|
+           \W(cut(s|ting)?|pull(s|ed|ing)|lower(s|ed|ing)|slash(es|ed|ing))[- ]((\w+\W+){0,5})?(guidance|outlook|forecast|guide|estimate)|
+           \W(dim|weak|soft|cautious|below[\ -]consensus|pared|bearish|lower|low[\ -]end|downbeat|disappoint(ing)?|downward\ revision)[- ]
+           ((\w+\W+){0,3})?(guidance|outlook|forecast|guide)|
+           \W(expects|sees)\ (slow(er)?|low(er)?|weak(er)?|soft(ness|er)?)\ ((\w+\W+){0,2})(EPS|revenue|sales|income|outlook|growth|profit|margin|bookings)|
+           \W(EPS|revenue|sales|income|outlook|growth|(top|bottom)[-\ ]line|profit|margin(s)?)\ seen to\ (fall|worsen|decrease))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):
             sentiments.append(i.groupdict()["negative_guidance"].strip())
