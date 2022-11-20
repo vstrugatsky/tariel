@@ -195,8 +195,7 @@ def test_parse_combos():
 
     tweet = '$LAZ - Lazard Q3 earnings beat as Financial Advisory strengthens, while AUM slump'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_positive_earnings(tweet)[0] == 'earnings beat')
-    assert(account.parse_positive_earnings(tweet)[1] == 'strength')
+    assert(account.parse_positive_earnings(tweet)[0] == 'Q3 earnings beat')
     assert(account.parse_negative_earnings(tweet)[0] == 'AUM slump')
     assert(not account.parse_positive_guidance(tweet))
 
@@ -207,17 +206,17 @@ def test_parse_combos():
 
     tweet = '$BUD - Anheuser-Busch InBev shares gain sharply on Q3 profit beat, outlook boost https://t.co/gQm5oJEp1U'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_positive_earnings(tweet)[0] == 'profit beat')
+    assert(account.parse_positive_earnings(tweet)[0] == 'Q3 profit beat')
     assert(account.parse_positive_guidance(tweet)[0] == 'outlook boost')
 
     tweet = '$HUM - Humana trades higher on Q3 earnings beat, affirms FY22 outlook'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert(account.parse_positive_earnings(tweet)[0] == 'Q3 earnings beat')
     assert(not account.parse_positive_guidance(tweet))
 
     tweet = '$MET - MetLife Q3 earnings beat as volume growth, higher rates offset lower PE returns'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert(account.parse_positive_earnings(tweet)[0] == 'Q3 earnings beat')
     assert(account.parse_positive_earnings(tweet)[1] == 'volume grow')
     assert(account.parse_negative_earnings(tweet)[0] == 'lower PE return')
 
@@ -228,7 +227,7 @@ def test_parse_combos():
 
     tweet = '$OMCL - Omnicell stock crashes 32% as FY22 outlook slashed, Q3 sees headwinds'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert (account.parse_negative_earnings(tweet)[0] == 'headwind')
+    assert (account.parse_negative_earnings(tweet)[0] == 'Q3 sees headwind')
     assert (account.parse_negative_guidance(tweet)[0] == 'outlook slashed')
 
     tweet = 'Donnelley Financial down ~17% on Q3 miss, lower-than-consensus Q4 guidance'
@@ -238,12 +237,39 @@ def test_parse_combos():
 
     tweet = '$SKT - Tanger Factory Outlet boosts guidance after Q3 FFO beats on higher occupancy, NOI'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert (account.parse_positive_earnings(tweet)[0] == 'FFO beat')
+    assert (account.parse_positive_earnings(tweet)[0] == 'Q3 FFO beat')
     assert (account.parse_positive_guidance(tweet)[0] == 'boosts guidance')
 
 
 def test_parse_positive_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = '$COLD - Americold Realty Trust rises on upward revision to FY22 guidance'
+    assert (account.parse_positive_guidance(tweet)[0] == 'upward revision to FY22 guidance')
+
+    tweet = "$WSKEF $WKEY - WISeKey sees FY22 semiconductor revenue to $22.7M; FY23 revenues expected to grow over 40% Y/Y"
+    assert (account.parse_positive_guidance(tweet)[0] == 'revenues expected to grow')
+
+    tweet = "$SHLS - Shoals sizzles after raising low end of revenue guidance; Northland upgrades"
+    assert (account.parse_positive_guidance(tweet)[0] == 'raising low end of revenue guidance')
+
+    tweet = "$ONON - On Holding stock slides despite hiking sales outlook"
+    assert (account.parse_positive_guidance(tweet)[0] == 'hiking sales outlook')
+
+    tweet = '$DVA $FMS $OM - Outset Medical adds 39% after setting guidance ahead of consensus'
+    assert (account.parse_positive_guidance(tweet)[0] == 'guidance ahead')
+
+    tweet = '$TTM - Tata Motors expects strong improvements in EBIT and free cash flows in H2 FY23; to delist its ADSs from NYSE'
+    assert (account.parse_positive_guidance(tweet)[0] == 'expects strong improvement')
+
+    tweet = '$PFE $NVAX $MRNA - Pfizer raises outlook even as COVID vaccines sales drop 66% in Q3'
+    assert (account.parse_positive_guidance(tweet)[0] == 'raises outlook')
+
+    tweet = '$LPSN - LivePerson stock rises 9% as more upsells, WildHealth outperformance drive upbeat outlook'
+    assert (account.parse_positive_guidance(tweet)[0] == 'upbeat outlook')
+
+    tweet = '$BLNK - Blink Charging issues confident production outlook even as losses continue'
+    assert (account.parse_positive_guidance(tweet)[0] == 'confident production outlook')
 
     tweet = "$KEYS - Keysight rises on Q4 earnings beat, sees Q1 result above estimates"
     assert (account.parse_positive_guidance(tweet)[0] == 'sees Q1 result above')
@@ -335,6 +361,69 @@ def test_parse_positive_guidance():
 def test_parse_negative_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = '$SENS - Senseonics Holdings shares dip on tightening FY2022 revenue outlook'
+    assert (account.parse_negative_guidance(tweet)[0] == 'tightening FY2022 revenue outlook')
+
+    tweet = '$VRNS - Varonis slashes guidance on macro, forex headwinds; stock tumbles 16% after the bell'
+    assert (account.parse_negative_guidance(tweet)[0] == 'slashes guidance')
+
+    tweet = '$DKNG - DraftKings stock dives nearly 20% on lackluster 2023 forecast'
+    assert (account.parse_negative_guidance(tweet)[0] == 'lackluster 2023 forecast')
+
+    tweet = '$TEAM - Atlassian plunges as Piper Sandler downgrades following guidance cut, slowing user growth'
+    assert (account.parse_negative_guidance(tweet)[0] == 'guidance cut')
+
+    tweet = '$KTOS - Kratos trims FY forecast on labor shortages, inflation woes'
+    assert (account.parse_negative_guidance(tweet)[0] == 'trims FY forecast')
+
+    tweet = '$SYNH - Syneos Health sheds 23% as outlook stands below consensus'
+    assert (account.parse_negative_guidance(tweet)[0] == 'outlook stands below')
+
+    tweet = "$KSS $LEVI - Kohl’s withdraws full-year guidance amid macro uncertainty, CEO transition"
+    assert (account.parse_negative_guidance(tweet)[0] == 'withdraws full-year guidance')
+
+    tweet = "$PLCE - Children’s Place stock plunges after pulling in full-year forecasts"
+    assert (account.parse_negative_guidance(tweet)[0] == 'pulling in full-year forecast')
+
+    tweet = "$BRLT - Brilliant Earth stock slumps after sales forecast falls short of expectations"
+    assert (account.parse_negative_guidance(tweet)[0] == 'forecast falls')
+
+    tweet = "$POWW - Ammo stock plummets 26% as outlook cut, proxy contest linked expenses to continue"
+    assert (account.parse_negative_guidance(tweet)[0] == 'outlook cut')
+
+    tweet = "$COOK - Traeger stock tumbles on underdone guidance"
+    assert (account.parse_negative_guidance(tweet)[0] == 'underdone guidance')
+
+    tweet = '$MQ - Marqeta expects slower Q4 revenue growth, while EBITDA margin seen to improve'
+    assert (account.parse_negative_guidance(tweet)[0] == 'expects slower Q4 revenue growth')
+
+    tweet = '$TLS - Telos tanks 67% on full year guidance cut'
+    assert (account.parse_negative_guidance(tweet)[0] == 'guidance cut')
+
+    tweet = '$UPST - Upstart Q4 guidance disappoints as high interest rates crush loans demand'
+    assert (account.parse_negative_guidance(tweet)[0] == 'guidance disappoint')
+
+    tweet = '$NVAX - Novavax updated 2022 revenue guidance falls below consensus estimate'
+    assert (account.parse_negative_guidance(tweet)[0] == 'guidance falls')
+
+    tweet = '$PRTY - Party City stock plummets after cutting full-year forecasts'
+    assert (account.parse_negative_guidance(tweet)[0] == 'cutting full-year forecast')
+
+    tweet = '$QTWO - Q2 Holdings stock drops as macro headwinds dent year outlook, analysts cut'
+    assert (account.parse_negative_guidance(tweet)[0] == 'dent year outlook')
+
+    tweet = '$LYB - LyondellBasell paints a gloomy picture for current qtr, succumbing to high energy costs'
+    assert (account.parse_negative_guidance(tweet)[0] == 'gloomy picture')
+
+    tweet = '$TTWO - Take-Two tumbles 11% as it cuts bookings view below expectations'
+    assert (account.parse_negative_guidance(tweet)[0] == 'cuts bookings view')
+
+    tweet  = '$OCUL - Ocular Therapeutix hits 52-week low after slashing revenue guidance'
+    assert (account.parse_negative_guidance(tweet)[0] == 'slashing revenue guidance')
+
+    tweet = '$UIS - Unisys plunges 40% after guidance cut'
+    assert (account.parse_negative_guidance(tweet)[0] == 'guidance cut')
+
     tweet = "$WSM - Williams-Sonoma falls sharply after pulling FY24 guidance"
     assert (account.parse_negative_guidance(tweet)[0] == 'pulling FY24 guidance')
 
@@ -416,11 +505,11 @@ def test_parse_positive_sentiment():
     assert(account.parse_positive_earnings(tweet)[0] == 'first profit')
 
     tweet = '$WKME - WalkMe rallies after 23% growth in subscription revenue leads earnings beat'
-    assert(account.parse_positive_earnings(tweet)[0] == '% growth')
+    assert(account.parse_positive_earnings(tweet)[0] == 'growth in subscription revenue')
     assert(account.parse_positive_earnings(tweet)[1] == 'earnings beat')
 
     tweet = '$NU - Nu Holdings stock jumps 13% as Q3 revenue beats consensus, earnings improve'
-    assert(account.parse_positive_earnings(tweet)[0] == 'revenue beat')
+    assert(account.parse_positive_earnings(tweet)[0] == 'Q3 revenue beat')
     assert(account.parse_positive_earnings(tweet)[1] == 'earnings improve')
 
     tweet = "$MTTR - Matterport stock surges after record Q3 performance"
@@ -457,7 +546,7 @@ def test_parse_positive_sentiment():
 
     tweet = '$ARCB - ArcBest reports Q3 earnings beat; on track to deliver record annual revenues in 2022 https://t.co/8OXQGp9zil'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert(account.parse_positive_earnings(tweet)[0] == 'Q3 earnings beat')
     assert(account.parse_positive_earnings(tweet)[1] == 'record annual revenue')
 
     tweet = '$ANET - Arista Networks posts record revenue, Q3 beat https://t.co/eTWui9mTEB'
@@ -472,7 +561,7 @@ def test_parse_positive_sentiment():
     tweet = '$TT - Booking surge in Americas aids Trane Technologies crush results estimates'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_positive_earnings(tweet)[0] == 'Booking surge')
-    assert(account.parse_positive_earnings(tweet)[1] == 'crush')
+    assert(account.parse_positive_earnings(tweet)[1] == 'crush results estimate')
     assert(not account.parse_negative_earnings(tweet))
 
     tweet = '$AFRAF - Air France-KLM savors recovering air travel which boosts Q3 revenue'
@@ -483,7 +572,6 @@ def test_parse_positive_sentiment():
     tweet = '$IMO $IMO:CA - Imperial Oil results surpass estimates as downstream strength continues'  # + surpass, strength
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_positive_earnings(tweet)[0] == 'results surpass')
-    assert(account.parse_positive_earnings(tweet)[1] == 'strength')
     assert(not account.parse_negative_earnings(tweet))
 
     tweet = '$SLCA - Strong pricing and growth support U.S. Silica Q3 beat.'  # + beat, strong # earnings
@@ -494,7 +582,7 @@ def test_parse_positive_sentiment():
 
     tweet = '$PFG - Principal Financial Group up on Q3 EPS beat'  # + beat # earnings, earnings tweet previous day no surprises
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_positive_earnings(tweet)[0] == 'EPS beat')
+    assert(account.parse_positive_earnings(tweet)[0] == 'Q3 EPS beat')
     assert(not account.parse_negative_earnings(tweet))
 
     tweet = '$DXCM - DexCom hits six-month high after Q3 beat'  # beat #earnings - no earning tweet
@@ -509,7 +597,7 @@ def test_parse_positive_sentiment():
 
     tweet = '$TEX - Terex raised FY2022 EPS outlook range after 79% growth in Q3 and strong margins'  # Q3=earnings, raised, strong margins
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_positive_earnings(tweet)[0] == '% growth')
+    assert(account.parse_positive_earnings(tweet)[0] == 'growth in Q3')
     assert(account.parse_positive_earnings(tweet)[1] == 'strong margin')
     assert(account.parse_positive_guidance(tweet)[0] == 'raised FY2022 EPS outlook')
     assert(not account.parse_negative_earnings(tweet))
@@ -527,7 +615,7 @@ def test_parse_positive_sentiment():
 
     tweet = '$COHU - Cohu rallies 15% on Q3 estimates beat, provides Q4 guidance'  # earnings + Q3 estimates beat - matches earnings the day before
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert (account.parse_positive_earnings(tweet)[0] == 'estimates beat')
+    assert (account.parse_positive_earnings(tweet)[0] == 'Q3 estimates beat')
     assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$NEE $NEP - NextEra Energy posts Q3 beat; buys $1.1B landfill gas-to-electric portfolio'  # earnings +, repeats tweet
@@ -537,14 +625,14 @@ def test_parse_positive_sentiment():
 
     tweet = '$AON - Aon Q3 earnings beat as expenses plummet, free cash flow jump'  # earnings + although earnings tweet mixed
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert (account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert (account.parse_positive_earnings(tweet)[0] == 'Q3 earnings beat')
     assert (account.parse_positive_earnings(tweet)[1] == 'expenses plummet')
     assert (account.parse_positive_earnings(tweet)[2] == 'cash flow jump')
     assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$SMP - Standard Motor Products reports Q3 earnings beat; updates FY22 guidance'  # reports beat => earnings +, no tweet
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert (account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert (account.parse_positive_earnings(tweet)[0] == 'Q3 earnings beat')
     assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$NWL - Newell Brands gains after topping some beaten-down estimates'  # topping -> earnings, uvaga: beaten-down <> beat
@@ -554,7 +642,7 @@ def test_parse_positive_sentiment():
 
     tweet = '$RNGR - Ranger Energy Services reports Q3 earnings beat; reaffirms FY22 capex guidance'  # + earnings, no tweet
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert (account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert (account.parse_positive_earnings(tweet)[0] == 'Q3 earnings beat')
     assert (not account.parse_positive_guidance(tweet))
     assert (not account.parse_negative_guidance(tweet))
     assert (not account.parse_negative_earnings(tweet))
@@ -574,7 +662,7 @@ def test_parse_positive_sentiment():
 
     tweet = '$SLCA - U.S. Silica Holdings reports Q3 earnings beat; updates FY22 guidance'  # earnings +, no tweet
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert (account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert (account.parse_positive_earnings(tweet)[0] == 'Q3 earnings beat')
     assert (not account.parse_positive_guidance(tweet))
     assert (not account.parse_negative_guidance(tweet))
 
@@ -585,12 +673,12 @@ def test_parse_positive_sentiment():
 
     tweet = '$SNY - Sanofi reports Q3 earnings beat; raises FY22 EPS guidance'  # Q3 earnings beat
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert (account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert (account.parse_positive_earnings(tweet)[0] == 'Q3 earnings beat')
     assert (account.parse_positive_guidance(tweet)[0] == 'raises FY22 EPS guidance')
 
     tweet = '$HIG - Hartford Financial Q3 earnings beat, helped by Commercial Lines, Group Benefits'  # earnings => repeats
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert (account.parse_positive_earnings(tweet)[0] == 'earnings beat')
+    assert (account.parse_positive_earnings(tweet)[0] == 'Q3 earnings beat')
     assert (len(account.parse_positive_earnings(tweet)) == 1)
     assert (not account.parse_positive_guidance(tweet))
 
@@ -634,6 +722,9 @@ def test_parse_positive_sentiment():
 
 def test_parse_negative_sentiment():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = '$BLNK - Blink Charging issues confident production outlook even as losses continue'
+    assert (account.parse_negative_earnings(tweet)[0] == 'losses continue')
 
     tweet = "$WB - Weibo dips 4% as revenue tumble spurs rare earnings miss"
     assert (account.parse_negative_earnings(tweet)[0] == 'revenue tumble')
@@ -680,7 +771,7 @@ def test_parse_negative_sentiment():
     assert(account.parse_negative_earnings(tweet)[0] == 'missed earnings')
 
     tweet = '$PEI - PREIT posts Q3 FFO loss, focuses on raising capital, paying down debt'
-    assert(account.parse_negative_earnings(tweet)[0] == 'FFO loss')
+    assert(account.parse_negative_earnings(tweet)[0] == 'Q3 FFO loss')
 
     tweet = '$RCM - R1 RCM slumps 39% on dismal Q3 result, CEO change'
     assert(account.parse_negative_earnings(tweet)[0] == 'dismal Q3 result')
@@ -704,14 +795,14 @@ def test_parse_negative_sentiment():
 
     tweet = '$TRUP - Trupanion trades at about 2-and-1/2-year low as Q3 EPS misses on disappointing margins'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_negative_earnings(tweet)[0] == 'EPS miss')
+    assert(account.parse_negative_earnings(tweet)[0] == 'Q3 EPS miss')
     assert(account.parse_negative_earnings(tweet)[1] == 'disappointing margin')
     assert(not account.parse_positive_earnings(tweet))
 
     tweet = '$SEM - Select Medical sinks ~21% after rise in costs and expenses leads to big Q3 profit miss'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert (account.parse_negative_earnings(tweet)[0] == 'rise in costs')
-    assert(account.parse_negative_earnings(tweet)[1] == 'profit miss')
+    assert(account.parse_negative_earnings(tweet)[1] == 'Q3 profit miss')
     assert(not account.parse_positive_earnings(tweet))
 
     tweet = '$BIGC - BigCommerce stock plunges 26% after lower margins widened losses in third quarter'
@@ -735,8 +826,7 @@ def test_parse_negative_sentiment():
 
     tweet = '$AWRE - Aware stock slides over 8% as macro headwinds, delayed orders weigh on results'  # results=earnings, - headwinds, weigh
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_negative_earnings(tweet)[0].lower() == 'headwind')
-    assert(account.parse_negative_earnings(tweet)[1] == 'weigh on result')
+    assert(account.parse_negative_earnings(tweet)[0] == 'weigh on result')
     assert(not account.parse_positive_earnings(tweet))
 
     tweet = '$TECK $TECK.B:CA - Teck Resources tumbles as Q3 loss, cost overruns spark analyst downgrades'  # results = Q3 loss, - overrun
@@ -753,8 +843,8 @@ def test_parse_negative_sentiment():
 
     tweet = '$AB - AllianceBernstein Q3 earnings declined as asset values dropped, outflows rose'  # earnings -, no tweet
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
-    assert(account.parse_negative_earnings(tweet)[0] == 'earnings declined')
-    assert(account.parse_negative_earnings(tweet)[1] == 'asset values dropped')
+    assert(account.parse_negative_earnings(tweet)[0] == 'earnings decline')
+    assert(account.parse_negative_earnings(tweet)[1] == 'asset values drop')
     assert(account.parse_negative_earnings(tweet)[2] == 'outflows rose')
     assert(not account.parse_positive_earnings(tweet))
 
@@ -766,7 +856,7 @@ def test_parse_negative_sentiment():
     tweet = '$SJW - SJW reports Q3 earnings miss; reaffirms FY22 guidance'  # # earnings, = - miss, no tweet
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(not account.parse_positive_guidance(tweet))
-    assert(account.parse_negative_earnings(tweet)[0] == 'earnings miss')
+    assert(account.parse_negative_earnings(tweet)[0] == 'Q3 earnings miss')
 
     tweet = '$EW - Edwards Lifesciences down 11% after Q3 misses, revised 2022 EPS guidance'  # earnings => miss, -, repeats earnings tweet, but 11% down may be signif
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
@@ -783,7 +873,6 @@ def test_parse_negative_sentiment():
     tweet = '$COF - Capital One Q3 earnings fall short of consensus as provision for credit losses jumps'  # earnings also -credit losses
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert (account.parse_negative_earnings(tweet)[0] == 'earnings fall')
-    assert (account.parse_negative_earnings(tweet)[1] == 'credit loss')
     assert (len(account.parse_negative_earnings(tweet)) == 2)
 
     tweet = '$ORC - Orchid Island Capital posts Q3 loss on widening spreads after Fed rate hikes'  # earnings, repeats tweet
@@ -812,7 +901,7 @@ def test_mixed_or_neutral():
     assert (not account.parse_positive_earnings(tweet))
 
     tweet = "$AMC - AMC Entertainment Q3 results beat estimates, co's adj. EBITDA loss widens"
-    assert(account.parse_positive_earnings(tweet)[0] == 'results beat')
+    assert(account.parse_positive_earnings(tweet)[0] == 'Q3 results beat')
     assert(account.parse_negative_earnings(tweet)[0] == 'EBITDA loss')
 
     tweet = '$NCLH - Norwegian Cruise Lines sails to earnings beat, offers upbeat occupancy forecast'
@@ -825,7 +914,7 @@ def test_mixed_or_neutral():
 
     tweet = '$NEWT - Newtek Business Q3 adjusted NII climbs from a year ago, but falls short of consensus'
     assert(account.parse_positive_earnings(tweet)[0] == 'NII climb')
-    assert(account.parse_negative_earnings(tweet)[0] == 'falls short')
+    assert(account.parse_negative_earnings(tweet)[0] == 'falls short of consensus')
 
     tweet = '$NEXA - Nexa Resources reports Q3 mixed earnings; reaffirms FY22 capex guidance'  # earnings, = mixed, reaffirms, no tweet
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
@@ -900,7 +989,6 @@ def acq():
 def mixed():
     t = '$MRNA - Moderna Omicron boosters outperform, but with lower response to latest variant'
     t = "$MO $JUUL - Juul Labs gets lifeline to avoid bankruptcy, plans to cut 30% of workforce"
-    t = '$BLNK - Blink Charging issues confident production outlook even as losses continue'
     t = "$DIS - Disney slips 7% as media side profits, revenue slip; subscribers top forecasts"
 
 def news_pos():
@@ -909,7 +997,6 @@ def news_pos():
     t = "$NCRA - Nocera rises 18% as it records $3M revenue in October from eel fish sales in Japan"
     t = "$GRFX - Graphex Group stock jumps 24% amid filing related to graphite processing JV"
     t = "$DIS - Disney World boosts prices as parks demand continues surge"
-    t = "$PDSB - PDS Biotech surges 22% as drug shows response in cervical cancer patients in phase 2 trial"
     t = "$PANW - Palo Alto Networks pops after Loop Capital upgrade"
     t = "$AZN $VTRS - Viatris wins court decision on AstraZeneca Symbicort patent"
     t = "$PSNY $PSNYW - Polestar stock drives higher after sales double from prior year"
@@ -919,13 +1006,8 @@ def news_pos():
     t = '$VVPR - VivoPower subsidiary surges 16% as Tembo enters supply agreement for EV conversion kits'
     tweet = '$BSTG - Regenerative therapy developer Biostage files for Nasdaq uplisting, $6M offering'  # +, uplisting
     t = '$CUBT - Curative Biotechnology refiles for NYSE uplisting, $8M offering'
-    tweet = '$BFIN - BankFinancial adds 300,000 shares to existing share repurchase program'  # + repurchase
-    tweet = '$OTLK - FDA accepts Outlook Therapeutics biologics license application for wet AMD drug'  # +, FDA accepts
-    tweet = '$PHGUF $PHAR - Pharming gets EMA accelerated review of leniolisib for rare immunodeficiency disorder'  # + => accelerated review
     t = '$DASH - DoorDash stock pops over 10% as analysts applaud resilience to macro pressures'
     t = '$CHUY - Chuys stock charges higher on strong comparable sales, profit growth'
-    t = '$COLD - Americold Realty Trust rises on upward revision to FY22 guidance'
-    t = '$HZNP - Horizon Therapeutics ticks higher amid speculation of activist investor' # activist investor
     t = '$STEM - Stem stock rises on strong Q3 bookings'
     t = '$FSLR - First Solar soars to 11-year high as analyst touts extraordinary backlog'
     t = '$LEG - Leggett &amp; Platt shares lifted as earnings exceed lowered expectations'
@@ -933,42 +1015,30 @@ def news_pos():
     t = '$ORGS - Orgenesis jumps 26% on $50M investment from Metalmark Capital'
 
 def news_neg():
+    t = '$PBI - Pitney Bowes stock plummets after reporting e-commerce contraction'
     t = "$NOTV - Inotiv nears 52-week low as employees of suppliers face charges for illegally importing non-human primates into U.S."
     t = "$ZI - lZoomInfo plunges 25% as fears grow over cloud-software company's sales outlook"
     t = "$JPM - JPMorgan Chase credit card net charge-offs, delinquencies tick up in October"
     t = "$COF - Capital One stock falls as credit losses rise; BofA downgrades to Neutral"
     t = "$THO $WGO $LCII - Winnebago drops sharply after warning on near-term softening of RV market"
     t = "$C - Citibank credit card delinquency, charge-off rates continue rising in October"
-    t = "$SNAL - Game developer Snail stock tumbles 55% following downsized $15M IPO"
-    t = "$ASPI $SNAL - ASP Isotopes stock drops 32% following downsized $5M IPO"
     t = "$MMM $DD - 3M, Dupont sued by California AG over toxic 'forever chemicals'"
     t = "$APRN - Blue Apron stock plummets over 30% on dilution fears"
     t = '$OLPX - Olaplex stock slips on slowing sales, cautious forecast'
-    t = '$SENS - Senseonics Holdings shares dip on tightening FY2022 revenue outlook'
     t = '$META - Facebook to receive antitrust charges over Marketplace ads platform: report'
     t = '$COTY - Coty shares carry higher on strong fragrance, consumer beauty sales'
-    t = '$FAT - FAT Brands slides after withdrawing stock offering'
     t = "$VZLA $VZLA:CA - Vizsla Silver shares slump after C$20M bought deal offering"
     tweet = '$AHG - Akso Health gets Nasdaq notice for not complying with minimum bid price rule'  # -, not complying
     tweet = '$YMAB - Y-mAbs fails to win FDA AdCom backing for neuroblastoma therapy'  # -, fails to win FDA
-    tweet = '$PME - Chinese fisher Pingtan gets Nasdaq minimum bid compliance notice'  # - compliance notice
-    tweet = '$WNW - Meiwu Technology regains compliance with Nasdaq minimum bid price requirement'  # + regains compliance
     tweet = '$BX $KKR $APO - KKR, Apollo, Blackstone face Justice Department probe on influence over boards'  # - face probe
-    tweet = '$SBHMY $FSTX - F-star Therapeutics drops amid concern about CFIUS approval for Sino-Biopharma'  # - drops, can't use 'approval' on its own
     tweet = '$COF - Capital One credit card delinquency, net charge-off rates climb in September'  # -, industry, delinquency climbs =>IGNORE
     tweet = '$ALRM $VVNT - https://t.co/LStNLDdfU5 stock slips 3% after the bell on licensing dispute with Vivint'  # news, licensing dispute
-    t = '$KTOS - Kratos trims FY forecast on labor shortages, inflation woes'
-    t = '$SYNH - Syneos Health sheds 23% as outlook stands below consensus'
     t = '$AXL $MLSPF - American Axle sinks 18% after denying sales talks'
-    t = '$DKNG - DraftKings stock dives nearly 20% on lackluster 2023 forecast'
-    t = '$TEAM - Atlassian plunges as Piper Sandler downgrades following guidance cut, slowing user growth'
     t = '$DAL - Delta pilots vote ‘overwhelmingly in favor’ of strike authorization'
     t = '$GT - Goodyear Tire stock skids as cost inflation, currency concerns impact earnings'
-    t = '$VRNS - Varonis slashes guidance on macro, forex headwinds; stock tumbles 16% after the bell'
     t = '$MRNS - Marinus Pharmaceuticals stock drops 19% aftermarket on proposed public offering'
     t = '$ATHX - Athersys tumbles 40% after the bell on proposed stock offering'
     t = '$VRM - Vroom sees sales plummet, adjusted EBITDA go negative in Q3'
-    t = '$ROIV - Roivant Sciences falls 7% after hours on $150M stock offering'
     t = "$RBA $IAA $RBA:CA - Ritchie Bros. plunges 20% on IAA purchase, deal called a 'head-scratcher'"
     t = "$JUPW $JWAC - Jupiter Wellness stock falls 13% on plans to spin off Caring Brands"
     t = "$ARVL - Arrival stock plunges as it expects no revenue until 2024 with insufficient cash"
@@ -1035,6 +1105,7 @@ def exec():
     t = "$DUOT - Duos Technologies names Andrew Murphy as CFO"
 
 def buyback():
+    tweet = "$BFIN - BankFinancial adds 300,000 shares to existing share repurchase program"  # + repurchase
     t = "$LPRO - Open Lending launches up to $75M share repurchase program"
     t = "$RVSB - Riverview Bancorp to launch up to $2.5M stock repurchase program"
     t = "$PRI - Primerica launches $375M share buyback"
@@ -1065,31 +1136,10 @@ def buyback():
 
 def guidance():
     t = "$AMED - Amedisys reaffirms FY22 guidance"
-    t = "$WSKEF $WKEY - WISeKey sees FY22 semiconductor revenue to $22.7M; FY23 revenues expected to grow over 40% Y/Y"
-    t = "$KSS $LEVI - Kohl’s withdraws full-year guidance amid macro uncertainty, CEO transition"
-    t = "$PLCE - Children’s Place stock plunges after pulling in full-year forecasts"
-    t = "$SHLS - Shoals sizzles after raising low end of revenue guidance; Northland upgrades"
-    t = "$POWW - Ammo stock plummets 26% as outlook cut, proxy contest linked expenses to continue"
-    t = "$ONON - On Holding stock slides despite hiking sales outlook"
-    t = "$BRLT - Brilliant Earth stock slumps after sales forecast falls short of expectations"
-    t = "$COOK - Traeger stock tumbles on underdone guidance"
-    t = '$MQ - Marqeta expects slower Q4 revenue growth, while EBITDA margin seen to improve'
-    t = '$TLS - Telos tanks 67% on full year guidance cut'
-    t = '$DVA $FMS $OM - Outset Medical adds 39% after setting guidance ahead of consensus'
-    t = '$TTM - Tata Motors expects strong improvements in EBIT and free cash flows in H2 FY23; to delist its ADSs from NYSE'
-    t = '$UPST - Upstart Q4 guidance disappoints as high interest rates crush loans demand'
-    t = '$NVAX - Novavax updated 2022 revenue guidance falls below consensus estimate'
-    t = '$PRTY - Party City stock plummets after cutting full-year forecasts'  # although right when earnings
-    t = '$QTWO - Q2 Holdings stock drops as macro headwinds dent year outlook, analysts cut'
-    tweet = '$LYB - LyondellBasell paints a gloomy picture for current qtr, succumbing to high energy costs'
-    t = '$PBI - Pitney Bowes stock plummets after reporting e-commerce contraction'  # -, gloomy
-    t = '$PFE $NVAX $MRNA - Pfizer raises outlook even as COVID vaccines sales drop 66% in Q3'
-    t = '$TTWO - Take-Two tumbles 11% as it cuts bookings view below expectations'
-    t = '$OCUL - Ocular Therapeutix hits 52-week low after slashing revenue guidance'
-    t = '$UIS - Unisys plunges 40% after guidance cut'   # earnings related but not linked
-    t = '$LPSN - LivePerson stock rises 9% as more upsells, WildHealth outperformance drive upbeat outlook'
 
 def listing():
+    tweet = '$PME - Chinese fisher Pingtan gets Nasdaq minimum bid compliance notice'  # - compliance notice
+    tweet = '$WNW - Meiwu Technology regains compliance with Nasdaq minimum bid price requirement'
     t = "$HFFG - HF Foods gets another non-compliance letter from Nasdaq"
     t = "$AMPED - Ampio Pharmaceuticals announces NYSE American removal of trading suspension"
     t = "$GOTU - Gaotu Techedu receives NYSE non-compliance letter"
@@ -1185,6 +1235,9 @@ def patent():
     t = "$BEAT - HeartBeam receives patent for ECG smartwatch for detection of heart attacks"
 
 def pharma_pos():
+    tweet = '$PHGUF $PHAR - Pharming gets EMA accelerated review of leniolisib for rare immunodeficiency disorder'  # + => accelerated review
+    tweet = '$OTLK - FDA accepts Outlook Therapeutics biologics license application for wet AMD drug'
+    t = "$PDSB - PDS Biotech surges 22% as drug shows response in cervical cancer patients in phase 2 trial"
     t = "$BHC $BHC:CA - Bausch Health up 11% after draft FDA guidance makes it harder for Xifaxan generics"
     t = "$NWBO - Northwest achieves positive phase 3 results for glioblastoma candidate; shares rise 24%"
     t = "$ISEE - IVERIC bio gets FDA breakthrough therapy designation for geographic atrophy treatment"
@@ -1263,6 +1316,7 @@ def pharma_pos():
     t = "$RETA - Reata rises 15% as omaveloxolone moves ahead in FDA review process; plans EU filing"
 
 def pharma_neg():
+    tweet = '$SBHMY $FSTX - F-star Therapeutics drops amid concern about CFIUS approval for Sino-Biopharma'  # - drops, can't use 'approval' on its own
     t = "$INO - Inovio ends development of candidates for Lassa fever and Middle East Respiratory Syndrome"
     t = "$EDIT - Editas pausing enrollment of blindness drug trial to find partner; shares down 15%"
     t = "$STSA - Satsuma cut to neutral at Mizuho following migraine drug failure"
@@ -1288,6 +1342,8 @@ def insider():
     t = "$VTRS - DOJ, SEC charge Viatris executive with insider trading; co says he is on leave of absence"
 
 def offerings():
+    t = '$FAT - FAT Brands slides after withdrawing stock offering'
+    t = '$ROIV - Roivant Sciences falls 7% after hours on $150M stock offering'
     t = "$SAVA - Cassava Sciences down 9% following $50M registered direct offering"
     t = "$VERX - Vertex falls 6% postmarket on proposed secondary stock offering"
     t = "$GTHX - G1 Therapeutics stock slides on pricing $50.05M stock offering"
@@ -1377,10 +1433,13 @@ def spac():
     t = "$PRBM.U $PRBM $PRBMW - Energy harvesting firm EnOcean to go public via merger with SPAC Parabellum"
 
 def activist():
+    t = '$HZNP - Horizon Therapeutics ticks higher amid speculation of activist investor'
     t = "$MMM - 3M viewed as potential activist target after 13F filing"
     t = '$AIM - AIM Immunotech says court denies activist request on board nominees'
 
 def ipo():
+    t = "$SNAL - Game developer Snail stock tumbles 55% following downsized $15M IPO"
+    t = "$ASPI $SNAL - ASP Isotopes stock drops 32% following downsized $5M IPO"
     t = "$ACRV - Acrivon stock rises modestly following $94M IPO, shares price below range"
 
 def short():

@@ -262,7 +262,12 @@ Parsing improvements:
 2022-Nov-19 #1:
 - cleaned up guidance regexes
 
+2022-Nov-19 #2:
+- major crisis with regexes, temporary relief with using regex instead of re which supports variable negative lookbehind
+- major cleanup of earnings regexes
+
 Next steps:
+- use variables in regexes!
 - parsing strategy, testing
 
 Mis-characterized as earnings: $SI - Silvergate Capital stock slides as Morgan Stanley slashes 2023 EPS estimate by 51%
