@@ -32,6 +32,14 @@ class Marketcurrents(TwitterAccount):
         ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
 
+    def parse_simple_earnings_indicator(self, tweet_text: str):
+        p = re.compile(r'''
+           (?P<earnings_indicator>
+           \W(F?Q[1-4]|quarter(ly)?|earnings|results|posts|estimate(s)?|loss(es)?|profit(s)?|miss(es)?|beat(s)?|
+           after\ (reporting|posting))(\W|$))
+           ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
+        return p.search(tweet_text)
+
     def parse_earnings_indicator(self, tweet_text: str):
         p = re.compile(r'''
            (?P<earnings_indicator>
@@ -52,8 +60,9 @@ class Marketcurrents(TwitterAccount):
         p = re.compile(r'''
            (?P<earnings_false_positive>
            \Wearnings\ preview|\?|\Whot\ stocks|\Wstocks\ to\ watch|\Wweek\ ahead|\Wday\ movers|\Wlikely\ to\ [beat|miss]|
-           \WQ[1-4]\ preview|\Wgoes\ ex-dividend|\W(UK|China|US|EU)\ (retail\ sales|(new\ )?home\ prices)|
-           \W(BoA|Wedbush|Moody\'s)\ (cites|affirms|guides|raises|upgrades|lowers|downgrades)|
+           \WQ[1-4]\ preview|\Wgoes\ ex-dividend|
+           \W(UK|China(['’]s)?|US|EU)\ (January|February|March|April|May|June|July|August|September|October|November|December|retail|(new\ )?home\ prices)|
+           \W(OPEC|Moody(['’]s)?)\ (cuts|lowers|raises|upgrades|downgrades|cites|affirms|guides|)|
            \W(ahead\ of)\ .*(Q[1-4]|quarterly))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
@@ -68,7 +77,7 @@ class Marketcurrents(TwitterAccount):
            
            (?<!(projects|estimates|predicts|forecasts)\W+)
            \W(higher(?!\ (on|as|after|ahead|amid|costs|despite|expenses|outflows|loss)\W)
-           |strong(er)?|better|soaring|upbeat|record|boost(ed|s)(?!\ prices)|premium|growth)
+           |strong(er)?|better|soaring|upbeat|record|boost(ed|s)|drives|drove|premium|growth)
            \W(than\Wexpected\W)?((Q[1-4]|quarterly)\ )?(?!(guidance|outlook|guide|forecast|projection)\W)
            ((\w+\W+){0,3}?)?
            (sales|earnings|EPS|NII|FFO|performance|results|revenue|EBITDA|margin|demand|growth|profit|income|volume|pricing|consumption)
@@ -127,7 +136,7 @@ class Marketcurrents(TwitterAccount):
            \W(guide[sd]|guiding|sees|forecasts|projects)\ .*
            ((EPS|revenue|sales|income|outlook|growth|profit|result|margin|(top|bottom)[-\ ]line)\ .*)?(higher|above|ahead)|
            
-           \W(rais(es|ed|ing)|sweeten(s|ed|ing)|lift(s|ed|ing)|increas(es|ed|ing)|hik(es|ed|ing)|boost(s|ed|ing)?)[-\ ]
+           \W(rais(es|ed|ing)|sweeten(s|ed|ing)|lift(s|ed|ing)?|increas(es|ed|ing)|hik(es|ed|ing)|boost(s|ed|ing)?)[-\ ]
            (?!by\W)((\w+\W+){0,5}?)?(guidance|outlook|forecast|guide|estimate)|
            
            (?<!\W(cut(s|ting)?|trim(s|med|ming)|tighten(s|ed|ing)|withdraw(s|ed|ing)|pull(s|ed|ing)|lower(s|ed|ing)|dent(s)?|slash(es|ed|ing)))
@@ -155,7 +164,7 @@ class Marketcurrents(TwitterAccount):
            \W(guide[sd]|guiding|sees|forecasts|projects)\ .*
            ((EPS|earnings|revenue|sales|income|outlook|growth|profit|margin|(top|bottom)[-\ ]line)\. .*)?(below|lower)|
            
-           \W(cut(s|ting)?|trim(s|med|ming)|tighten(s|ed|ing)|withdraw(s|ed|ing)|pull(s|ed|ing)|lower(s|ed|ing)|dent(s)?|slash(es|ed|ing))[- ]
+           \W(cut(s|ting)?|trim(s|med|ming)?|tighten(s|ed|ing)|withdraw(s|ed|ing)|pull(s|ed|ing)|lower(s|ed|ing)|dent(s)?|slash(es|ed|ing)?)[- ]
            ((\w+\W+){0,5})?(guidance|outlook|forecast|guide|estimate|view)|
            
            (?<!\W(rais(es|ed|ing)|sweeten(s|ed|ing)|lift(s|ed|ing)|increas(es|ed|ing)|hik(es|ed|ing)|boost(s|ed|ing)?))

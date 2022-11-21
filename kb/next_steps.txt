@@ -272,8 +272,12 @@ Parsing improvements:
 2022-Nov-21:
 - regex improvements, analysis of false positives
 
+2022-Nov-21#2:
+- implemented simplified earnings indicator and updated tests. almost 400+ quality results
+
 Next steps:
-- implement failing false positives through a simplified earnings indicator - remove boosts prices
+- go over all tweets
+- convert data
 - eliminate Income funds
 - use variables in regexes!
 - parsing strategy, testing

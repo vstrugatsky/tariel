@@ -131,17 +131,17 @@ class LoadERFromTwitter(LoaderBase):
         tweet_text: str = tweet_response["text"]
         parsed_earnings = self.parse_earnings_numbers(tweet_text)
         if not parsed_earnings:
-            # earnings_indicator = self.account.parse_earnings_indicator(tweet_text)
-            # if not earnings_indicator:
-            #     print(f'INFO cannot parse earnings numbers or indicator from {tweet_text}')
-            #     return
-            # else:
-            parsed_earnings = self.parse_earnings_sentiments(tweet_text)
-            if not parsed_earnings:
-                # indicator_text = earnings_indicator.groupdict()['earnings_indicator'].strip()
-                # print(f'INFO cannot parse earnings sentiments from {tweet_text} despite indicator {indicator_text}')
-                self.warn_if_needed(tweet_text, driver, session)
+            earnings_indicator = self.account.parse_simple_earnings_indicator(tweet_text)
+            if not earnings_indicator:
+                print(f'INFO cannot parse earnings numbers or indicator from {tweet_text}')
                 return
+            else:
+                parsed_earnings = self.parse_earnings_sentiments(tweet_text)
+                if not parsed_earnings:
+                    indicator_text = earnings_indicator.groupdict()['earnings_indicator'].strip()
+                    print(f'INFO cannot parse earnings sentiments from {tweet_text} despite indicator {indicator_text}')
+                    self.warn_if_needed(tweet_text, driver, session)
+                    return
 
         symbols = driver.get_symbols_for_tweet(session, tweet_response)
         if not symbols:

@@ -13,6 +13,9 @@ class Livesquawk(TwitterAccount):
     def parse_earnings_indicator(self, tweet_text: str):
         pass
 
+    def parse_simple_earnings_indicator(self, tweet_text: str):
+        pass
+
     def parse_false_positive(self, tweet_text: str):
         pass
 
