@@ -9,7 +9,6 @@ from loaders.twitter_livesquawk import Livesquawk  # noqa
 from loaders.twitter_marketcurrents import Marketcurrents  # noqa
 from model.events import Guidance, Event, EventType
 from model.jobs import Provider
-from model.symbols import Symbol
 from utils.utils import Utils
 
 
@@ -62,14 +61,17 @@ class LoadGuidanceFromTwitter(LoaderBase):
 
         e.LoadEventsFromTwitter.update_provider_info_json(guidance, tweet_info, tweet_response)
 
-    def load(self, session: model.Session, tweet_response: dict, symbols: [Symbol]) -> Guidance | None:
+    def load(self, session: model.Session, tweet_response: dict, driver: e.LoadEventsFromTwitter) -> Guidance | None:
         tweet_text: str = tweet_response["text"]
         parsed_guidance = self.parse_guidance(tweet_text)
         if not parsed_guidance:
             return
 
-        print(f'INFO associated {symbols.keys()} and matched {parsed_guidance}')
+        symbols = driver.get_symbols_for_tweet(session, tweet_response)
+        if not symbols:
+            return
 
+        print(f'INFO associated {symbols.keys()} and matched {parsed_guidance}')
         provider = 'Twitter_' + self.account.account_name
         report_date = datetime.strptime(tweet_response['created_at'], '%Y-%m-%dT%H:%M:%S.%fZ').date()
         guidance = Event.get_unique_by_symbols_and_date_range\
@@ -81,11 +83,11 @@ class LoadGuidanceFromTwitter(LoaderBase):
                 guidance.symbols.append(symbols[key])
 
             self.update_guidance(guidance, tweet_response, parsed_guidance)
-            self.records_added += 1
+            driver.records_added += 1
         else:
             if e.LoadEventsFromTwitter.should_update(guidance, provider):
                 guidance.updated = datetime.now()
                 guidance.updater = Provider[provider]
                 self.update_guidance(guidance, tweet_response, parsed_guidance)
-                self.records_updated += 1
+                driver.records_updated += 1
         return guidance  # for testing

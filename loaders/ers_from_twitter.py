@@ -10,7 +10,6 @@ from loaders.twitter_livesquawk import Livesquawk  # noqa
 from loaders.twitter_marketcurrents import Marketcurrents  # noqa
 from model.job_log import MsgSeverity
 from model.jobs import Provider
-from model.symbols import Symbol
 from model.currency import Currency
 from model.events import EventType, Event, ER
 from utils.utils import Utils
@@ -123,29 +122,32 @@ class LoadERFromTwitter(LoaderBase):
 
         e.LoadEventsFromTwitter.update_provider_info_json(er, tweet_info, tweet_response)
 
-    def warn_if_needed(self, tweet_text: str, session: model.Session):
+    def warn_if_needed(self, tweet_text: str, driver: e.LoadEventsFromTwitter, session: model.Session):
         if self.account.should_raise_parse_warning(tweet_text):
             msg = 'Failed to parse likely earnings numbers or sentiments from ' + tweet_text
-            LoaderBase.write_log(session, self, MsgSeverity.WARN, msg)
+            LoaderBase.write_log(session, driver, MsgSeverity.WARN, msg)
 
-    def load(self, session: model.Session, tweet_response: dict, symbols: [Symbol]) -> ER | None:
+    def load(self, session: model.Session, tweet_response: dict, driver: e.LoadEventsFromTwitter) -> ER | None:
         tweet_text: str = tweet_response["text"]
         parsed_earnings = self.parse_earnings_numbers(tweet_text)
         if not parsed_earnings:
-            earnings_indicator = self.account.parse_earnings_indicator(tweet_text)
-            if not earnings_indicator:
-                print(f'INFO cannot parse earnings numbers or indicator from {tweet_text}')
+            # earnings_indicator = self.account.parse_earnings_indicator(tweet_text)
+            # if not earnings_indicator:
+            #     print(f'INFO cannot parse earnings numbers or indicator from {tweet_text}')
+            #     return
+            # else:
+            parsed_earnings = self.parse_earnings_sentiments(tweet_text)
+            if not parsed_earnings:
+                # indicator_text = earnings_indicator.groupdict()['earnings_indicator'].strip()
+                # print(f'INFO cannot parse earnings sentiments from {tweet_text} despite indicator {indicator_text}')
+                self.warn_if_needed(tweet_text, driver, session)
                 return
-            else:
-                parsed_earnings = self.parse_earnings_sentiments(tweet_text)
-                if not parsed_earnings:
-                    indicator_text = earnings_indicator.groupdict()['earnings_indicator'].strip()
-                    print(f'INFO cannot parse earnings sentiments from {tweet_text} despite indicator {indicator_text}')
-                    self.warn_if_needed(tweet_text, session)
-                    return
+
+        symbols = driver.get_symbols_for_tweet(session, tweet_response)
+        if not symbols:
+            return
 
         print(f'INFO associated {symbols.keys()} and matched {parsed_earnings}')
-
         provider = 'Twitter_' + self.account.account_name
         report_date = datetime.strptime(tweet_response['created_at'], '%Y-%m-%dT%H:%M:%S.%fZ').date()
         er = Event.get_unique_by_symbols_and_date_range(session, symbols, EventType.Earnings_Report,
@@ -158,11 +160,11 @@ class LoadERFromTwitter(LoaderBase):
                 er.symbols.append(symbols[key])
 
             self.update_er(er, tweet_response, parsed_earnings)
-            self.records_added += 1
+            driver.records_added += 1
         else:
             if e.LoadEventsFromTwitter.should_update(er, provider):
                 er.updated = datetime.now()
                 er.updater = Provider[provider]
                 self.update_er(er, tweet_response, parsed_earnings)
-                self.records_updated += 1
+                driver.records_updated += 1
         return er  # for testing

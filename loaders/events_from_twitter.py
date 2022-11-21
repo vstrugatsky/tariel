@@ -52,6 +52,20 @@ class LoadEventsFromTwitter(LoaderBase):
         else:
             event.provider_info = [tweet_info]
 
+    def get_symbols_for_tweet(self, session: model.Session, tweet_response) -> dict | None:
+        tweet_text = tweet_response["text"]
+        cashtags = Twitter.get_cashtags(tweet_response)
+        tweet_url_desc = Utils.find_first_match("entities.urls[0].description", tweet_response)
+        symbols, eliminated_symbols = self.associate_tweet_with_symbols(session, cashtags, tweet_text, tweet_url_desc)
+        if not symbols:
+            msg = 'Cannot associate symbol with cashtags ' + str(cashtags)
+            LoaderBase.write_log(session, self, MsgSeverity.WARN, msg)
+            return None
+        if eliminated_symbols:
+            msg = 'Eliminated symbols based on fuzzy matching ' + str(eliminated_symbols) + ' in ' + tweet_text
+            LoaderBase.write_log(session, self, MsgSeverity.INFO, msg)
+        return symbols
+
     def associate_tweet_with_symbols(self, session: model.Session, cashtags, tweet_text, tweet_url_desc) -> (dict, dict):
         symbols: dict = {}
         if not cashtags:
@@ -104,8 +118,8 @@ class LoadEventsFromTwitter(LoaderBase):
 
     @classmethod
     def load(cls, tweet_response: dict, session: model.Session, method_params: dict):
-        loader: LoadEventsFromTwitter = method_params.get('loader')
-        account: TwitterAccount = loader.account
+        driver: LoadEventsFromTwitter = method_params.get('driver')
+        account: TwitterAccount = driver.account
         tweet_text: str = tweet_response["text"]
         cashtags = Twitter.get_cashtags(tweet_response)
         print(f'TWEET {tweet_response["created_at"]} {tweet_text} {str(cashtags)}')
@@ -116,38 +130,28 @@ class LoadEventsFromTwitter(LoaderBase):
             print(f'INFO false positive detected')
             return
 
-        tweet_url_desc = Utils.find_first_match("entities.urls[0].description", tweet_response)
-        symbols, eliminated_symbols = loader.associate_tweet_with_symbols(session, cashtags, tweet_text, tweet_url_desc)
-        if not symbols:
-            msg = 'Cannot associate symbol with cashtags ' + str(cashtags)
-            LoaderBase.write_log(session, loader, MsgSeverity.WARN, msg)
-            return
-        if eliminated_symbols:
-            msg = 'Eliminated symbols based on fuzzy matching ' + str(eliminated_symbols) + ' in ' + tweet_text
-            LoaderBase.write_log(session, loader, MsgSeverity.INFO, msg)
-
-        er.LoadERFromTwitter(account).load(session, tweet_response, symbols)
-        g.LoadGuidanceFromTwitter(account).load(session, tweet_response, symbols)
+        er.LoadERFromTwitter(account).load(session, tweet_response, driver)
+        g.LoadGuidanceFromTwitter(account).load(session, tweet_response, driver)
 
 
 if __name__ == '__main__':
     account_name = sys.argv[1] if len(sys.argv) > 1 else 'Marketcurrents'
     account_class: Type[TwitterAccount] = getattr(sys.modules['loaders.twitter_' + account_name.lower()], account_name)
-    loader = LoadEventsFromTwitter(account_class(account_name))
+    driver = LoadEventsFromTwitter(account_class(account_name))
     provider = 'Twitter_' + account_name
     backfill = False
-    commit = False
-    paginate = False
+    commit = True
+    paginate = True
     max_results = 100
     if backfill:
         max_date = datetime.utcnow() - timedelta(days=6, hours=23)  # to not hit the 7 days issue
     else:
         max_date = Event.get_max_date(provider) or datetime.utcnow() - timedelta(days=6, hours=23)
 
-    payload = {'query': 'from:' + loader.account.account_name,
+    payload = {'query': 'from:' + driver.account.account_name,
                'start_time': max_date.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
-    loader.job_id = LoaderBase.start_job(
+    driver.job_id = LoaderBase.start_job(
         provider=Provider[provider], job_type=JobType.Events,
         params=str(payload) + ' paginate: ' + str(paginate))
 
@@ -155,7 +159,7 @@ if __name__ == '__main__':
         url=Twitter.url_prefix + '/tweets/search/recent',
         payload=payload | {'tweet.fields': 'created_at,author_id,entities', 'max_results': max_results},
         method=LoadEventsFromTwitter.load,
-        method_params={'loader': loader},
+        method_params={'driver': driver},
         paginate=paginate, commit=commit, next_token=None)
 
-    LoaderBase.finish_job(loader)
+    LoaderBase.finish_job(driver)

@@ -266,7 +266,13 @@ Parsing improvements:
 - major crisis with regexes, temporary relief with using regex instead of re which supports variable negative lookbehind
 - major cleanup of earnings regexes
 
+2022-Nov-20:
+- testing of new regex approach, tons of adjustments, more to follow
+
 Next steps:
+- continue first 600 after PVBC
+- implement failing false positives (eliminate ETV, ETF)
+- eliminate Income funds
 - use variables in regexes!
 - parsing strategy, testing
 

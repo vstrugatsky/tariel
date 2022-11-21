@@ -1,8 +1,44 @@
 from loaders.twitter_marketcurrents import Marketcurrents
 
 
+def test_false_positive_guidance():
+    account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = "$DE - Moody's affirms Deere's A2 rating, raises outlook to positive"
+    assert(account.parse_false_positive(tweet).groupdict())
+
+    tweet = '$UCO $USO $DBO - Oil reverses gain as OPEC again cuts oil demand forecast'
+    assert(not account.parse_negative_guidance(tweet))
+
+
+def test_false_positive_earnings():
+    account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = "$PVBC $BTC-USD - Provident Bancorp stock plunges as it estimates Q3 loss sparked by crypto slump"
+    assert (not account.parse_negative_earnings(tweet))
+    assert (account.parse_negative_guidance(tweet)[0] == 'estimates Q3 loss')
+
+    tweet = "$NFLX - Netflix shares head north as BoA cites 'strong runway' for subscriber growth"
+    assert(account.parse_false_positive(tweet).groupdict())
+
+    tweet = "$JAGX - Jaguar trades lower despite Q3 revenue soaring 400%"
+    assert(not account.parse_negative_earnings(tweet))  # lower despite
+
+    tweet = "$FAMI - Farmmi secures high-volume order for export to Guam"
+    assert(not account.parse_positive_earnings(tweet))  # higher, not high
+
+    tweet = "$DIS - Disney World boosts prices as parks demand continues surge"
+    assert(not account.parse_positive_earnings(tweet))
+
+    tweet = "$EAD - Allspring Income Oppurtunities declines monthly dividend by -2.4% to $0.0535 /share"
+    assert(not account.parse_negative_earnings(tweet))  # income declines not captured
+
+
 def test_parse_false_positive():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = "$FXI $PGJ $EWH - China new home prices fall the most in over 7 years as persistent COVID-19 curbs"
+    assert (account.parse_false_positive(tweet).groupdict())
 
     tweet = "$RAAS - Cloopen receives NYSE's grant of extension regarding delayed filing of 2021 annual report"
     assert (not account.parse_negative_earnings(tweet))
@@ -243,6 +279,9 @@ def test_parse_combos():
 
 def test_parse_positive_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = "$LOW - Lowe’s shares lifted by earnings beat, raised forecast"
+    assert (account.parse_positive_guidance(tweet)[0] == 'raised forecast')
 
     tweet = '$COLD - Americold Realty Trust rises on upward revision to FY22 guidance'
     assert (account.parse_positive_guidance(tweet)[0] == 'upward revision to FY22 guidance')
@@ -488,6 +527,11 @@ def test_parse_negative_guidance():
 
 def test_parse_positive_sentiment():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = "$DOLE - Dole stock gains on Q3 profit beat, strong sales guidance"
+    assert (account.parse_positive_earnings(tweet)[0] == 'Q3 profit beat')
+    assert (len(account.parse_positive_earnings(tweet)) == 1)  # strong sales not considered because of guidance
+    assert (account.parse_positive_guidance(tweet)[0] == 'strong sales guidance')
 
     tweet = "$M - Macy's beats consensus in Q3, raised FY2022 adjusted EPS outlook"
     assert (account.parse_positive_earnings(tweet)[0] == 'beats consensus')
@@ -779,7 +823,7 @@ def test_parse_negative_sentiment():
     tweet = '$USNZY $USNZ - High costs, low volumes weigh on miner Usiminas Q3 results'  # earnings -, high cost, low volumes
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_negative_earnings(tweet)[0].lower() == 'high costs')
-    assert(account.parse_negative_earnings(tweet)[1] == 'low volume')
+    assert(account.parse_negative_earnings(tweet)[1] == 'weigh on miner Usiminas Q3 result')
     assert(not account.parse_positive_earnings(tweet))
 
     tweet = '$ARLP - Alliance Resources tumbles after coal producer misses results consensus'
