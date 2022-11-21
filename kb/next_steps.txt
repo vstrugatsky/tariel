@@ -269,9 +269,11 @@ Parsing improvements:
 2022-Nov-20:
 - testing of new regex approach, tons of adjustments, more to follow
 
+2022-Nov-21:
+- regex improvements, analysis of false positives
+
 Next steps:
-- continue first 600 after PVBC
-- implement failing false positives (eliminate ETV, ETF)
+- implement failing false positives through a simplified earnings indicator - remove boosts prices
 - eliminate Income funds
 - use variables in regexes!
 - parsing strategy, testing

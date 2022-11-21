@@ -4,6 +4,9 @@ from loaders.twitter_marketcurrents import Marketcurrents
 def test_false_positive_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = "$TSN - Tyson Foods margin guidance raises analyst suspicion"
+    assert (not account.parse_positive_guidance(tweet))
+
     tweet = "$DE - Moody's affirms Deere's A2 rating, raises outlook to positive"
     assert(account.parse_false_positive(tweet).groupdict())
 
@@ -13,6 +16,12 @@ def test_false_positive_guidance():
 
 def test_false_positive_earnings():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = "$TSSI - TSS trades lower after Q3 results, CEO departure announcement"
+    assert (not account.parse_negative_earnings(tweet))
+
+    tweet = "$DE $TITN - October seen as a strong month agricultural equipment sales" # fuzzy, earnings ind, false pos
+    assert (not account.parse_positive_earnings(tweet))
 
     tweet = "$PVBC $BTC-USD - Provident Bancorp stock plunges as it estimates Q3 loss sparked by crypto slump"
     assert (not account.parse_negative_earnings(tweet))
@@ -179,6 +188,10 @@ def test_parse_earnings_indicator():
 def test_parse_combos():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = "$SPB - Spectrum Brands trades lower after revenue miss, cautious outlook"
+    assert(account.parse_negative_guidance(tweet)[0] == 'cautious outlook')
+    assert(account.parse_negative_earnings(tweet)[0] == 'revenue miss')
+
     tweet = "$QUIK - QuickLogic trades down despite Q3 beat as revenue decreases Y/Y"
     assert(account.parse_positive_earnings(tweet)[0] == 'Q3 beat')
     assert(account.parse_negative_earnings(tweet)[0] == 'revenue decrease')
@@ -280,70 +293,91 @@ def test_parse_combos():
 def test_parse_positive_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = '$TSN - Tyson Foods projects ‘strong profitability’ in 2023 despite macro pressures'
+    assert (account.parse_positive_guidance(tweet)[0] == 'projects ‘strong profit')
+    assert (not account.parse_positive_earnings(tweet))
+
     tweet = "$LOW - Lowe’s shares lifted by earnings beat, raised forecast"
     assert (account.parse_positive_guidance(tweet)[0] == 'raised forecast')
+    assert (account.parse_positive_earnings(tweet)[0] == 'earnings beat')
 
     tweet = '$COLD - Americold Realty Trust rises on upward revision to FY22 guidance'
     assert (account.parse_positive_guidance(tweet)[0] == 'upward revision to FY22 guidance')
+    assert (not account.parse_positive_earnings(tweet))
 
     tweet = "$WSKEF $WKEY - WISeKey sees FY22 semiconductor revenue to $22.7M; FY23 revenues expected to grow over 40% Y/Y"
     assert (account.parse_positive_guidance(tweet)[0] == 'revenues expected to grow')
+    assert (not account.parse_positive_earnings(tweet))
 
     tweet = "$SHLS - Shoals sizzles after raising low end of revenue guidance; Northland upgrades"
     assert (account.parse_positive_guidance(tweet)[0] == 'raising low end of revenue guidance')
+    assert (not account.parse_positive_earnings(tweet))
 
     tweet = "$ONON - On Holding stock slides despite hiking sales outlook"
     assert (account.parse_positive_guidance(tweet)[0] == 'hiking sales outlook')
+    assert (not account.parse_positive_earnings(tweet))
 
     tweet = '$DVA $FMS $OM - Outset Medical adds 39% after setting guidance ahead of consensus'
     assert (account.parse_positive_guidance(tweet)[0] == 'guidance ahead')
+    assert (not account.parse_positive_earnings(tweet))
 
     tweet = '$TTM - Tata Motors expects strong improvements in EBIT and free cash flows in H2 FY23; to delist its ADSs from NYSE'
     assert (account.parse_positive_guidance(tweet)[0] == 'expects strong improvement')
+    assert (not account.parse_positive_earnings(tweet))
 
     tweet = '$PFE $NVAX $MRNA - Pfizer raises outlook even as COVID vaccines sales drop 66% in Q3'
     assert (account.parse_positive_guidance(tweet)[0] == 'raises outlook')
+    assert (account.parse_negative_earnings(tweet)[0] == 'sales drop')
 
     tweet = '$LPSN - LivePerson stock rises 9% as more upsells, WildHealth outperformance drive upbeat outlook'
     assert (account.parse_positive_guidance(tweet)[0] == 'upbeat outlook')
+    assert (not account.parse_positive_earnings(tweet))
 
     tweet = '$BLNK - Blink Charging issues confident production outlook even as losses continue'
     assert (account.parse_positive_guidance(tweet)[0] == 'confident production outlook')
+    assert (account.parse_negative_earnings(tweet)[0] == 'losses continue')
 
     tweet = "$KEYS - Keysight rises on Q4 earnings beat, sees Q1 result above estimates"
     assert (account.parse_positive_guidance(tweet)[0] == 'sees Q1 result above')
-
-    tweet = "$WSKEF $WKEY - WISeKey sees FY22 semiconductor revenue to $22.7M; FY23 revenues expected to grow over 40% Y/Y"
-    assert (account.parse_positive_guidance(tweet)[0] == 'revenues expected to grow')
+    assert (account.parse_positive_earnings(tweet)[0] == 'Q4 earnings beat')
 
     tweet = "$M - Macy’s stock surges on strong Q3 earnings, boost to bottom line guide"
     assert (account.parse_positive_guidance(tweet)[0] == 'boost to bottom line guide')
+    assert (account.parse_positive_earnings(tweet)[0] == 'strong Q3 earnings')
 
     tweet = "$BBWI - Bath &amp; Body Works soars after lifting profit guidance"
     assert (account.parse_positive_guidance(tweet)[0] == 'lifting profit guidance')
+    assert (not account.parse_positive_earnings(tweet))
 
     tweet = "$AQUA - Evoqua Water rallies after solid earnings beat, guidance tops expectations"
     assert(account.parse_positive_guidance(tweet)[0] == 'guidance tops')
+    assert (account.parse_positive_earnings(tweet)[0] == 'earnings beat')
 
     tweet = '$SFM - Sprouts Farmers Market stock surges on strong profit, sales forecasts'
     assert(account.parse_positive_guidance(tweet)[0] == 'strong profit, sales forecast')
+    assert (account.parse_positive_earnings(tweet)[0] == 'strong profit')
 
     tweet = '$DTM - DT Midstream reports Q3 earnings; raises FY22 and FY23 Adjusted EBITDA guidance'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_positive_guidance(tweet)[0] == 'raises FY22 and FY23 Adjusted EBITDA guidance')
+    assert (not account.parse_positive_earnings(tweet))
 
     tweet = '$FPRUF $FPRUY - Fraport AG reports Q3 results; expects to achieve upper range of full-year outlook'
     assert(account.parse_positive_guidance(tweet)[0] == 'upper range of full-year outlook')
+    assert (not account.parse_positive_earnings(tweet))
 
     tweet = "$KSS - Kohl’s shares gain as Q3 earnings guided to be well above consensus, CEO quits"
     assert(account.parse_positive_guidance(tweet)[0] == 'guided to be well above')
+    assert (not account.parse_positive_earnings(tweet))
 
-    tweet = '$WMB - Williams sees full-year EBITDA near high end of guidance after strong Q3 https://t.co/1K0FkavqfR'
+    tweet = '$WMB - Williams sees full-year EBITDA near high end of guidance after strong Q3'
     assert(account.parse_positive_guidance(tweet)[0] == 'high end of guidance')
+    assert (not account.parse_positive_earnings(tweet))
 
     tweet = '$TGLS - Tecnoglass beats top and bottom line, increases FY outlook'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_positive_guidance(tweet)[0] == 'increases FY outlook')
+    assert (account.parse_positive_earnings(tweet)[0] == 'beats top and bottom line')
 
     tweet = '$CVEO - CVEO GAAP EPS of $0.32 misses by $0.02, revenue of $184.2M beats by $10.39M, raises FY guidance'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
@@ -378,33 +412,34 @@ def test_parse_positive_guidance():
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(not account.parse_positive_guidance(tweet))
     assert(not account.parse_negative_guidance(tweet))
+    assert (account.parse_positive_earnings(tweet)[0] == 'Q3 estimates beat')
 
     tweet = '$GTLS - Chart Industries reports mixed Q3 earnings; narrows FY22 and issues FY23 guidance'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(not account.parse_positive_guidance(tweet))
+    assert(not account.parse_positive_earnings(tweet))
     assert(not account.parse_negative_guidance(tweet))
 
     tweet = '$CL - Colgate-Palmolive reports mixed Q3 result, raises sales forecasts'  # earnings + => mixed but raises, earnings tweet mixed
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_positive_guidance(tweet)[0] == 'raises sales forecast')
     assert(not account.parse_negative_guidance(tweet))
-
-    tweet = '$GTLS - Chart Industries reports mixed Q3 earnings; narrows FY22 and issues FY23 guidance'  # earnings, mixed, no tweet
-    assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(not account.parse_positive_earnings(tweet))
-    assert(not account.parse_negative_earnings(tweet))
-    assert(not account.parse_positive_guidance(tweet))
-    assert(not account.parse_negative_guidance(tweet))
 
 
 def test_parse_negative_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = '$APRN - Blue Apron slides to all-time low after another unprofitable quarter, pulled guidance'
+    assert(account.parse_negative_guidance(tweet)[0] == 'pulled guidance')
+    assert(account.parse_negative_earnings(tweet)[0] == 'unprofitable quarter')
 
     tweet = '$SENS - Senseonics Holdings shares dip on tightening FY2022 revenue outlook'
     assert (account.parse_negative_guidance(tweet)[0] == 'tightening FY2022 revenue outlook')
 
     tweet = '$VRNS - Varonis slashes guidance on macro, forex headwinds; stock tumbles 16% after the bell'
     assert (account.parse_negative_guidance(tweet)[0] == 'slashes guidance')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$DKNG - DraftKings stock dives nearly 20% on lackluster 2023 forecast'
     assert (account.parse_negative_guidance(tweet)[0] == 'lackluster 2023 forecast')
@@ -426,78 +461,97 @@ def test_parse_negative_guidance():
 
     tweet = "$BRLT - Brilliant Earth stock slumps after sales forecast falls short of expectations"
     assert (account.parse_negative_guidance(tweet)[0] == 'forecast falls')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = "$POWW - Ammo stock plummets 26% as outlook cut, proxy contest linked expenses to continue"
     assert (account.parse_negative_guidance(tweet)[0] == 'outlook cut')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = "$COOK - Traeger stock tumbles on underdone guidance"
     assert (account.parse_negative_guidance(tweet)[0] == 'underdone guidance')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$MQ - Marqeta expects slower Q4 revenue growth, while EBITDA margin seen to improve'
     assert (account.parse_negative_guidance(tweet)[0] == 'expects slower Q4 revenue growth')
+    assert (account.parse_positive_guidance(tweet)[0] == 'margin seen to improve')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$TLS - Telos tanks 67% on full year guidance cut'
     assert (account.parse_negative_guidance(tweet)[0] == 'guidance cut')
 
     tweet = '$UPST - Upstart Q4 guidance disappoints as high interest rates crush loans demand'
     assert (account.parse_negative_guidance(tweet)[0] == 'guidance disappoint')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$NVAX - Novavax updated 2022 revenue guidance falls below consensus estimate'
     assert (account.parse_negative_guidance(tweet)[0] == 'guidance falls')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$PRTY - Party City stock plummets after cutting full-year forecasts'
     assert (account.parse_negative_guidance(tweet)[0] == 'cutting full-year forecast')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$QTWO - Q2 Holdings stock drops as macro headwinds dent year outlook, analysts cut'
     assert (account.parse_negative_guidance(tweet)[0] == 'dent year outlook')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$LYB - LyondellBasell paints a gloomy picture for current qtr, succumbing to high energy costs'
     assert (account.parse_negative_guidance(tweet)[0] == 'gloomy picture')
+    assert (account.parse_negative_earnings(tweet)[0] == 'high energy costs')
 
     tweet = '$TTWO - Take-Two tumbles 11% as it cuts bookings view below expectations'
     assert (account.parse_negative_guidance(tweet)[0] == 'cuts bookings view')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet  = '$OCUL - Ocular Therapeutix hits 52-week low after slashing revenue guidance'
     assert (account.parse_negative_guidance(tweet)[0] == 'slashing revenue guidance')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$UIS - Unisys plunges 40% after guidance cut'
     assert (account.parse_negative_guidance(tweet)[0] == 'guidance cut')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = "$WSM - Williams-Sonoma falls sharply after pulling FY24 guidance"
     assert (account.parse_negative_guidance(tweet)[0] == 'pulling FY24 guidance')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = "$SPB - Spectrum Brands trades lower after revenue miss, cautious outlook"
     assert (account.parse_negative_guidance(tweet)[0] == 'cautious outlook')
+    assert (account.parse_negative_earnings(tweet)[0] == 'revenue miss')
 
     tweet = '$PEG - PSEG forecasts 2023 earnings below Wall Street consensus'
     assert (account.parse_negative_guidance(tweet)[0] == 'forecasts 2023 earnings below')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$OTLY - Oatly stock slides after missing Q3 expectations, slashing sales estimates'
     assert (account.parse_negative_guidance(tweet)[0] == 'slashing sales estimate')
+    assert (account.parse_negative_earnings(tweet)[0] == 'missing Q3 expectation')
 
     tweet = '$VCSA - Vacasa stock sinks ~38% as Q4 guidance disappoints; co sees softness in bookings'
     assert (account.parse_negative_guidance(tweet)[0] == 'guidance disappoint')
     assert (account.parse_negative_guidance(tweet)[1] == 'sees softness in bookings')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$RDFN - Redfin issues soft Q4 revenue guidance, Q3 misses amid real estate slump'
     assert(account.parse_negative_guidance(tweet)[0] == 'soft Q4 revenue guidance')
+    assert (account.parse_negative_earnings(tweet)[0] == 'Q3 miss')
 
     tweet = '$LMND - Lemonade Q4 guidance trails consensus; Q3 net loss ratio swells'
     assert(account.parse_negative_guidance(tweet)[0] == 'guidance trails')
+    assert (account.parse_negative_earnings(tweet)[0] == 'Q3 net loss')
 
     tweet = '$REAL - The RealReal offers mixed Q3 report, below consensus sales guide'
     assert(account.parse_negative_guidance(tweet)[0] == 'below consensus sales guide')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$SOPH - SOPHiA Genetics reports Q3 earnings; FY22 revenue to be at the low-end of guidance'
     assert(account.parse_negative_guidance(tweet)[0] == 'low-end of guidance')
+    assert (not account.parse_negative_earnings(tweet))
 
-    tweet = '$STM - STMicroelectronics drops 7% on guiding Q4 revenue below consensus https://t.co/XAQZTeeNY5'
+    tweet = '$STM - STMicroelectronics drops 7% on guiding Q4 revenue below consensus'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(not account.parse_negative_earnings(tweet))
     assert(account.parse_negative_guidance(tweet)[0] == 'guiding Q4 revenue below')
-
-    tweet = '$APRN - Blue Apron slides to all-time low after another unprofitable quarter, pulled guidance'
-    assert(account.parse_negative_guidance(tweet)[0] == 'pulled guidance')
 
     tweet = '$PRLB - Proto Labs stock sinks 24% to decade-low as guidance widely misses estimates'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
@@ -507,10 +561,12 @@ def test_parse_negative_guidance():
     tweet = '$MTUAF - MTU Aero Engines AG GAAP EPS of €1.74, revenue of €1.35B, FY22 guidance lowered'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_negative_guidance(tweet)[0] == 'guidance lowered')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$LHX - L3Harris plunges after Q3 miss, full-year guidance cut'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_negative_guidance(tweet)[0] == 'guidance cut')
+    assert (account.parse_negative_earnings(tweet)[0] == 'Q3 miss')
 
     tweet = '$TNC - Tennant Non-GAAP EPS of $0.99 misses by $0.11, revenue of $262.9M misses by $24.27M, lowers FY earning guidance'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
@@ -588,7 +644,7 @@ def test_parse_positive_sentiment():
     assert(account.parse_positive_earnings(tweet)[0] == 'earnings gain')
     assert(account.parse_positive_earnings(tweet)[1] == 'AUM rise')
 
-    tweet = '$ARCB - ArcBest reports Q3 earnings beat; on track to deliver record annual revenues in 2022 https://t.co/8OXQGp9zil'
+    tweet = '$ARCB - ArcBest reports Q3 earnings beat; on track to deliver record annual revenues in 2022'
     assert (account.parse_earnings_indicator(tweet).groupdict()['earnings_indicator'])
     assert(account.parse_positive_earnings(tweet)[0] == 'Q3 earnings beat')
     assert(account.parse_positive_earnings(tweet)[1] == 'record annual revenue')
@@ -805,7 +861,7 @@ def test_parse_negative_sentiment():
 
     tweet = "$MARA - Marathon Digital Q3 net loss nearly triples Y/Y, earnings and revenue miss"
     assert(account.parse_negative_earnings(tweet)[0] == 'Q3 net loss')
-    assert(account.parse_negative_earnings(tweet)[1] == 'revenue miss')
+    assert(account.parse_negative_earnings(tweet)[1] == 'earnings and revenue miss')
 
     tweet = '$FNMA - Fannie Mae Q3 earnings slide as lower home prices lead to higher credit expense'
     assert(account.parse_negative_earnings(tweet)[0] == 'earnings slide')
@@ -927,6 +983,12 @@ def test_parse_negative_sentiment():
 
 def test_mixed_or_neutral():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = "$SHLS - Shoals sizzles after raising low end of revenue guidance; Northland upgrades"
+    assert(not account.parse_positive_earnings(tweet))
+    assert(not account.parse_negative_earnings(tweet))
+    assert(account.parse_positive_guidance(tweet)[0] == 'raising low end of revenue guidance')
+    assert(not account.parse_negative_guidance(tweet))
 
     tweet = '$ZIM - ZIM stock gains after earnings beat; analysts unfazed by downbeat guidance'
     assert(account.parse_positive_earnings(tweet)[0] == 'earnings beat')

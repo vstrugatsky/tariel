@@ -18,7 +18,7 @@ def test_load_basic_tweet():
     with model.Session() as session:
         er: EarningsReport = LoadEarningsReportsFromTwitter.load(tweet, session, {'loader': loader})
         assert er
-        assert (er.positive_earnings == ['earnings beat'])
+        assert (er.positive_earnings == ['Q3 earnings beat'])
         session.rollback()
 
 

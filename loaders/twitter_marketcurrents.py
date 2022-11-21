@@ -63,19 +63,20 @@ class Marketcurrents(TwitterAccount):
         p = re.compile(r'''(?P<positive_sentiment>
            (?<!slower\ Q[1-4])
            \W(earnings|EPS|NII|FFO|EBITDA|result(s)?|estimates|sales|income|volume|profit(s)?|AUM|NAV|revenue(s)?|cash\ flow|booking(s)?|(top|bottom)\ ?line)
-           \ (sees\ )?((\w+\W+){0,1}?)?
+           \ (?!(guidance|outlook|guide|forecast|expect))((\w+\W+){0,2}?)?
            (beat|boost|climb|crush|exceed|gain|grow|increase|improve|jump|rise|soar|surge|surpass|top)|
            
-           \W(higher(?!\ (on|as|ahead|amid|costs|despite|expenses|outflows|loss)\W)
+           (?<!(projects|estimates|predicts|forecasts)\W+)
+           \W(higher(?!\ (on|as|after|ahead|amid|costs|despite|expenses|outflows|loss)\W)
            |strong(er)?|better|soaring|upbeat|record|boost(ed|s)(?!\ prices)|premium|growth)
            \W(than\Wexpected\W)?((Q[1-4]|quarterly)\ )?(?!(guidance|outlook|guide|forecast|projection)\W)
            ((\w+\W+){0,3}?)?
            (sales|earnings|EPS|NII|FFO|performance|results|revenue|EBITDA|margin|demand|growth|profit|income|volume|pricing|consumption)
            (?!\W(guidance|outlook|guide|forecast|projection))|
            
-           (?<!(guidance|outlook|guide)(\ widely)?)
+           (?<!(guidance|outlook|guide|forecast)(\ widely)?)
            \W(top(s|ped|ping)|exceed(s|ed|ing)|crush(es|ed|ing)?|beat(s|ing)|boost(s|ing))
-           \ .*(forecast|estimate|consensus|expectation)|
+           \ .*(forecast|estimate|consensus|expectation|top[-\ ]line|bottom[-\ ]line)|
            
            \W(expenses|costs|outflows|loss)\ (plummet|improve|narrow)|      
            \W(low(er)?|less|small(er)?|narrow(er)?|improv(ed|ing))\W(than\Wexpected\W)?(Q[1-4]\W)?((\w+\W+){0,1}?)?(expenses|costs|outflows|loss)| 
@@ -92,17 +93,18 @@ class Marketcurrents(TwitterAccount):
         sentiments: [str] = []
         p = re.compile(r'''(?P<negative_sentiment>
            \W(earnings|EPS|NII|TII|FFO|EBITDA|revenue(s?)|profit(s?)|result(s)?|price(s)?|(top|bottom)\ ?line|income|sales|volume|margins|shipments|AUM|NAV|asset\ value(s)?)
-           \ ((\w+\W+){0,1}?)?
+           \ (?!(guidance|outlook|guide|forecast|expect))((\w+\W+){0,2}?)?
            (slip|slump|slide|decrease|tumble|fall|fell|miss|decline|plummet|drop|trail|loss|disappoint)|
            
-           \W(lower(?!\ (on|as|ahead|amid|costs|despite|expenses|outflows|loss)\W)
+           (?<!(projects|estimates|predicts|forecasts)\W+)
+           \W(lower(?!\ (on|as|after|ahead|amid|costs|despite|expenses|outflows|loss)\W)
            |weak(er)?|mar(s|red)|miss(es|ed|ing)?(\ on)?|weigh(s)?(\ on)?|disappointing|plunging|downbeat|dismal)
            \W(than\Wexpected\W)?((Q[1-4]|quarterly)\ )?(?!(guidance|outlook|guide|forecast|projection)\W)
            ((\w+\W+){0,3}?)?
            (sales|result|earnings|expectation|EPS|NII|TII|FFO|revenue|margin|shipment|demand|profit|income|volume|pricing|consumption|book\ value|PE\ return|(top|bottom)\ ?line)|
            
-           (?<!(guidance|outlook|guide)(\ widely)?)
-           \W(fall(s|ing)?|fell|miss(es|ed|ing)?)\ .*(forecast|estimate|consensus|expectation)|
+           (?<!(guidance|outlook|guide|forecast)(\ widely)?)
+           \W(fall(s|ing)?|fell|miss(es|ed|ing)?)\ .*(forecast|estimate|consensus|expectation|top[-\ ]line|bottom[-\ ]line)|
            
            (?<!(smaller|narrow(er)?)([-\ ]than[-\ ]expected)?)(?<!estimates|expects|sees|forecasts|projects)
            \W(Q[1-4]|quarterly)\ ((\w+\W+){0,1}?)?(loss|miss|headwind)(?!\Wnarrows)|
@@ -110,7 +112,7 @@ class Marketcurrents(TwitterAccount):
            \W(high(er)?|widening|rising|rise\ in)\W(than\Wexpected\W)?(Q[1-4]\W)?((\w+\W+){0,1}?)?(expense|costs|outflows|loss)|
            \W(expenses|costs|outflows|loss(es)?)\ (jump|rise|rose|increase|climb|widen|continue)|
            
-           \Wcost\ overrun|\Wexcess\ inventory)''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
+           \Wcost\ overrun|\Wexcess\ inventory|\Wunprofitable\ quarter)''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):
             if i.groupdict()["negative_sentiment"].strip() not in sentiments:  # to eliminate 'weak' if say 'weaker demand' was already parsed
                 sentiments.append(i.groupdict()["negative_sentiment"].strip())
@@ -120,7 +122,7 @@ class Marketcurrents(TwitterAccount):
         sentiments: [str] = []
         p = re.compile(r'''
            (?P<positive_guidance>
-           \W(forecast|guidance|outlook|guide)\ (raise|boost|above|ahead|higher|hike|increase|lift|sweeten|top[s|ped])|
+           \W(forecast|guidance|outlook|guide)\ (raise(?!s)|boost|above|ahead|higher|hike|increase|lift|sweeten|top[s|ped])|
            
            \W(guide[sd]|guiding|sees|forecasts|projects)\ .*
            ((EPS|revenue|sales|income|outlook|growth|profit|result|margin|(top|bottom)[-\ ]line)\ .*)?(higher|above|ahead)|
@@ -128,10 +130,11 @@ class Marketcurrents(TwitterAccount):
            \W(rais(es|ed|ing)|sweeten(s|ed|ing)|lift(s|ed|ing)|increas(es|ed|ing)|hik(es|ed|ing)|boost(s|ed|ing)?)[-\ ]
            (?!by\W)((\w+\W+){0,5}?)?(guidance|outlook|forecast|guide|estimate)|
            
+           (?<!\W(cut(s|ting)?|trim(s|med|ming)|tighten(s|ed|ing)|withdraw(s|ed|ing)|pull(s|ed|ing)|lower(s|ed|ing)|dent(s)?|slash(es|ed|ing)))
            \W(upbeat|upward\ revision|upper[\ -]range|bullish|confident|bright|strong|above[\ -]consensus|ahead|higher|high[\ -]end)[- ]
            ((\w+\W+){0,3}?)?(guidance|outlook|forecast|guide)|
            
-           \W(expects|sees|estimates|projects|forecasts)\ (faster|higher|strong(er)?|improv(ing|ed))
+           \W(expects|sees|estimates|projects|forecasts)\W+(faster|higher|strong(er)?|improv(ing|ed))
            \ ((\w+\W+){0,2}?)(EPS|revenue|sales|income|outlook|growth|profit|result|improvement|margin(top|bottom)[-\ ]line)|
            
            \W(expects|sees|estimates|projects|forecasts)\ ((\w+\W+){0,1}?)?(Q[1-4]|quarterly|yearly)\ ((\w+\W+){0,1}?)?(profit|beat)|
@@ -155,6 +158,7 @@ class Marketcurrents(TwitterAccount):
            \W(cut(s|ting)?|trim(s|med|ming)|tighten(s|ed|ing)|withdraw(s|ed|ing)|pull(s|ed|ing)|lower(s|ed|ing)|dent(s)?|slash(es|ed|ing))[- ]
            ((\w+\W+){0,5})?(guidance|outlook|forecast|guide|estimate|view)|
            
+           (?<!\W(rais(es|ed|ing)|sweeten(s|ed|ing)|lift(s|ed|ing)|increas(es|ed|ing)|hik(es|ed|ing)|boost(s|ed|ing)?))
            \W(dim|weak|soft|underdone|lackluster|cautious|below\ consensus|pared|gloomy|bearish|lower|low[\ -]end|downbeat|disappoint(ing)?|dismal|downward\ revision)[- ]
            ((\w+\W+){0,3})?(guidance|outlook|forecast|guide|picture|view)|
            
