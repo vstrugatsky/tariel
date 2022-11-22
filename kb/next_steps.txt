@@ -275,12 +275,14 @@ Parsing improvements:
 2022-Nov-21#2:
 - implemented simplified earnings indicator and updated tests. almost 400+ quality results
 
-Next steps:
+2022-Nov-21#3:
 - go over all tweets
 - convert data
+
+Next steps:
 - eliminate Income funds
 - use variables in regexes!
-- parsing strategy, testing
+- start parsing the NGT - dividends?
 
 Mis-characterized as earnings: $SI - Silvergate Capital stock slides as Morgan Stanley slashes 2023 EPS estimate by 51%
 Mis-characterized as earnings: $PVBC $BTC-USD - Provident Bancorp stock plunges as it estimates Q3 loss sparked by crypto slump
