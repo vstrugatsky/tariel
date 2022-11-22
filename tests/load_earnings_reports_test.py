@@ -1,8 +1,9 @@
 import model
-from loaders.earnings_reports_from_twitter import LoadEarningsReportsFromTwitter
+from loaders.events_from_twitter import LoadEventsFromTwitter
+from loaders.ers_from_twitter import LoadERFromTwitter
 from loaders.twitter_livesquawk import Livesquawk  # noqa
 from loaders.twitter_marketcurrents import Marketcurrents
-from model.earnings_reports import EarningsReport
+from model.events import ER
 
 test_symbol = 'NEWP'  # should not have ER records with surprises or sentiments
 
@@ -14,11 +15,11 @@ def test_load_basic_tweet():
              'author_id': '987654321',
              'created_at': '2022-11-03T00:12:43.000Z',
              'entities': {'cashtags': [{'start': 0, 'end': 4, 'tag': test_symbol}]}}
-    loader = LoadEarningsReportsFromTwitter(Marketcurrents('Marketcurrents'))
+    driver = LoadEventsFromTwitter(Marketcurrents('Marketcurrents'))
     with model.Session() as session:
-        er: EarningsReport = LoadEarningsReportsFromTwitter.load(tweet, session, {'loader': loader})
+        er: ER = LoadERFromTwitter(driver.account).load(session, tweet, driver)
         assert er
-        assert (er.positive_earnings == ['Q3 earnings beat'])
+        assert (er.parsed_positive == ['Q3 earnings beat'])
         session.rollback()
 
 
@@ -36,18 +37,18 @@ def test_dup_prevention():
         'twitter_account': 'marketcurrents',
         'author_id': '987654321',
         'entities': {'cashtags': [{'start': 0, 'end': 4, 'tag': test_symbol}]}}
-    loader = LoadEarningsReportsFromTwitter(Marketcurrents('Marketcurrents'))
+    driver = LoadEventsFromTwitter(Marketcurrents('Marketcurrents'))
     with model.Session() as session:
-        er = LoadEarningsReportsFromTwitter.load(tweet_1, session, {'loader': loader})
+        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_1, driver)
         assert er
         assert (str(round(er.eps_surprise, 2)) == '0.05')
-        assert (er.earnings_sentiment == 1)
+        assert (er.sentiment == 1)
         er_id = er.id
 
-        er = LoadEarningsReportsFromTwitter.load(tweet_2, session, {'loader': loader})
+        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_2, driver)
         assert (er.id == er_id)
         assert (str(round(er.eps_surprise, 2)) == '0.05')
-        assert (er.earnings_sentiment == 1)
+        assert (er.sentiment == 1)
 
 
 def test_wipeout_prevention():
@@ -72,33 +73,27 @@ def test_wipeout_prevention():
         'twitter_account': 'marketcurrents',
         'author_id': '987654321',
         'entities': {'cashtags': [{'start': 0, 'end': 4, 'tag': test_symbol}]}}
-    loader = LoadEarningsReportsFromTwitter(Marketcurrents('Marketcurrents'))
+    driver = LoadEventsFromTwitter(Marketcurrents('Marketcurrents'))
     with model.Session() as session:
-        er = LoadEarningsReportsFromTwitter.load(tweet_1, session, {'loader': loader})
+        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_1, driver)
         assert er
-        assert (er.negative_earnings == ['Q3 loss'])
-        assert (er.negative_guidance == ['cuts outlook'])
-        assert (er.earnings_sentiment == -1)
-        assert (er.guidance_sentiment == -1)
+        assert (er.parsed_negative == ['Q3 loss'])
+        assert (er.sentiment == -1)
         er_id = er.id
 
-        er = LoadEarningsReportsFromTwitter.load(tweet_2, session, {'loader': loader})
+        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_2, driver)
         assert (er.id == er_id)
         assert (str(round(er.eps_surprise, 2)) == '-0.01')
         assert (er.revenue_surprise == 210000)
-        assert (er.negative_earnings == ['Q3 loss'])
-        assert (sorted(er.negative_guidance) == ['cuts outlook', 'guides EPS lower'])
-        assert (er.earnings_sentiment == -1)
-        assert (er.guidance_sentiment == -1)
+        assert (er.parsed_negative == ['Q3 loss'])
+        assert (er.sentiment == -1)
 
-        er = LoadEarningsReportsFromTwitter.load(tweet_3, session, {'loader': loader})
+        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_3, driver)
         assert (er.id == er_id)
         assert (str(round(er.eps_surprise, 2)) == '-0.01')
         assert (er.revenue_surprise == 210000)
-        assert (er.earnings_sentiment == -2)
-        assert (er.guidance_sentiment == -1)
-        assert (sorted(er.negative_earnings) == ['Q3 loss', 'Q3 miss', 'cost overrun'])
-        assert (sorted(er.negative_guidance) == ['cuts outlook', 'guides EPS lower', 'lowered FY23 guidance'])
+        assert (er.sentiment == -2)
+        assert (sorted(er.parsed_negative) == ['Q3 loss', 'Q3 miss', 'cost overrun'])
 
         session.rollback()
 
@@ -119,21 +114,21 @@ def test_two_positive_numbers_mixed_sentiment():
         'author_id': '987654321',
         'entities': {'cashtags': [{'start': 0, 'end': 4, 'tag': test_symbol}]}}
 
-    loader = LoadEarningsReportsFromTwitter(Marketcurrents('Marketcurrents'))
+    driver = LoadEventsFromTwitter(Marketcurrents('Marketcurrents'))
     with model.Session() as session:
-        er = LoadEarningsReportsFromTwitter.load(tweet_1, session, {'loader': loader})
+        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_1, driver)
         assert er
-        assert (er.positive_earnings == ['earnings beat'])
-        assert (er.negative_earnings == ['weak near-term OLED demand'])
+        assert (er.parsed_positive == ['earnings beat'])
+        assert (er.parsed_negative == ['weak near-term OLED demand'])
         assert (er.eps_surprise is None)
         assert (er.revenue_surprise is None)
-        assert (er.earnings_sentiment == 0)
+        assert (er.sentiment == 0)
         er_id = er.id
 
-        er = LoadEarningsReportsFromTwitter.load(tweet_2, session, {'loader': loader})
+        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_2, driver)
         assert (er.id == er_id)
         assert (str(round(er.eps_surprise, 2)) == '0.14')
         assert (str(er.revenue_surprise) == '13610000')
-        assert (er.positive_earnings == ['earnings beat'])
-        assert (er.negative_earnings == ['weak near-term OLED demand'])
-        assert (er.earnings_sentiment == 2)
+        assert (er.parsed_positive == ['earnings beat'])
+        assert (er.parsed_negative == ['weak near-term OLED demand'])
+        assert (er.sentiment == 2)

@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 
 from loaders.loader_base import LoaderBase
 from model.symbols import Symbol

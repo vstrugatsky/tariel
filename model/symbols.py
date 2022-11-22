@@ -7,9 +7,7 @@ from sqlalchemy import Column, String, Boolean, Enum, ForeignKey, DateTime, Fetc
     Identity, Integer, UniqueConstraint
 
 import model as model
-import model.earnings_reports as e  # noqa can't import EarningsReport directly due to circular import error
 import model.events as ev  # noqa
-from model.earnings_report_symbol import earnings_report_symbol_association
 from model.event_symbols import event_symbol_association
 from model.exchanges import Exchange
 from model.jobs import Provider
@@ -39,9 +37,6 @@ class Symbol(model.Base):
 
     UniqueConstraint(symbol, exchange, active, delisted)
     exchange_object = relationship("Exchange")
-    earnings_reports = relationship("EarningsReport",
-                                    secondary=earnings_report_symbol_association,
-                                    back_populates='symbols')
     events = relationship("Event", secondary=event_symbol_association, back_populates='symbols')
 
     @validates('currency')
