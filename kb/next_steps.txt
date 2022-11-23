@@ -282,6 +282,9 @@ Parsing improvements:
 2022-Nov-22:
 - all tests repurposed, code cleaned from ER-specific
 
+2022-Nov-22#2:
+- started analyst parsing tests
+
 Next steps:
 - eliminate Income funds
 - use variables in regexes!

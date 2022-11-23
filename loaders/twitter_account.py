@@ -26,6 +26,14 @@ class TwitterAccount(ABC):
         pass
 
     @abstractmethod
+    def parse_analyst_positive(self, tweet_text: str):
+        pass
+
+    @abstractmethod
+    def parse_analyst_negative(self, tweet_text: str):
+        pass
+
+    @abstractmethod
     def parse_simple_earnings_indicator(self, tweet_text: str):
         pass
 

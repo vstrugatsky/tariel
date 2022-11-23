@@ -109,5 +109,9 @@ class Guidance(Event):
 
 
 class Analyst(Event):
-    analysts = {'MS': 'Morgan Stanley', 'C': 'Citigroup', 'BAC': 'BofA', 'MCO': "Moody's"}
+    analysts = {'BofA': 'BAC', 'Bank of America': 'BAC',
+                'Citigroup': 'C',
+                "Moody's": "MCO",
+                'Morgan Stanley': 'MS',
+                'Piper Sandler': 'PIPR'}
     __mapper_args__ = {"polymorphic_identity": EventType.Analyst}

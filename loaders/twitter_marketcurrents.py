@@ -120,7 +120,7 @@ class Marketcurrents(TwitterAccount):
            ((EPS|revenue|sales|income|outlook|growth|profit|result|margin|(top|bottom)[-\ ]line)\ .*)?(higher|above|ahead)|
            
            \W(rais(es|ed|ing)|sweeten(s|ed|ing)|lift(s|ed|ing)?|increas(es|ed|ing)|hik(es|ed|ing)|boost(s|ed|ing)?)[-\ ]
-           (?!by\W)((\w+\W+){0,5}?)?(guidance|outlook|forecast|guide|estimate)|
+           (?!by\W)((\w+\W+){0,5}?)?(guidance|outlook|forecast|guide|estimate)(?!\ to\ positive)|
            
            (?<!\W(cut(s|ting)?|trim(s|med|ming)|tighten(s|ed|ing)|withdraw(s|ed|ing)|pull(s|ed|ing)|lower(s|ed|ing)|dent(s)?|slash(es|ed|ing)))
            \W(upbeat|upward\ revision|upper[\ -]range|bullish|confident|bright|strong|above[\ -]consensus|ahead|higher|high[\ -]end)[- ]
@@ -168,11 +168,29 @@ class Marketcurrents(TwitterAccount):
     def parse_analyst(self, tweet_text: str):
         p = re.compile(r'''
            \W(?P<analyst>
-           (Morgan\ Stanley|BofA|Citigroup|Moody(\Ws)?|Wedbush))
+           (Morgan\ Stanley|Bank\ of\ America|BofA|Citigroup|Moody(\Ws)?|Wedbush|Northland|Loop\ Capital|Piper\ Sandler))
            (\W|$)
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         if p.search(tweet_text):
             return p.search(tweet_text).groupdict()["analyst"]
+
+    def parse_analyst_positive(self, tweet_text: str) -> [str or None]:
+        sentiments: [str] = []
+        p = re.compile(r'''(?P<positive_analyst>
+           \W(upgrade(s|d)?|raise(s|d)?)(\Woutlook)?(\Wto)?((\W\w+){0,1})?(\W|$))
+           ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
+        for i in p.finditer(tweet_text):
+            sentiments.append(i.groupdict()["positive_analyst"].strip())
+        return sentiments
+
+    def parse_analyst_negative(self, tweet_text: str) -> [str or None]:
+        sentiments: [str] = []
+        p = re.compile(r'''(?P<negative_analyst>
+           \W(downgrade(s|d)?|cut(s)?|slashe(s|d))(\Woutlook)?(\Wto)?((\W\w+){0,1})?(\W|$))
+           ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
+        for i in p.finditer(tweet_text):
+            sentiments.append(i.groupdict()["negative_analyst"].strip())
+        return sentiments
 
     def should_raise_parse_warning(self, tweet_text: str) -> bool:
         return False
