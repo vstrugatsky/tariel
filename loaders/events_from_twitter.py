@@ -7,7 +7,7 @@ from fuzzywuzzy import fuzz
 from sqlalchemy.orm.attributes import flag_modified
 
 import model
-import loaders.ers_from_twitter as er
+import loaders.earnings_reports_from_twitter as er
 import loaders.guidance_from_twitter as g
 from loaders.loader_base import LoaderBase
 from loaders.twitter_account import TwitterAccount
@@ -130,7 +130,7 @@ class LoadEventsFromTwitter(LoaderBase):
             print(f'INFO false positive detected')
             return
 
-        er.LoadERFromTwitter(account).load(session, tweet_response, driver)
+        er.LoadEarningsReportsFromTwitter(account).load(session, tweet_response, driver)
         g.LoadGuidanceFromTwitter(account).load(session, tweet_response, driver)
 
 

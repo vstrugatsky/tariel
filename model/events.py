@@ -17,10 +17,11 @@ from model.event_symbols import event_symbol_association
 
 
 class EventType(enum.Enum):
-    Earnings_Report = 1
-    Guidance = 2
-    Dividend = 3
-    Split = 4
+    Earnings_Report = 10
+    Guidance = 20
+    Analyst = 30
+    Dividend = 40
+    Split = 50
 
 
 class Event(model.Base):
@@ -93,7 +94,7 @@ class Event(model.Base):
         return er
 
 
-class ER(Event):
+class EarningsReport(Event):
     max_earnings_sentiment = 2
     __mapper_args__ = {"polymorphic_identity": EventType.Earnings_Report}
     eps = Column('er_eps', Numeric)
@@ -105,3 +106,8 @@ class ER(Event):
 class Guidance(Event):
     max_guidance_sentiment = 2
     __mapper_args__ = {"polymorphic_identity": EventType.Guidance}
+
+
+class Analyst(Event):
+    analysts = {'MS': 'Morgan Stanley', 'C': 'Citigroup', 'BAC': 'BofA', 'MCO': "Moody's"}
+    __mapper_args__ = {"polymorphic_identity": EventType.Analyst}

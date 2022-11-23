@@ -10,7 +10,7 @@ from utils.utils import Utils
 class Livesquawk(TwitterAccount):
     account_name = 'livesquawk'
 
-    def parse_earnings_indicator(self, tweet_text: str):
+    def parse_analyst(self, tweet_text: str):
         pass
 
     def parse_simple_earnings_indicator(self, tweet_text: str):

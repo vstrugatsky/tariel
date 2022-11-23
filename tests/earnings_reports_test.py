@@ -1,53 +1,53 @@
 import model
 from loaders.events_from_twitter import LoadEventsFromTwitter
-from loaders.ers_from_twitter import LoadERFromTwitter
+from loaders.earnings_reports_from_twitter import LoadEarningsReportsFromTwitter
 from loaders.twitter_livesquawk import Livesquawk
 from loaders.twitter_marketcurrents import Marketcurrents
-from model.events import ER
+from model.events import EarningsReport
 from model.jobs import Provider
 from model.symbols import Symbol
 from utils.utils import Utils
 
 
 def test_should_update():
-    er = ER(creator=Provider['Twitter_Livesquawk'], updater=None)
+    er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=None)
     provider = 'Twitter_Livesquawk'
     assert(LoadEventsFromTwitter.should_update(er, provider) is True)
 
-    er = ER(creator=Provider['Twitter_Marketcurrents'], updater=None)
+    er = EarningsReport(creator=Provider['Twitter_Marketcurrents'], updater=None)
     provider = 'Twitter_Marketcurrents'
     assert(LoadEventsFromTwitter.should_update(er, provider) is True)
 
-    er = ER(creator=Provider['Twitter_Livesquawk'], updater=None)
+    er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=None)
     provider = 'Twitter_Marketcurrents'
     assert(LoadEventsFromTwitter.should_update(er, provider) is True)
 
-    er = ER(creator=Provider['Twitter_Livesquawk'], updater=Provider['Twitter_Livesquawk'])
+    er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=Provider['Twitter_Livesquawk'])
     provider = 'Twitter_Marketcurrents'
     assert(LoadEventsFromTwitter.should_update(er, provider) is True)
 
-    er = ER(creator=Provider['Twitter_Livesquawk'], updater=Provider['Twitter_Marketcurrents'])
+    er = EarningsReport(creator=Provider['Twitter_Livesquawk'], updater=Provider['Twitter_Marketcurrents'])
     provider = 'Twitter_Livesquawk'
     assert(LoadEventsFromTwitter.should_update(er, provider) is False)
 
 
 def test_determine_currency():
-    assert(LoadERFromTwitter.determine_currency(eps_currency=None, revenue_currency=None) is None)
-    assert(LoadERFromTwitter.determine_currency('$', None) == 'USD')
-    assert(LoadERFromTwitter.determine_currency(None, '$') == 'USD')
-    assert(LoadERFromTwitter.determine_currency('$', '$') == 'USD')
+    assert(LoadEarningsReportsFromTwitter.determine_currency(eps_currency=None, revenue_currency=None) is None)
+    assert(LoadEarningsReportsFromTwitter.determine_currency('$', None) == 'USD')
+    assert(LoadEarningsReportsFromTwitter.determine_currency(None, '$') == 'USD')
+    assert(LoadEarningsReportsFromTwitter.determine_currency('$', '$') == 'USD')
 
 
 def test_determine_eps():
     # determine_eps(eps_sign: str | None, eps: str | None) -> float:
-    assert(LoadERFromTwitter.determine_eps(eps_sign=None, eps=None) is None)
-    assert(LoadERFromTwitter.determine_eps(None, eps='0.67') == 0.67)
-    assert(LoadERFromTwitter.determine_eps('-', eps='0.67') == -0.67)
-    assert(LoadERFromTwitter.determine_eps('-', eps='1') == -1)
+    assert(LoadEarningsReportsFromTwitter.determine_eps(eps_sign=None, eps=None) is None)
+    assert(LoadEarningsReportsFromTwitter.determine_eps(None, eps='0.67') == 0.67)
+    assert(LoadEarningsReportsFromTwitter.determine_eps('-', eps='0.67') == -0.67)
+    assert(LoadEarningsReportsFromTwitter.determine_eps('-', eps='1') == -1)
 
 
 def test_determine_surprise_marketcurrents():
-    loader = LoadERFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
 
     match_dict = {'eps_surprise_direction': None, 'eps_surprise_amount': None, 'eps_surprise_uom': None}
     assert(loader.account.determine_surprise(match_dict=match_dict, metrics='eps') is None)
@@ -69,7 +69,7 @@ def test_determine_surprise_marketcurrents():
 
 
 def test_determine_surprise_livesquawk():
-    loader = LoadERFromTwitter(Livesquawk(Livesquawk.account_name))
+    loader = LoadEarningsReportsFromTwitter(Livesquawk(Livesquawk.account_name))
     match_dict = {'eps': '1.51', 'eps_estimate_amount': '1.54'}
     assert (loader.account.determine_surprise(match_dict=match_dict, metrics='eps') == -0.03)
 
@@ -201,17 +201,17 @@ def test_associate_tweet_with_symbols_canadian():
 
 
 def test_evaluate_data_quality():
-    er = ER(revenue_surprise=-100, revenue=50)
-    assert('-100 too large' in LoadERFromTwitter.evaluate_data_quality(er))
+    er = EarningsReport(revenue_surprise=-100, revenue=50)
+    assert('-100 too large' in LoadEarningsReportsFromTwitter.evaluate_data_quality(er))
 
-    er = ER(revenue_surprise=None, revenue=50)
-    assert(None is LoadERFromTwitter.evaluate_data_quality(er))
+    er = EarningsReport(revenue_surprise=None, revenue=50)
+    assert(None is LoadEarningsReportsFromTwitter.evaluate_data_quality(er))
 
-    er = ER(revenue_surprise=74, revenue=100)
-    assert(None is LoadERFromTwitter.evaluate_data_quality(er))
+    er = EarningsReport(revenue_surprise=74, revenue=100)
+    assert(None is LoadEarningsReportsFromTwitter.evaluate_data_quality(er))
 
-    er = ER(revenue_surprise=75, revenue=100)
-    assert('75 too large' in LoadERFromTwitter.evaluate_data_quality(er))
+    er = EarningsReport(revenue_surprise=75, revenue=100)
+    assert('75 too large' in LoadEarningsReportsFromTwitter.evaluate_data_quality(er))
 
 
 def test_parse_symbol_from_url_desc():
@@ -221,52 +221,52 @@ def test_parse_symbol_from_url_desc():
 
 
 def test_update_sentiment_fields_noop():
-    loader = LoadERFromTwitter(Marketcurrents(Marketcurrents.account_name))
-    er = ER()
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    er = EarningsReport()
     loader.update_sentiment_fields(er)
     assert(er.sentiment == 0)
 
 
 def test_update_sentiment_fields_based_on_earnings():
-    loader = LoadERFromTwitter(Marketcurrents(Marketcurrents.account_name))
-    er = ER(eps_surprise=20, revenue_surprise=200)
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    er = EarningsReport(eps_surprise=20, revenue_surprise=200)
     loader.update_sentiment_fields(er)
     assert(er.sentiment == 2)
 
-    er = ER(eps_surprise=0, revenue_surprise=200)
+    er = EarningsReport(eps_surprise=0, revenue_surprise=200)
     loader.update_sentiment_fields(er)
     assert(er.sentiment == 1)
 
-    er = ER(eps_surprise=20, revenue_surprise=0)
+    er = EarningsReport(eps_surprise=20, revenue_surprise=0)
     loader.update_sentiment_fields(er)
     assert(er.sentiment == 1)
 
-    er = ER(eps_surprise=20, revenue_surprise=-200)
+    er = EarningsReport(eps_surprise=20, revenue_surprise=-200)
     loader.update_sentiment_fields(er)
     assert(er.sentiment == 0)
 
-    er = ER(eps_surprise=-20, revenue_surprise=200)
+    er = EarningsReport(eps_surprise=-20, revenue_surprise=200)
     loader.update_sentiment_fields(er)
     assert(er.sentiment == 0)
 
-    er = ER(eps_surprise=-20, revenue_surprise=0)
+    er = EarningsReport(eps_surprise=-20, revenue_surprise=0)
     loader.update_sentiment_fields(er)
     assert(er.sentiment == -1)
 
-    er = ER(eps_surprise=0, revenue_surprise=-200)
+    er = EarningsReport(eps_surprise=0, revenue_surprise=-200)
     loader.update_sentiment_fields(er)
     assert(er.sentiment == -1)
 
 
 def test_update_sentiment_fields_pos_neg():
-    loader = LoadERFromTwitter(Marketcurrents(Marketcurrents.account_name))
-    er = ER(parsed_positive=['earnings beat'], parsed_negative=['weak'])
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    er = EarningsReport(parsed_positive=['earnings beat'], parsed_negative=['weak'])
     loader.update_sentiment_fields(er)
     assert(er.sentiment == 0)
 
 
 def test_update_sentiment_fields_triple_pos_neg():
-    loader = LoadERFromTwitter(Marketcurrents(Marketcurrents.account_name))
-    er = ER(eps_surprise=0.14, revenue_surprise=200000, parsed_positive=['earnings beat'], parsed_negative=['weak'])
+    loader = LoadEarningsReportsFromTwitter(Marketcurrents(Marketcurrents.account_name))
+    er = EarningsReport(eps_surprise=0.14, revenue_surprise=200000, parsed_positive=['earnings beat'], parsed_negative=['weak'])
     loader.update_sentiment_fields(er)
     assert(er.sentiment == 2)

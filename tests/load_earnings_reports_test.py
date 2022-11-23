@@ -1,9 +1,9 @@
 import model
 from loaders.events_from_twitter import LoadEventsFromTwitter
-from loaders.ers_from_twitter import LoadERFromTwitter
+from loaders.earnings_reports_from_twitter import LoadEarningsReportsFromTwitter
 from loaders.twitter_livesquawk import Livesquawk  # noqa
 from loaders.twitter_marketcurrents import Marketcurrents
-from model.events import ER
+from model.events import EarningsReport
 
 test_symbol = 'NEWP'  # should not have ER records with surprises or sentiments
 
@@ -17,7 +17,7 @@ def test_load_basic_tweet():
              'entities': {'cashtags': [{'start': 0, 'end': 4, 'tag': test_symbol}]}}
     driver = LoadEventsFromTwitter(Marketcurrents('Marketcurrents'))
     with model.Session() as session:
-        er: ER = LoadERFromTwitter(driver.account).load(session, tweet, driver)
+        er: EarningsReport = LoadEarningsReportsFromTwitter(driver.account).load(session, tweet, driver)
         assert er
         assert (er.parsed_positive == ['Q3 earnings beat'])
         session.rollback()
@@ -39,13 +39,13 @@ def test_dup_prevention():
         'entities': {'cashtags': [{'start': 0, 'end': 4, 'tag': test_symbol}]}}
     driver = LoadEventsFromTwitter(Marketcurrents('Marketcurrents'))
     with model.Session() as session:
-        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_1, driver)
+        er: EarningsReport = LoadEarningsReportsFromTwitter(driver.account).load(session, tweet_1, driver)
         assert er
         assert (str(round(er.eps_surprise, 2)) == '0.05')
         assert (er.sentiment == 1)
         er_id = er.id
 
-        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_2, driver)
+        er: EarningsReport = LoadEarningsReportsFromTwitter(driver.account).load(session, tweet_2, driver)
         assert (er.id == er_id)
         assert (str(round(er.eps_surprise, 2)) == '0.05')
         assert (er.sentiment == 1)
@@ -75,20 +75,20 @@ def test_wipeout_prevention():
         'entities': {'cashtags': [{'start': 0, 'end': 4, 'tag': test_symbol}]}}
     driver = LoadEventsFromTwitter(Marketcurrents('Marketcurrents'))
     with model.Session() as session:
-        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_1, driver)
+        er: EarningsReport = LoadEarningsReportsFromTwitter(driver.account).load(session, tweet_1, driver)
         assert er
         assert (er.parsed_negative == ['Q3 loss'])
         assert (er.sentiment == -1)
         er_id = er.id
 
-        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_2, driver)
+        er: EarningsReport = LoadEarningsReportsFromTwitter(driver.account).load(session, tweet_2, driver)
         assert (er.id == er_id)
         assert (str(round(er.eps_surprise, 2)) == '-0.01')
         assert (er.revenue_surprise == 210000)
         assert (er.parsed_negative == ['Q3 loss'])
         assert (er.sentiment == -1)
 
-        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_3, driver)
+        er: EarningsReport = LoadEarningsReportsFromTwitter(driver.account).load(session, tweet_3, driver)
         assert (er.id == er_id)
         assert (str(round(er.eps_surprise, 2)) == '-0.01')
         assert (er.revenue_surprise == 210000)
@@ -116,7 +116,7 @@ def test_two_positive_numbers_mixed_sentiment():
 
     driver = LoadEventsFromTwitter(Marketcurrents('Marketcurrents'))
     with model.Session() as session:
-        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_1, driver)
+        er: EarningsReport = LoadEarningsReportsFromTwitter(driver.account).load(session, tweet_1, driver)
         assert er
         assert (er.parsed_positive == ['earnings beat'])
         assert (er.parsed_negative == ['weak near-term OLED demand'])
@@ -125,7 +125,7 @@ def test_two_positive_numbers_mixed_sentiment():
         assert (er.sentiment == 0)
         er_id = er.id
 
-        er: ER = LoadERFromTwitter(driver.account).load(session, tweet_2, driver)
+        er: EarningsReport = LoadEarningsReportsFromTwitter(driver.account).load(session, tweet_2, driver)
         assert (er.id == er_id)
         assert (str(round(er.eps_surprise, 2)) == '0.14')
         assert (str(er.revenue_surprise) == '13610000')

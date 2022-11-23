@@ -279,6 +279,9 @@ Parsing improvements:
 - go over all tweets
 - convert data
 
+2022-Nov-22:
+- all tests repurposed, code cleaned from ER-specific
+
 Next steps:
 - eliminate Income funds
 - use variables in regexes!

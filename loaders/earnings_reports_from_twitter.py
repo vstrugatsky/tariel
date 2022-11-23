@@ -11,17 +11,17 @@ from loaders.twitter_marketcurrents import Marketcurrents  # noqa
 from model.job_log import MsgSeverity
 from model.jobs import Provider
 from model.currency import Currency
-from model.events import EventType, Event, ER
+from model.events import EventType, Event, EarningsReport
 from utils.utils import Utils
 
 
-class LoadERFromTwitter(LoaderBase):
+class LoadEarningsReportsFromTwitter(LoaderBase):
     POSITIVE_EARNINGS = 'positive_earnings'
     NEGATIVE_EARNINGS = 'negative_earnings'
 
     def __init__(self, account):
         self.account: TwitterAccount = account
-        super(LoadERFromTwitter, self).__init__()
+        super(LoadEarningsReportsFromTwitter, self).__init__()
 
     def parse_earnings_numbers(self, tweet_text: str) -> dict:
         parsed_earnings = {}
@@ -62,19 +62,19 @@ class LoadERFromTwitter(LoaderBase):
             return float(eps) if eps else None
 
     @classmethod
-    def evaluate_data_quality(cls, er: ER) -> Optional[str]:
+    def evaluate_data_quality(cls, er: EarningsReport) -> Optional[str]:
         if er.revenue_surprise and er.revenue and (abs(er.revenue_surprise) / er.revenue) >= 0.75:
             return 'Revenue surprise ' + str(er.revenue_surprise) + ' too large for revenue=' + str(er.revenue)
         else:
             return None
 
-    def update_er(self, er: ER, tweet_response: dict, match_dict: dict):
+    def update_er(self, er: EarningsReport, tweet_response: dict, match_dict: dict):
         self.update_earnings_fields(er, match_dict)
         self.update_sentiment_fields(er)
         self.update_reference_fields(er, tweet_response, match_dict)
         er.data_quality_note = self.evaluate_data_quality(er)
 
-    def update_earnings_fields(self, er: ER, match_dict: dict):
+    def update_earnings_fields(self, er: EarningsReport, match_dict: dict):
         if not er.currency:
             er.currency = self.determine_currency(match_dict.get('eps_currency'), match_dict.get('revenue_currency'))
 
@@ -92,7 +92,7 @@ class LoadERFromTwitter(LoaderBase):
         er.parsed_negative = Utils.update_list_without_dups(er.parsed_negative, match_dict.get(self.NEGATIVE_EARNINGS))
 
     @classmethod
-    def update_sentiment_fields(cls, er: ER):
+    def update_sentiment_fields(cls, er: EarningsReport):
         er.sentiment = 0  # Recalc from the beginning
 
         if er.eps_surprise and er.eps_surprise > 0:
@@ -109,10 +109,10 @@ class LoadERFromTwitter(LoaderBase):
         if er.parsed_negative:
             er.sentiment -= len(er.parsed_negative)
 
-        er.sentiment = min(er.sentiment, ER.max_earnings_sentiment)
-        er.sentiment = max(er.sentiment, 0 - ER.max_earnings_sentiment)
+        er.sentiment = min(er.sentiment, EarningsReport.max_earnings_sentiment)
+        er.sentiment = max(er.sentiment, 0 - EarningsReport.max_earnings_sentiment)
 
-    def update_reference_fields(self, er: ER, tweet_response: dict, match_dict: dict):
+    def update_reference_fields(self, er: EarningsReport, tweet_response: dict, match_dict: dict):
         tweet_info = e.LoadEventsFromTwitter.build_tweet_info_json(tweet_response, self.account.account_name)
 
         if self.POSITIVE_EARNINGS in match_dict:
@@ -127,7 +127,7 @@ class LoadERFromTwitter(LoaderBase):
             msg = 'Failed to parse likely earnings numbers or sentiments from ' + tweet_text
             LoaderBase.write_log(session, driver, MsgSeverity.WARN, msg)
 
-    def load(self, session: model.Session, tweet_response: dict, driver: e.LoadEventsFromTwitter) -> ER | None:
+    def load(self, session: model.Session, tweet_response: dict, driver: e.LoadEventsFromTwitter) -> EarningsReport | None:
         tweet_text: str = tweet_response["text"]
         parsed_earnings = self.parse_earnings_numbers(tweet_text)
         if not parsed_earnings:
@@ -154,7 +154,7 @@ class LoadERFromTwitter(LoaderBase):
                                                         start_date=report_date - timedelta(days=5),
                                                         end_date=report_date + timedelta(days=5))
         if not er:
-            er = ER(creator=Provider[provider], event_date=report_date)
+            er = EarningsReport(creator=Provider[provider], event_date=report_date)
             session.add(er)
             for key in symbols:
                 er.symbols.append(symbols[key])

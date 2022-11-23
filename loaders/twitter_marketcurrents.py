@@ -36,23 +36,7 @@ class Marketcurrents(TwitterAccount):
         p = re.compile(r'''
            (?P<earnings_indicator>
            \W(F?Q[1-4]|quarter(ly)?|earnings|results|posts|estimate(s)?|loss(es)?|profit(s)?|miss(es)?|beat(s)?|
-           after\ (reporting|posting))(\W|$))
-           ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
-        return p.search(tweet_text)
-
-    def parse_earnings_indicator(self, tweet_text: str):
-        p = re.compile(r'''
-           (?P<earnings_indicator>
-           \W(F?Q[1-4]|FY([0-9]{2,4})|[0-9]{4}|full[\ -]year|quarterly|((first|second|third|fourth)[\ -]quarter))\ ((\w+\W+){0,2})?
-           ((operating|adjusted|net)\ )?
-           (report|earnings|income|performance|EPS|NII|FFO|EBITDA|growth|forecast|guidance|outlook|result|beat|miss|loss|revenue|profit|sales|sees)|
-           \W(earnings|result|beat|miss|loss|decline|increase|revenue|profit|sales)\ (in\ )?(Q[1-4]|((first|second|third|fourth)[\ -]quarter))|
-           \W(EPS|revenue)\ of|
-           \W(loss|profit|outlook|earnings)\ (widens|narrows|raise|disappoint)|
-           \W(record|strong|wide|narrow|(larger|smaller|wider)[\ -]than[\ -]expected)\ (profit|loss|revenue)|
-           \W(expenses|costs|outflows)\ (plummet|improve|jump|rise|rose|increase|climb)|
-           \W(post[s|ing]|after|report[s|ing])\ .*((un)?profit(s|able)?|earnings|margins|sales|Q[1-4]|((first|second|third|fourth)[\ -]quarter))|
-           \Wbeat|\Wmiss|\Wresults|\Wdrag\ earnings|\W(surpasses|top|hurdle).+(estimate|expectation))
+           after\ (reporting|posting)|(EPS|revenue)\ of)(\W|$))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
 
@@ -62,7 +46,6 @@ class Marketcurrents(TwitterAccount):
            \Wearnings\ preview|\?|\Whot\ stocks|\Wstocks\ to\ watch|\Wweek\ ahead|\Wday\ movers|\Wlikely\ to\ [beat|miss]|
            \WQ[1-4]\ preview|\Wgoes\ ex-dividend|
            \W(UK|China(['’]s)?|US|EU)\ (January|February|March|April|May|June|July|August|September|October|November|December|retail|(new\ )?home\ prices)|
-           \W(OPEC|Moody(['’]s)?)\ (cuts|lowers|raises|upgrades|downgrades|cites|affirms|guides|)|
            \W(ahead\ of)\ .*(Q[1-4]|quarterly))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
@@ -93,7 +76,7 @@ class Marketcurrents(TwitterAccount):
            (?<!estimates|forecasts|projects|expects|sees)\W(Q[1-4]|quarterly)\ ((\w+\W+){0,1}?)?(beat)|
            (?<!estimates|forecasts|projects|expects|sees)\W(beating|upbeat|growth\ in)\ (Q[1-4]|quarter)|
            
-           \Wfirst\ profit)''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
+           \W(first|surprise)\ profit)''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):
             sentiments.append(i.groupdict()["positive_sentiment"].strip())
         return sentiments
@@ -181,6 +164,15 @@ class Marketcurrents(TwitterAccount):
         for i in p.finditer(tweet_text):
             sentiments.append(i.groupdict()["negative_guidance"].strip())
         return sentiments
+
+    def parse_analyst(self, tweet_text: str):
+        p = re.compile(r'''
+           \W(?P<analyst>
+           (Morgan\ Stanley|BofA|Citigroup|Moody(\Ws)?|Wedbush))
+           (\W|$)
+           ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
+        if p.search(tweet_text):
+            return p.search(tweet_text).groupdict()["analyst"]
 
     def should_raise_parse_warning(self, tweet_text: str) -> bool:
         return False
