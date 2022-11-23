@@ -35,8 +35,8 @@ class Marketcurrents(TwitterAccount):
     def parse_simple_earnings_indicator(self, tweet_text: str):
         p = re.compile(r'''
            (?P<earnings_indicator>
-           \W(F?Q[1-4]|quarter(ly)?|earnings|results|posts|estimate(s)?|loss(es)?|profit(s)?|miss(es)?|beat(s)?|
-           after\ (reporting|posting)|(EPS|revenue)\ of)(\W|$))
+           \W(F?Q[1-4]|quarter(ly)?|earnings|results|posts|loss(es)?|profit(s)?|miss(es)?|beat(s)?|tops|
+           after\ (reporting|posting|topping)|(EPS|revenue)\ of)(\W|$))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         return p.search(tweet_text)
 
@@ -44,7 +44,7 @@ class Marketcurrents(TwitterAccount):
         p = re.compile(r'''
            (?P<earnings_false_positive>
            \Wearnings\ preview|\?|\Whot\ stocks|\Wstocks\ to\ watch|\Wweek\ ahead|\Wday\ movers|\Wlikely\ to\ [beat|miss]|
-           \WQ[1-4]\ preview|\Wgoes\ ex-dividend|
+           \WQ[1-4]\ preview|\Wgoes\ ex-dividend|\WETF|
            \W(UK|China(['’]s)?|US|EU)\ (January|February|March|April|May|June|July|August|September|October|November|December|retail|(new\ )?home\ prices)|
            \W(ahead\ of)\ .*(Q[1-4]|quarterly))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
@@ -58,7 +58,7 @@ class Marketcurrents(TwitterAccount):
            \ (?!(guidance|outlook|guide|forecast|expect))((\w+\W+){0,2}?)?
            (beat|boost|climb|crush|exceed|gain|grow|increase|improve|jump|rise|soar|surge|surpass|top)|
            
-           (?<!(projects|estimates|predicts|forecasts)\W+)
+           (?<!(projects|estimates|predicts|forecasts|expects)\W+)
            \W(higher(?!\ (on|as|after|ahead|amid|costs|despite|expenses|outflows|loss)\W)
            |strong(er)?|better|soaring|upbeat|record|boost(ed|s)|drives|drove|premium|growth)
            \W(than\Wexpected\W)?((Q[1-4]|quarterly)\ )?(?!(guidance|outlook|guide|forecast|projection)\W)
@@ -97,11 +97,13 @@ class Marketcurrents(TwitterAccount):
            
            (?<!(guidance|outlook|guide|forecast)(\ widely)?)
            \W(fall(s|ing)?|fell|miss(es|ed|ing)?)\ .*(forecast|estimate|consensus|expectation|top[-\ ]line|bottom[-\ ]line)|
+            
+           (?<!estimates|expects|sees|forecasts|projects)
+           \W(high(er)?|wide(ning|r)|rising|rise\ in)\W(than\Wexpected\W)?(Q[1-4]\W)?((\w+\W+){0,1}?)?(expense|costs|outflows|loss)|
            
            (?<!(smaller|narrow(er)?)([-\ ]than[-\ ]expected)?)(?<!estimates|expects|sees|forecasts|projects)
            \W(Q[1-4]|quarterly)\ ((\w+\W+){0,1}?)?(loss|miss|headwind)(?!\Wnarrows)|
            
-           \W(high(er)?|widening|rising|rise\ in)\W(than\Wexpected\W)?(Q[1-4]\W)?((\w+\W+){0,1}?)?(expense|costs|outflows|loss)|
            \W(expenses|costs|outflows|loss(es)?)\ (jump|rise|rose|increase|climb|widen|continue)|
            
            \Wcost\ overrun|\Wexcess\ inventory|\Wunprofitable\ quarter)''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
@@ -129,7 +131,7 @@ class Marketcurrents(TwitterAccount):
            \W(expects|sees|estimates|projects|forecasts)\W+(faster|higher|strong(er)?|improv(ing|ed))
            \ ((\w+\W+){0,2}?)(EPS|revenue|sales|income|outlook|growth|profit|result|improvement|margin(top|bottom)[-\ ]line)|
            
-           \W(expects|sees|estimates|projects|forecasts)\ ((\w+\W+){0,1}?)?(Q[1-4]|quarterly|yearly)\ ((\w+\W+){0,1}?)?(profit|beat)|
+           \W(expects|sees|estimates|projects|forecasts)\ ((\w+\W+){0,2}?)?(Q[1-4]|quarterly|yearly)\ ((\w+\W+){0,1}?)?(profit|beat)|
            
            \W(growth|profit|sales|result(s)?|revenue(s)?|EPS|income|(top|bottom)[-\ ]line|margin(s)?)
            \ (seen|expected)\ to\ (rise|grow|improve|increase))
@@ -157,7 +159,7 @@ class Marketcurrents(TwitterAccount):
            \W(expects|sees|estimates|projects|forecasts)\ (slow(er)?|low(er)?|weak(er)?|soft(ness|er)?)
            \ ((\w+\W+){0,2})(EPS|revenue|sales|income|outlook|growth|profit|margin|bookings)|
            
-           \W(expects|sees|estimates|projects|forecasts)\ ((\w+\W+){0,1}?)?(Q[1-4]|quarterly|yearly)\ ((\w+\W+){0,1}?)?(loss|miss)|
+           \W(expects|sees|estimates|projects|forecasts)\ ((\w+\W+){0,2}?)?(Q[1-4]|quarterly|yearly)\ ((\w+\W+){0,1}?)?(loss|miss)|
            
            \W(EPS|revenue|sales|income|outlook|growth|(top|bottom)[-\ ]line|profit|margin(s)?)\ seen to\ (fall|worsen|decrease|weaken|soften|slow))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)

@@ -1,5 +1,6 @@
 from loaders.twitter_marketcurrents import Marketcurrents
 
+
 def test_false_positive_earnings():
     account = Marketcurrents(Marketcurrents.account_name)
 
@@ -31,6 +32,9 @@ def test_false_positive_earnings():
 
 def test_parse_false_positive():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = '$AEO $RTH $IBUY - Retail ETFs rise after spate of strong results from several brick-and-mortar players https://t.co/gA6bGAOe35'
+    assert (account.parse_false_positive(tweet).groupdict())
 
     tweet = "$FXI $PGJ $EWH - China’s October retail and industrial data miss expectations"
     assert (account.parse_false_positive(tweet).groupdict())
@@ -381,6 +385,10 @@ def test_parse_positive_guidance():
 
 def test_parse_negative_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = "$CULP - Culp expects much wider Q2 operating loss on inventory write-downs, weak demand"
+    assert (account.parse_negative_guidance(tweet)[0] == 'expects much wider Q2 operating loss')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = '$MF - Missfresh regains compliance with Nasdaq minimum bid price requirement'  # miss in name
     assert (not account.parse_negative_earnings(tweet))
