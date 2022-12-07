@@ -139,7 +139,7 @@ if __name__ == '__main__':
     account_class: Type[TwitterAccount] = getattr(sys.modules['loaders.twitter_' + account_name.lower()], account_name)
     driver = LoadEventsFromTwitter(account_class(account_name))
     provider = 'Twitter_' + account_name
-    backfill = False
+    backfill = True
     commit = True
     paginate = True
     max_results = 100

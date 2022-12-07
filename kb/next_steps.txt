@@ -285,8 +285,16 @@ Parsing improvements:
 2022-Nov-22#2:
 - started analyst parsing tests
 
+2022-Dec-6:
+- more parsing improvements
+
 Next steps:
-- eliminate Income funds
+- "$APTV - Aptiv slips after losing bull rating at Morgan Stanley"
+- "$WMT - Walmart is called a Black Friday winner by Bank of America"
+- "$BUD - Anheuser-Busch InBev rallies after JPMorgan flips from bear to bull"
+- "$LU - Lufax stock retreats after JPMorgan cuts to Underperform on Q3 miss, weakened guidance"
+- "$AMAT $LRCX - Lam Research, Applied Materials estimates tweaked as Bernstein cuts spending forecast"
+- eliminate Income funds & ETF
 - use variables in regexes!
 - start parsing the NGT - dividends?
 

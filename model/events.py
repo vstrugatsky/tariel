@@ -110,8 +110,15 @@ class Guidance(Event):
 
 class Analyst(Event):
     analysts = {'BofA': 'BAC', 'Bank of America': 'BAC',
-                'Citigroup': 'C',
+                'Citigroup': 'C', 'Citi': 'C',
+                'Cowen': 'COWN',
+                'Deutsche Bank': 'DB',
+                'Goldman': 'GS',
+                'Jefferies': 'JEF',
+                'JPMorgan': 'JPM', 'J.P. Morgan': 'JPM',
+                'Mizuho': 'MFG',
                 "Moody's": "MCO",
                 'Morgan Stanley': 'MS',
-                'Piper Sandler': 'PIPR'}
+                'Piper': 'PIPR', 'Piper Sandler': 'PIPR',
+                'Wells Fargo': 'WFC'}
     __mapper_args__ = {"polymorphic_identity": EventType.Analyst}
