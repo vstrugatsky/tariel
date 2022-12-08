@@ -288,7 +288,11 @@ Parsing improvements:
 2022-Dec-6:
 - more parsing improvements
 
+2022-Dec-7:
+- more parsing improvements
+
 Next steps:
+- implement date safety when no new tweets in the last 7 days
 - "$APTV - Aptiv slips after losing bull rating at Morgan Stanley"
 - "$WMT - Walmart is called a Black Friday winner by Bank of America"
 - "$BUD - Anheuser-Busch InBev rallies after JPMorgan flips from bear to bull"

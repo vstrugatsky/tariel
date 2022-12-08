@@ -56,12 +56,12 @@ class Marketcurrents(TwitterAccount):
         p = re.compile(r'''(?P<positive_sentiment>
            (?<!slower\ Q[1-4])
            \W(earnings|EPS|NII|FFO|EBITDA|result(s)?|estimates|sales|income|volume|profit(s)?|AUM|NAV|revenue(s)?|cash\ flow|booking(s)?|(top|bottom)\ ?line)
-           \ (?!(guidance|outlook|guide|forecast|expect))((\w+\W+){0,2}?)?
+           \ (?!(guidance|outlook|guide|forecast|expect|seen))((\w+\W+){0,2}?)?
            (beat|boost|climb|crush|exceed|gain|grow|increase|improve|jump|rise|soar|surge|surpass|top)|
            
            (?<!(projects|estimates|predicts|forecasts|expects|sees))
-           \W(higher(?!\ (on|as|after|ahead|amid|costs|despite|expenses|outflows|loss)\W)
-           |strong(er)?|better|soaring|upbeat|record|boost(ed|s)|drives|drove|premium|growth)
+           \W+(higher(?!\ (on|as|after|ahead|amid|costs|despite|expenses|outflows|loss)\W)|strong(er)?|
+           better|soaring|upbeat|record|boost(ed|s)|drives|drove|premium|growth)
            \W(than\Wexpected\W)?((Q[1-4]|quarterly)\ )?(?!(guidance|outlook|guide|forecast|projection)\W)
            ((\w+\W+){0,3}?)?
            (sales|earnings|EPS|NII|FFO|performance|results|revenue|EBITDA|margin|demand|growth|profit|income|volume|pricing|consumption)
@@ -86,7 +86,7 @@ class Marketcurrents(TwitterAccount):
         sentiments: [str] = []
         p = re.compile(r'''(?P<negative_sentiment>
            \W(earnings|EPS|NII|TII|FFO|EBITDA|revenue(s?)|profit(s?)|result(s)?|price(s)?|(top|bottom)\ ?line|income|sales|volume|margins|shipments|AUM|NAV|asset\ value(s)?)
-           \ (?!(guidance|outlook|guide|forecast|expect))((\w+\W+){0,2}?)?
+           \ (?!(guidance|outlook|guide|forecast|expect|seen))((\w+\W+){0,2}?)?
            (slip|slump|slide|decrease|tumble|fall|fell|miss|decline|plummet|drop|trail|disappoint)|
            
            (?<!(projects|estimates|predicts|forecasts|sees)\W+)
@@ -136,7 +136,7 @@ class Marketcurrents(TwitterAccount):
            \W(guides\ for\ gain)|
            
            \W(growth|profit|sales|result(s)?|revenue(s)?|EPS|income|(top|bottom)[-\ ]line|margin(s)?)
-           \ (seen|expected)\ to\ (rise|grow|improve|increase))
+           \ (seen|expected)\ (to\ )?(ris(e|ing)|grow(ing)?|improv(e|ing)|increas(e|ing)|climb(ing)?))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):
             sentiments.append(i.groupdict()["positive_guidance"].strip())
@@ -163,7 +163,8 @@ class Marketcurrents(TwitterAccount):
            
            \W(expects|sees|estimates|projects|forecasts)\ ((\w+\W+){0,2}?)?(Q[1-4]|quarterly|yearly)\ ((\w+\W+){0,1}?)?(loss|miss)|
            
-           \W(EPS|revenue|sales|income|outlook|growth|(top|bottom)[-\ ]line|profit|margin(s)?)\ seen to\ (fall|worsen|decrease|weaken|soften|slow))
+           \W(EPS|revenue|sales|income|outlook|growth|(top|bottom)[-\ ]line|profit|margin(s)?)
+           \ (seen|expected)\ (to\ )?(fall(ing)?|worsen(ing)?|decreas(e|ing)|weaken(ing)?|soften(ing)?|slow(ing)?))
            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
         for i in p.finditer(tweet_text):
             sentiments.append(i.groupdict()["negative_guidance"].strip())

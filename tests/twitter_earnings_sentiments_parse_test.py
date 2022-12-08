@@ -256,6 +256,10 @@ def test_parse_combos():
 def test_parse_positive_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = "$C - Citigroup trading revenue seen climbing 10% in Q4, CEO Jane Fraser says"
+    assert (account.parse_positive_guidance(tweet)[0] == 'revenue seen climbing')
+    assert (not account.parse_positive_earnings(tweet))
+
     tweet = '$TSN - Tyson Foods projects ‘strong profitability’ in 2023 despite macro pressures'
     assert (account.parse_positive_guidance(tweet)[0] == 'projects ‘strong profit')
     # assert (not account.parse_positive_earnings(tweet))
@@ -643,7 +647,7 @@ def test_parse_positive_sentiment():
 
     tweet = '$WKME - WalkMe rallies after 23% growth in subscription revenue leads earnings beat'
     assert (account.parse_simple_earnings_indicator(tweet))
-    assert(account.parse_positive_earnings(tweet)[0] == 'growth in subscription revenue')
+    assert(account.parse_positive_earnings(tweet)[0] == '% growth in subscription revenue')
     assert(account.parse_positive_earnings(tweet)[1] == 'earnings beat')
 
     tweet = '$NU - Nu Holdings stock jumps 13% as Q3 revenue beats consensus, earnings improve'
@@ -718,7 +722,7 @@ def test_parse_positive_sentiment():
 
     tweet = '$SLCA - Strong pricing and growth support U.S. Silica Q3 beat.'
     assert (account.parse_simple_earnings_indicator(tweet))
-    assert(account.parse_positive_earnings(tweet)[0].lower() == 'strong pricing')
+    assert(account.parse_positive_earnings(tweet)[0].lower() == '- strong pricing')
     assert(account.parse_positive_earnings(tweet)[1] == 'Q3 beat')
     assert(not account.parse_negative_earnings(tweet))
 

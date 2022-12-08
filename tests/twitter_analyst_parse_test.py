@@ -8,6 +8,7 @@ def challenges():  # 19 out of 88 incorrect
     t = "$LI - Li Auto is recommended by BofA ahead of earnings because guidance may be strong"
     t = "$CHRW $XPO $RXO - RXO rated at Buy as Jefferies sees ‘compelling opportunity’ ahead"
     t = "$AAPL - Apple slips as UBS cuts iPhone build estimates, citing China disruptions"
+    t = "$AAPL $HNHPF - Apple slips as Morgan Stanley cuts iPhone estimates for second time in less than a month"
     t = "$JACK - Jack in the Box draws cautious views from Wall Street after earnings"
     t = "$AMAT $LRCX - Lam Research, Applied Materials estimates tweaked as Bernstein cuts spending forecast"
     # recorded as earnings
