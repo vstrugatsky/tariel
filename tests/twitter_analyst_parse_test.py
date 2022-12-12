@@ -11,6 +11,7 @@ def challenges():  # 19 out of 88 incorrect
     t = "$AAPL $HNHPF - Apple slips as Morgan Stanley cuts iPhone estimates for second time in less than a month"
     t = "$JACK - Jack in the Box draws cautious views from Wall Street after earnings"
     t = "$AMAT $LRCX - Lam Research, Applied Materials estimates tweaked as Bernstein cuts spending forecast"
+    t = "$BKNG $EXPE $TRIP - Expedia, Tripadvisor cut to Sell as Wolfe Research takes bearish view on travel stocks https://t.co/zxzMVjgV2r"
     # recorded as earnings
     t = "$SPY $GS $WFC - Goldman Sachs' David Kostin predicts S&amp;P 500 will be flat in 2023 with no earnings growth"
     t = "$RGA - Reinsurance Group of America upped to Outperform at RBC on earnings growth potential"
@@ -19,19 +20,13 @@ def challenges():  # 19 out of 88 incorrect
     # {disappointing earnings growth outlook} + {earnings grow} + {disappointing earnings growth}
     t = "$SR - Spire sinks after JPM downgrades on disappointing earnings growth outlook"
 
-    # earnings not recorded
-    t = "$YY - JOYY rises despite decline in Q3 revenue, lower Y/Y Q4 guidance"
     # XLI recorded (fund)
     t = "$GE $XLI $BA - Deere leads weekly gains in industrial stocks after upbeat outlook"
     # recorded with both positive and negative guidance
     # {guides FY 2023 adj. EPS below consensus ahead}", "{guides FY 2023 adj. EPS below}"
     t = "$UNH - UnitedHealth guides FY 2023 adj. EPS below consensus ahead of investor conference"
-    # recorded with positive guidance
-    t = "$TRP $TRP:CA - TC Energy sees higher 2023 costs for Coastal GasLink project"
     # wrongly associated with both DIS and TCEHY - Tencent (BILI not in cashtags)
     t = "$DIS $BIDU $TCEHY - Bilibili surges as Q3 tops expectations; Chinese tech rises on refined COVID-19 measures"
-    # recorded as positive earnings "product revenue shows slowing grow"
-    t = "$SNOW - Snowflake plunges as Q4 guidance, product revenue shows slowing growth"
 
 
 def test_parse_analyst():

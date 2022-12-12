@@ -144,10 +144,22 @@ def test_parse_earnings_indicator():
 def test_parse_combos():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = "$SNOW - Snowflake plunges as Q4 guidance, product revenue shows slowing growth"
+    assert (account.parse_simple_earnings_indicator(tweet))
+    assert(not account.parse_positive_earnings(tweet))
+    assert(account.parse_negative_earnings(tweet)[0] == 'slowing growth')
+
+    tweet = "$SNOW - Snowflake drops on weak Q4 guidance, but analysts defend as margins increase"
+    assert (account.parse_simple_earnings_indicator(tweet))
+    assert(not account.parse_negative_earnings(tweet))
+    assert(account.parse_positive_earnings(tweet)[0] == 'margins increase')
+    assert(account.parse_negative_guidance(tweet)[0] == 'weak Q4 guidance')
+
     tweet = "$SPB - Spectrum Brands trades lower after revenue miss, cautious outlook"
     assert (account.parse_simple_earnings_indicator(tweet))
     assert(account.parse_negative_guidance(tweet)[0] == 'cautious outlook')
     assert(account.parse_negative_earnings(tweet)[0] == 'revenue miss')
+    assert(len(account.parse_negative_earnings(tweet)) == 1)
 
     tweet = "$QUIK - QuickLogic trades down despite Q3 beat as revenue decreases Y/Y"
     assert (account.parse_simple_earnings_indicator(tweet))
@@ -351,7 +363,7 @@ def test_parse_positive_guidance():
     assert (not account.parse_positive_earnings(tweet))
 
     tweet = "$KSS - Kohl’s shares gain as Q3 earnings guided to be well above consensus, CEO quits"
-    assert(account.parse_positive_guidance(tweet)[0] == 'guided to be well above')
+    assert(account.parse_positive_guidance(tweet)[0] == 'earnings guided to be well above')
     assert (not account.parse_positive_earnings(tweet))
 
     tweet = '$WMB - Williams sees full-year EBITDA near high end of guidance after strong Q3'
@@ -413,6 +425,14 @@ def test_parse_positive_guidance():
 
 def test_parse_negative_guidance():
     account = Marketcurrents(Marketcurrents.account_name)
+
+    tweet = "$TRP $TRP:CA - TC Energy sees higher 2023 costs for Coastal GasLink project"
+    assert (not account.parse_positive_guidance(tweet))
+    assert (account.parse_negative_guidance(tweet)[0] == 'sees higher 2023 costs')
+
+    tweet = "$LULU - Lululemon slumps after holiday quarter guidance misses high expectations"
+    assert (account.parse_negative_guidance(tweet)[0] == 'guidance misses')
+    assert (not account.parse_negative_earnings(tweet))
 
     tweet = "$RIO - Rio Tinto forecasts flat iron ore shipments, higher costs next year"
     assert (account.parse_negative_guidance(tweet)[0] == 'forecasts flat iron ore shipments')
@@ -1055,9 +1075,13 @@ def test_parse_negative_sentiment():
 def test_mixed_or_neutral():
     account = Marketcurrents(Marketcurrents.account_name)
 
+    tweet = "$YY - JOYY rises despite decline in Q3 revenue, lower Y/Y Q4 guidance"
+    assert(account.parse_negative_guidance(tweet)[0] == 'lower Y/Y Q4 guidance')
+    assert(account.parse_negative_earnings(tweet)[0] == 'decline in Q3 revenue')
+
     tweet = '$CBOE - Cboe Global sees higher organic growth, less expenses in 2022 after Q3 beat'
     assert (account.parse_simple_earnings_indicator(tweet))
-    assert(account.parse_positive_guidance(tweet)[0] == 'sees higher')
+    assert(account.parse_positive_guidance(tweet)[0] == 'sees higher organic growth')
     assert(account.parse_positive_earnings(tweet)[0] == 'less expenses')
     assert(account.parse_positive_earnings(tweet)[1] == 'Q3 beat')
 
