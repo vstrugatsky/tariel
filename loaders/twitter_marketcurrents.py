@@ -215,10 +215,13 @@ class Marketcurrents(TwitterAccount):
         return False
 
     def parse_symbol_from_url_desc(self, url_desc) -> str | None:
-        p = re.compile(r'''(\((?P<symbol>[A-Za-z\.\:]+)\))
-            ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
-        match = p.search(url_desc)
-        return match.groupdict()['symbol'] if match else None
+        if url_desc:
+            p = re.compile(r'''(\((?P<symbol>[A-Za-z\.\:]+)\))
+                ''', re.VERBOSE | re.IGNORECASE | re.DOTALL)
+            match = p.search(url_desc)
+            return match.groupdict()['symbol'] if match else None
+        else:
+            return None
 
     def determine_surprise(self, match_dict: dict, metrics: str) -> float | None:
         if metrics == 'eps':

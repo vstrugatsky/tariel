@@ -22,9 +22,7 @@ def challenges():  # 19 out of 88 incorrect
 
     # XLI recorded (fund)
     t = "$GE $XLI $BA - Deere leads weekly gains in industrial stocks after upbeat outlook"
-    # recorded with both positive and negative guidance
-    # {guides FY 2023 adj. EPS below consensus ahead}", "{guides FY 2023 adj. EPS below}"
-    t = "$UNH - UnitedHealth guides FY 2023 adj. EPS below consensus ahead of investor conference"
+
     # wrongly associated with both DIS and TCEHY - Tencent (BILI not in cashtags)
     t = "$DIS $BIDU $TCEHY - Bilibili surges as Q3 tops expectations; Chinese tech rises on refined COVID-19 measures"
 
