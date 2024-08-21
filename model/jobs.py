@@ -5,12 +5,13 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 import model
 
-
 class Provider(enum.Enum):
     EOD = 1
     Polygon = 2
     Twitter_Livesquawk = 10         # lower-priority
     Twitter_Marketcurrents = 11      # higher-priority
+    Norgate = 12
+    AlphaVantage = 13
 
 
 class JobType(enum.Enum):
