@@ -12,6 +12,8 @@ class Provider(enum.Enum):
     Twitter_Marketcurrents = 11      # higher-priority
     Norgate = 12
     AlphaVantage = 13
+    Tariel = 14
+    FMP = 15
 
 
 class JobType(enum.Enum):
@@ -21,6 +23,9 @@ class JobType(enum.Enum):
     EarningsReports = 4
     MarketDaily = 5
     Events = 6
+    RealTestEventList = 7
+    EarningsCalendar = 8
+    EarningsConfirmed = 9
 
 
 class Job(model.Base):

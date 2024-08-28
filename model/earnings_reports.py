@@ -32,3 +32,11 @@ class EarningsReport(model.Base):
             filter(EarningsReport.symbol_norgate == symbol_norgate,
                    EarningsReport.fiscal_date_ending == fiscal_date_ending). \
             scalar()
+    
+    @staticmethod
+    def get_latest(session: model.Session, symbol_norgate: SymbolNorgate) -> Optional[EarningsReport]:
+        return session.query(EarningsReport). \
+            filter(EarningsReport.symbol_norgate == symbol_norgate). \
+            order_by(EarningsReport.fiscal_date_ending.desc()). \
+            limit(1). \
+            scalar()
