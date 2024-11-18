@@ -10,7 +10,7 @@ from model.symbols_norgate import SymbolNorgate
 from config import config
 import requests
 
-class LoadEarningsReportsFromAlphaV(LoaderBase):
+class LoadEarningsReportsFromFMP(LoaderBase):
 
     @staticmethod
     def load(commit: bool):
@@ -18,9 +18,8 @@ class LoadEarningsReportsFromAlphaV(LoaderBase):
  
         with model.Session() as session:
             norgate_symbols: list[SymbolNorgate] = session.query(SymbolNorgate)\
+                .filter(SymbolNorgate.symbol.like('TBIO%')) \
                 .order_by(SymbolNorgate.symbol).all()
-                # .filter(SymbolNorgate.symbol.like('KEYS%')) \
-
                
         previous_ticker = None
         current_ticker = None
@@ -29,7 +28,7 @@ class LoadEarningsReportsFromAlphaV(LoaderBase):
         for symbol in norgate_symbols:  # sorted by symbol and thus by ticker
             current_ticker = SymbolNorgate.get_ticker_for_symbol(symbol.symbol)
             if current_ticker != previous_ticker and previous_ticker is not None:
-                LoadEarningsReportsFromAlphaV.load_earnings_for_ticker(previous_ticker, symbols_for_ticker, commit)
+                LoadEarningsReportsFromFMP.load_earnings_for_ticker(previous_ticker, symbols_for_ticker, commit)
                 print('previous_ticker: ' + previous_ticker, 'current_ticker: ' + current_ticker)
                 symbols_for_ticker = {}
 
@@ -37,28 +36,29 @@ class LoadEarningsReportsFromAlphaV(LoaderBase):
             symbols_for_ticker[symbol.symbol] = symbol.delisted
 
         # load earnings for the last ticker
-        LoadEarningsReportsFromAlphaV.load_earnings_for_ticker(current_ticker, symbols_for_ticker, commit)
+        LoadEarningsReportsFromFMP.load_earnings_for_ticker(current_ticker, symbols_for_ticker, commit)
 
 
     @staticmethod
     def load_earnings_for_ticker(ticker: str, symbols_for_ticker: dict, commit: bool):
-        alphavantage_prefix = 'https://www.alphavantage.co/query?function=EARNINGS'
-        url = alphavantage_prefix + '&symbol=' + ticker + '&apikey=' + config.alphavantage['premium_api_key']
-        sleep(0.5) # 75 calls per minute
+        provider_prefix = 'https://financialmodelingprep.com/api/v3/historical/earning_calendar/'
+        url = provider_prefix + ticker + '?apikey=' + config.fmp['api_key']
         try:
             r = requests.get(url)
             # print(r.json())
-            if r.json() and r.json()['symbol'] == ticker:
-                for i in r.json()['quarterlyEarnings']:
-                    qtr_end: date = datetime.strptime(i['fiscalDateEnding'], '%Y-%m-%d').date()
-                    symbol: str = LoadEarningsReportsFromAlphaV.match_eoq_date_to_norgate_symbol(qtr_end, symbols_for_ticker)
+            for i in r.json():
+                qtr_end: date = datetime.strptime(i['fiscalDateEnding'], '%Y-%m-%d').date()
+                reported_date: date = datetime.strptime(i['date'], '%Y-%m-%d').date()
+                if qtr_end < date.today() and reported_date > qtr_end:
+                    symbol: str = LoadEarningsReportsFromFMP.match_eoq_date_to_norgate_symbol(qtr_end, symbols_for_ticker)
                     if symbol:
                         report = EarningsReport()
                         report.symbol_norgate = symbol
                         report.fiscal_date_ending = qtr_end
-                        report.reported_date = i['reportedDate']
-                        report.report_time = i['reportTime']
-                        report.creator = Provider.AlphaVantage.name
+                        report.reported_date = reported_date
+                        report.report_time = i['time']
+                        report.creator = Provider.FMP.name
+                        report.provider_updated = datetime.strptime(i['updatedFromDate'], '%Y-%m-%d').date()
                         with model.Session() as session:
                             session.merge(report)
                             if commit:
@@ -89,7 +89,7 @@ class LoadEarningsReportsFromAlphaV(LoaderBase):
 
 if __name__ == '__main__':
     commit = True
-    loader = LoadEarningsReportsFromAlphaV()
-    loader.job_id = LoaderBase.start_job(provider=Provider.AlphaVantage, job_type=JobType.EarningsReports, params='commit: ' + str(commit))
+    loader = LoadEarningsReportsFromFMP()
+    loader.job_id = LoaderBase.start_job(provider=Provider.FMP, job_type=JobType.EarningsReports, params='commit: ' + str(commit))
     loader.load(commit) 
     LoaderBase.finish_job(loader)

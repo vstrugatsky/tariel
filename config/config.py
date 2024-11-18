@@ -18,3 +18,6 @@ twitter = {'api_key': '5jVxQ7fmxfkoZ7ZCJLALNhQX7',
 gmail = {'account': 'tarieltotherescue@gmail.com',
          'app_password': 'ksczmurtldscfaai'  # this is not the main account password, rather Google's app password feature
         }
+
+google = {'custom_search_api_key': 'AIzaSyD2GRQbmQvzZ8Z3I7D6nl-IbAbaINQAa0Y',
+          'custom_search_engine_id': '35bae501d23f04bee'}
