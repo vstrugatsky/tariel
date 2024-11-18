@@ -1,14 +1,10 @@
 from __future__ import annotations
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Column, Enum, Integer, Date, DateTime, Numeric, \
-    UniqueConstraint, Identity, ForeignKey, FetchedValue
+from sqlalchemy import Column, Integer, Date, DateTime, Numeric, String, Identity, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import JSONB
-
 import model
-from model.jobs import Provider
 from model.symbols import Symbol
 
 
@@ -18,7 +14,8 @@ class MarketDaily(model.Base):
     id_symbol = Column(Integer, ForeignKey("symbols.id"))
     symbol = relationship("Symbol")
     market_day = Column(Date, nullable=False)
-    UniqueConstraint(id_symbol, market_day)
+    creator = Column(String(20), nullable=False)
+    UniqueConstraint(id_symbol, market_day, creator)
 
     price_close = Column(Numeric, nullable=False)
     price_high = Column(Numeric)
@@ -27,16 +24,21 @@ class MarketDaily(model.Base):
     num_transactions = Column(Numeric)
     volume = Column(Numeric)
     price_volume_weighted = Column(Numeric)
+    iv = Column(Numeric, nullable=True)
+    pc_ratio = Column(Numeric, nullable=True)
+    next_earnings = Column(String(20), nullable=True)
+    market_cap = Column(String(20), nullable=True)
+    eps = Column(Numeric, nullable=True)
+    shortable = Column(String(20), nullable=True)
+    fee_rate = Column(Numeric, nullable=True)
 
-    created = Column(DateTime(timezone=True), FetchedValue())
-    creator = Column(Enum(Provider))
-    updated = Column(DateTime(timezone=True))
-    updater = Column(Enum(Provider))
-    provider_info = Column(JSONB)
+    created = Column(DateTime(timezone=True), default=datetime.now())
+    updated = Column(DateTime(timezone=True), default=datetime.now())
 
     @staticmethod
-    def get_unique(session: model.Session, symbol: Symbol, market_day: date) -> Optional[MarketDaily]:
+    def get_unique(session: model.Session, symbol: Symbol, market_day: date, creator: str) -> Optional[MarketDaily]:
         return session.query(MarketDaily). \
             filter(MarketDaily.id_symbol == symbol.id,
-                   MarketDaily.market_day == market_day). \
+                   MarketDaily.market_day == market_day,
+                   MarketDaily.creator == creator). \
             scalar()

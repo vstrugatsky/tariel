@@ -14,6 +14,8 @@ class Provider(enum.Enum):
     AlphaVantage = 13
     Tariel = 14
     FMP = 15
+    Edgar = 16
+    IBKR = 17
 
 
 class JobType(enum.Enum):
@@ -26,7 +28,8 @@ class JobType(enum.Enum):
     RealTestEventList = 7
     EarningsCalendar = 8
     EarningsConfirmed = 9
-
+    IbkrSnapshots = 10
+    
 
 class Job(model.Base):
     __tablename__ = 'jobs'

@@ -49,14 +49,14 @@ class LoadMarketDailyFromPolygon(LoaderBase):
         candidate_symbol: Symbol = Symbol.find_candidate_symbol(symbols, market_day)
 
         if candidate_symbol:
-            market_daily: MarketDaily = MarketDaily.get_unique(session, candidate_symbol, market_day)
+            market_daily: MarketDaily = MarketDaily.get_unique(session, candidate_symbol, market_day, Provider.Polygon.name)
             if market_daily:
                 market_daily.updated = datetime.now()
-                market_daily.updater = Provider.Polygon
+                market_daily.updater = Provider.Polygon.name
                 loader.records_updated += 1
             else:
                 market_daily = MarketDaily(symbol=candidate_symbol,
-                                           market_day=market_day, creator=Provider.Polygon)
+                                           market_day=market_day, creator=Provider.Polygon.name)
                 session.add(market_daily)
                 loader.records_added += 1
 
@@ -70,8 +70,8 @@ if __name__ == '__main__':
     date_format = '%Y-%m-%d'
     start_str: str = sys.argv[1] if len(sys.argv) > 1 else datetime.strftime(datetime.now(), date_format)
     end_str: str = sys.argv[1] if len(sys.argv) > 1 else datetime.strftime(datetime.now(), date_format)
-    # start_str = '2024-07-12'
-    # end_str = '2024-08-15'
+    # start_str = '2024-10-22'
+    # end_str = '2024-10-22'
 
     start_date: date = datetime.strptime(start_str, date_format).date()
     end_date: date = datetime.strptime(end_str, date_format).date()
